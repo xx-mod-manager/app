@@ -8,6 +8,5 @@ export async function getMods(): Promise<Mod[]> {
   //todo content over, is null
   const content: string = response.data.content;
   const result = decodeURIComponent(escape(window.atob(content)));
-  console.log('result is %s', result);
   return JSON.parse(result);
 }
