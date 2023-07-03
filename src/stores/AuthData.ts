@@ -1,6 +1,8 @@
 import { defineStore } from 'pinia';
 import { myLogger } from 'src/boot/logger';
 import { GithubTokenInfo } from 'src/class/GithubTokenInfo';
+import { Loading } from 'quasar'
+import { refreshTokenInfo } from 'src/api/GithubDeviceAuthApi';
 
 export const KEY_AUTH_DATA = 'AuthData';
 
@@ -48,6 +50,38 @@ export const useAuthDataStore = defineStore(KEY_AUTH_DATA, {
       localStorage.setItem(KEY_AUTH_DATA, JSON.stringify(this.$state));
 
     },
+    async authGithub() {
+      const activeToken = this.activeToken
+      const activeRefreshToken = this.activeRefreshToken
+
+      myLogger.debug(`active token is ${activeToken}, active refresh token is ${activeRefreshToken}.`)
+
+      if (activeToken) {
+        myLogger.debug('token is active, no need auth.')
+      } else {
+
+        if (!activeRefreshToken) {
+          Loading.show({ message: '跳转Github授权页中...' });
+          myLogger.debug('refresh token is not active, need create new token.')
+          window.open(
+            'https://github.com/login/oauth/authorize?client_id=Iv1.23bebc2931676eb7',
+            '_self'
+          );
+        } else {
+          Loading.show({ message: '刷新Github Token中...' });
+
+          if (this.token_info) {
+            const newToken = await refreshTokenInfo(this.token_info)
+
+            this.updateToken(newToken)
+            window.open('/', '_self')
+          } else {
+            Loading.hide()
+            throw Error('token is null!')
+          }
+        }
+      }
+    },
   },
 });
 
@@ -61,7 +95,7 @@ function initAuthData(): AuthData {
 
     return localAuthData;
   } else {
-    myLogger.debug('auit data miss from localStorage.');
+    myLogger.debug('auth data miss from localStorage.');
 
     return {
       token_info: undefined,

@@ -1,9 +1,17 @@
 import { api } from 'boot/axios';
 import { Mod } from 'src/class/Mod';
+import { useAuthDataStore } from 'src/stores/AuthData';
 
 export async function getMods(): Promise<Mod[]> {
+  const authData = useAuthDataStore()
+  if (!authData.activeToken) await authData.authGithub()
   const response = await api.get(
-    'https://api.github.com/repos/HeYaoDaDa/CddaModCommunityData/contents/mods.json'
+    'https://api.github.com/repos/HeYaoDaDa/CddaModCommunityData/contents/mods.json',
+    {
+      headers: {
+        Authorization: authData.token
+      }
+    }
   );
   //todo content over 1 mb, is null
   const content: string = response.data.content;

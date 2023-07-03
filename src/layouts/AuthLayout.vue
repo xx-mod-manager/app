@@ -9,6 +9,7 @@ import { useRoute, useRouter } from 'vue-router';
 const authDataStore = useAuthDataStore();
 const route = useRoute();
 const router = useRouter();
+
 getTokenInfo(route.query.code as string).then(async (token) => {
   await authDataStore.updateToken(token);
   router.push('/');

@@ -32,19 +32,12 @@
 <script setup lang="ts">
 import { useAuthDataStore } from 'src/stores/AuthData';
 import { ref } from 'vue';
-import { useQuasar } from 'quasar';
 
-const quasar = useQuasar();
 const authDataStore = useAuthDataStore();
 const leftDrawerOpen = ref(false);
 const needAuth = ref(false);
 
 if (!authDataStore.activeToken) {
-  needAuth.value = true;
-  quasar.loading.show({ message: '跳转Github授权页中...' });
-  window.open(
-    'https://github.com/login/oauth/authorize?client_id=Iv1.23bebc2931676eb7',
-    '_self'
-  );
+  authDataStore.authGithub();
 }
 </script>
