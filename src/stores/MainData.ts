@@ -11,7 +11,9 @@ export const useMainDataStore = defineStore(KEY_MAIN_DATA, {
   actions: {
     async updateData() {
       myLogger.debug('update main data start.');
+
       const newMods = await getModsByRemote();
+
       myLogger.debug(`new mods count is  ${newMods.length}.`);
       this.mods = newMods;
       localStorage.setItem(KEY_MAIN_DATA, JSON.stringify(this.$state));
@@ -27,12 +29,15 @@ function initMainData(): {
 
   if (localMainDataJson) {
     const localMainData = JSON.parse(localMainDataJson) as { mods: Mod[] };
+
     myLogger.debug(
       `resume main data from localStorage, mods count is ${localMainData.mods.length}.`
     );
+
     return localMainData;
   } else {
     myLogger.debug('main data miss from localStorage, init new main data.');
+
     return {
       mods: [],
     };

@@ -9,7 +9,7 @@ module.exports = {
   // `parser: 'vue-eslint-parser'` is already included with any 'plugin:vue/**' config and should be omitted
   parserOptions: {
     parser: require.resolve('@typescript-eslint/parser'),
-    extraFileExtensions: [ '.vue' ]
+    extraFileExtensions: ['.vue']
   },
 
   env: {
@@ -47,11 +47,11 @@ module.exports = {
     // https://eslint.vuejs.org/user-guide/#why-doesn-t-it-work-on-vue-files
     // required to lint *.vue files
     'vue'
-    
+
     // https://github.com/typescript-eslint/typescript-eslint/issues/389#issuecomment-509292674
     // Prettier has not been included as plugin to avoid performance impact
     // add it as an extension for your IDE
-    
+
   ],
 
   globals: {
@@ -69,7 +69,7 @@ module.exports = {
 
   // add your custom rules here
   rules: {
-    
+
     'prefer-promise-reject-errors': 'off',
 
     quotes: ['warn', 'single', { avoidEscape: true }],
@@ -85,6 +85,43 @@ module.exports = {
     'no-unused-vars': 'off',
 
     // allow debugger during development only
-    'no-debugger': process.env.NODE_ENV === 'production' ? 'error' : 'off'
+    'no-debugger': process.env.NODE_ENV === 'production' ? 'error' : 'off',
+    'padding-line-between-statements': 'off',
+    '@typescript-eslint/padding-line-between-statements': [
+      'warn',
+      {
+        blankLine: 'always',
+        prev: ['block', 'block-like', 'class', 'const', 'import', 'let', 'expression', 'var', 'interface', 'type'],
+        next: [
+          'block',
+          'block-like',
+          'class',
+          'const',
+          'import',
+          'let',
+          'expression',
+          'var',
+          'interface',
+          'type',
+          'export',
+        ],
+      },
+      {
+        blankLine: 'never',
+        prev: ['const', 'let'],
+        next: ['const', 'let'],
+      },
+      {
+        blankLine: 'never',
+        prev: ['import'],
+        next: ['import'],
+      },
+      {
+        blankLine: 'never',
+        prev: ['expression'],
+        next: ['expression'],
+      },
+      { blankLine: 'always', prev: '*', next: 'return' },
+    ],
   }
 }

@@ -9,5 +9,6 @@ export async function getMods(): Promise<Mod[]> {
   const content: string = response.data.content;
   //todo replace escape
   const result = decodeURIComponent(escape(window.atob(content)));
+
   return JSON.parse(result);
 }
