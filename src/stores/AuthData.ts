@@ -2,7 +2,7 @@ import { defineStore } from 'pinia';
 import { myLogger } from 'src/boot/logger';
 import { GithubTokenInfo } from 'src/class/GithubTokenInfo';
 import { Loading } from 'quasar'
-import { refreshTokenInfo } from 'src/api/GithubDeviceAuthApi';
+import { refreshTokenInfo } from 'src/api/GithubAuthApi';
 
 export const KEY_AUTH_DATA = 'AuthData';
 

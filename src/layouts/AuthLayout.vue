@@ -2,7 +2,7 @@
   <p>认证登陆中</p>
 </template>
 <script setup lang="ts">
-import { getTokenInfo } from 'src/api/GithubDeviceAuthApi';
+import { getTokenInfo } from 'src/api/GithubAuthApi';
 import { useAuthDataStore } from 'src/stores/AuthData';
 import { useRoute, useRouter } from 'vue-router';
 

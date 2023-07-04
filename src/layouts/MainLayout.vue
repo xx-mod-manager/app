@@ -16,7 +16,7 @@
     </q-header>
 
     <q-drawer v-model="leftDrawerOpen" show-if-above bordered>
-      <p>左侧边栏</p>
+      <p>左侧边栏，计划显示登陆信息，设置的内容</p>
     </q-drawer>
 
     <q-page-container>
@@ -24,7 +24,7 @@
     </q-page-container>
 
     <q-drawer side="right" bordered show-if-above>
-      <p>右侧边栏</p>
+      <p>右侧边栏，计划显示分类的列表</p>
     </q-drawer>
   </q-layout>
 </template>
