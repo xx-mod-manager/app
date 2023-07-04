@@ -16,16 +16,20 @@
 </template>
 
 <script setup lang="ts">
-import { QPullToRefresh } from 'quasar';
+import { QPullToRefresh, useQuasar } from 'quasar';
 import { myLogger } from 'src/boot/logger';
 import ModItem from 'src/components/ModItem.vue';
 import { useMainDataStore } from 'src/stores/MainData';
 import { onMounted, ref } from 'vue';
 
 const mainDataStore = useMainDataStore();
+const { loading } = useQuasar();
 
 function refresh(done: () => void) {
-  mainDataStore.updateData().finally(done);
+  mainDataStore.updateData().finally(() => {
+    if (loading.isActive) loading.hide();
+    done();
+  });
 }
 
 const pullRefresh = ref(null as QPullToRefresh | null);
@@ -33,6 +37,7 @@ const pullRefresh = ref(null as QPullToRefresh | null);
 onMounted(() => {
   if (pullRefresh.value) {
     myLogger.log('init update main data');
+    loading.show();
     pullRefresh.value.trigger();
   }
 });
