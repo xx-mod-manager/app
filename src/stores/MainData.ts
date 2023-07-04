@@ -19,6 +19,9 @@ export const useMainDataStore = defineStore(KEY_MAIN_DATA, {
       localStorage.setItem(KEY_MAIN_DATA, JSON.stringify(this.$state));
       myLogger.debug('update main data end.');
     },
+    getMod(modId: string) {
+      return this.mods.find((mod) => mod.mod_id == modId)
+    }
   },
 });
 

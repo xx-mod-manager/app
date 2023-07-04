@@ -27,7 +27,7 @@ export const useAuthDataStore = defineStore(KEY_AUTH_DATA, {
         return false;
       }
     },
-    token: (stata) => stata.token_info?.access_token,
+    token: (stata) => `bearer ${stata.token_info?.access_token}`,
     refresh_token: (stata) => stata.token_info?.refresh_token,
   },
   actions: {
