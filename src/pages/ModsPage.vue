@@ -26,6 +26,7 @@ const mainDataStore = useMainDataStore();
 const { loading } = useQuasar();
 
 function refresh(done: () => void) {
+  myLogger.debug('refresh main data');
   mainDataStore.updateData().finally(() => {
     if (loading.isActive) loading.hide();
     done();
@@ -36,7 +37,6 @@ const pullRefresh = ref(null as QPullToRefresh | null);
 
 onMounted(() => {
   if (pullRefresh.value) {
-    myLogger.log('init update main data');
     loading.show();
     pullRefresh.value.trigger();
   }

@@ -1,6 +1,6 @@
 <template>
-  <q-page class="row justify-evenly">
-    <q-pull-to-refresh @refresh="refresh">
+  <q-pull-to-refresh ref="pullRefresh" @refresh="refresh">
+    <q-page class="fit row wrap justify-start items-start content-start">
       <template v-if="detail">
         <p>{{ detail.release.name }}</p>
         <p>{{ detail.release.description }}</p>
@@ -30,37 +30,49 @@
       <template>
         <p>没获取到数据</p>
       </template>
-    </q-pull-to-refresh>
-  </q-page>
+    </q-page>
+  </q-pull-to-refresh>
 </template>
 
 <script setup lang="ts">
-import { QPullToRefresh } from 'quasar';
+import { QPullToRefresh, useQuasar } from 'quasar';
 import { getModDetail } from 'src/api/GraphqlApi';
+import { myLogger } from 'src/boot/logger';
 import { Release, Discussion } from 'src/class/GraphqlClass';
 import { useMainDataStore } from 'src/stores/MainData';
-import { ref } from 'vue';
-import { useRoute } from 'vue-router';
+import { onMounted, ref } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 
 const route = useRoute();
+const router = useRouter();
 const mainDataStore = useMainDataStore();
+const { loading } = useQuasar();
 const mod = mainDataStore.getMod(route.params.id as string);
-let detail = ref(
+const detail = ref(
   undefined as
     | { release: Release; discussion: Discussion | undefined }
     | undefined
 );
 
-if (mod) {
-  getModDetail(mod).then((data) => {
-    detail.value = data;
-  });
-}
-
 async function refresh(done: () => void) {
   if (mod) {
+    myLogger.debug(`refresh mod detail ${mod?.mod_id}`);
     detail.value = await getModDetail(mod);
+    if (loading.isActive) loading.hide();
     done();
+  } else {
+    if (loading.isActive) loading.hide();
+    done();
+    router.replace('/404');
   }
 }
+
+const pullRefresh = ref(null as QPullToRefresh | null);
+
+onMounted(() => {
+  if (pullRefresh.value) {
+    loading.show();
+    pullRefresh.value.trigger();
+  }
+});
 </script>
