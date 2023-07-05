@@ -5,6 +5,7 @@ export interface GraphArray<T> {
 
 export interface ReleaseAsset {
   name: string
+  createdAt: Date
   updatedAt: Date
   downloadCount: number
   downloadUrl: string
@@ -13,7 +14,7 @@ export interface ReleaseAsset {
 export interface Release {
   id: string
   name: string
-  description: string
+  descriptionHTML: string
   releaseAssets: GraphArray<ReleaseAsset>
 }
 
@@ -23,16 +24,17 @@ export interface Author {
 }
 
 export interface Replie {
+  id: string
   author: Author
-  body: string
-  updateAt: Date
+  bodyHTML: string
+  updatedAt: Date
 }
 
 export interface Comment {
   id: string
   author: Author
-  body: string
-  updateAt: Date
+  bodyHTML: string
+  updatedAt: Date
   replies: GraphArray<Replie>
 }
 

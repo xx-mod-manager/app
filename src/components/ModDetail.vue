@@ -4,7 +4,9 @@
       <span class="text-h5">{{ props.release.name }}</span>
     </q-card-section>
     <q-separator inset />
-    <q-card-section class="text-body3">{{ props.release.description }}</q-card-section>
+    <q-card-section>
+      <div v-html="props.release.descriptionHTML"></div>
+    </q-card-section>
     <q-separator />
     <q-card-section>
       <a v-for="asset in props.release.releaseAssets.nodes" :key="asset.downloadUrl" :href="asset.downloadUrl">

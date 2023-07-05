@@ -21,10 +21,12 @@ export async function getModDetail(mod: Mod): Promise<{ release: Release, discus
     ... on Release {
       id
       name
-      description
+      descriptionHTML
       releaseAssets(last: 10) {
         nodes {
+          id
           name
+          createdAt
           updatedAt
           downloadCount
           downloadUrl
@@ -41,15 +43,18 @@ export async function getModDetail(mod: Mod): Promise<{ release: Release, discus
             login
             avatarUrl
           }
-          body
+          bodyHTML
+          createdAt
           updatedAt
           replies(first: 10) {
             nodes {
+              id
               author {
                 login
                 avatarUrl
               }
-              body
+              bodyHTML
+              createdAt
               updatedAt
             }
           }

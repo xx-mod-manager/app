@@ -2,17 +2,9 @@
   <q-pull-to-refresh ref="pullRefresh" @refresh="refresh">
     <q-page class="fit row wrap justify-start items-start content-start" style="padding: 0.3rem;">
       <template v-if="detail">
-        <ModDetail class="col" :release="detail.release" />
-        <q-list>
-          <q-item v-for="comment in detail.discussion?.comments.nodes" :key="comment.id">
-            <p>{{ comment.body }}</p>
-            <q-list>
-              <q-item v-for="(replie, i) in comment.replies.nodes" :key="i">
-                <p>{{ replie.body }}</p>
-              </q-item>
-            </q-list>
-          </q-item>
-        </q-list>
+        <ModDetail class="col-12" :release="detail.release" />
+        <CommentCard style="margin-top: 0.2rem;" class="col-12" v-for="comment in detail.discussion?.comments.nodes"
+          :key="comment.id" :comment="comment" />
       </template>
       <template>
         <p>没获取到数据</p>
@@ -30,6 +22,7 @@ import { useMainDataStore } from 'src/stores/MainData';
 import { onMounted, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import ModDetail from 'src/components/ModDetail.vue';
+import CommentCard from 'src/components/CommentCard.vue';
 
 const route = useRoute();
 const router = useRouter();
