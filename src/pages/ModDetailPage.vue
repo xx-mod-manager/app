@@ -1,15 +1,8 @@
 <template>
   <q-pull-to-refresh ref="pullRefresh" @refresh="refresh">
-    <q-page class="fit row wrap justify-start items-start content-start">
+    <q-page class="fit row wrap justify-start items-start content-start" style="padding: 0.3rem;">
       <template v-if="detail">
-        <p>{{ detail.release.name }}</p>
-        <p>{{ detail.release.description }}</p>
-        <q-list>
-          <q-item v-for="asset in detail.release.releaseAssets.nodes" :key="asset.name">
-            <p>{{ asset.name }} / {{ asset.downloadCount }}</p>
-            <p>{{ asset.downloadUrl }}</p>
-          </q-item>
-        </q-list>
+        <ModDetail class="col" :release="detail.release" />
         <q-list>
           <q-item v-for="comment in detail.discussion?.comments.nodes" :key="comment.id">
             <p>{{ comment.body }}</p>
@@ -36,6 +29,7 @@ import { Release, Discussion } from 'src/class/GraphqlClass';
 import { useMainDataStore } from 'src/stores/MainData';
 import { onMounted, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
+import ModDetail from 'src/components/ModDetail.vue';
 
 const route = useRoute();
 const router = useRouter();
