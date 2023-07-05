@@ -2,14 +2,7 @@
   <q-layout v-if="!needAuth" view="hHr LpR fFf">
     <q-header elevated>
       <q-toolbar>
-        <q-btn
-          flat
-          dense
-          round
-          icon="menu"
-          aria-label="Menu"
-          @click="leftDrawerOpen = !leftDrawerOpen"
-        />
+        <q-btn flat dense round icon="menu" aria-label="Menu" @click="leftDrawerOpen = !leftDrawerOpen" />
 
         <q-toolbar-title> Quasar App </q-toolbar-title>
       </q-toolbar>
@@ -38,6 +31,7 @@ const leftDrawerOpen = ref(false);
 const needAuth = ref(false);
 
 if (!authDataStore.activeToken) {
+  needAuth.value = true;
   authDataStore.authGithub();
 }
 </script>

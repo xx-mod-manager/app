@@ -12,7 +12,6 @@ function joinQuery(arg: string[]): string {
 
 export async function getModDetail(mod: Mod): Promise<{ release: Release, discussion: Discussion | undefined }> {
   const authData = useAuthDataStore()
-  if (!authData.activeToken) await authData.authGithub()
   const queres = [mod.id]
   if (mod.discussion_id) queres.push(mod.discussion_id)
   const queryArg = joinQuery(queres)

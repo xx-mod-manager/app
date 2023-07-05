@@ -5,19 +5,13 @@
         <p>{{ detail.release.name }}</p>
         <p>{{ detail.release.description }}</p>
         <q-list>
-          <q-item
-            v-for="asset in detail.release.releaseAssets.nodes"
-            :key="asset.name"
-          >
+          <q-item v-for="asset in detail.release.releaseAssets.nodes" :key="asset.name">
             <p>{{ asset.name }} / {{ asset.downloadCount }}</p>
             <p>{{ asset.downloadUrl }}</p>
           </q-item>
         </q-list>
         <q-list>
-          <q-item
-            v-for="comment in detail.discussion?.comments.nodes"
-            :key="comment.id"
-          >
+          <q-item v-for="comment in detail.discussion?.comments.nodes" :key="comment.id">
             <p>{{ comment.body }}</p>
             <q-list>
               <q-item v-for="(replie, i) in comment.replies.nodes" :key="i">
@@ -50,8 +44,8 @@ const { loading } = useQuasar();
 const mod = mainDataStore.getMod(route.params.id as string);
 const detail = ref(
   undefined as
-    | { release: Release; discussion: Discussion | undefined }
-    | undefined
+  | { release: Release; discussion: Discussion | undefined }
+  | undefined
 );
 
 async function refresh(done: () => void) {

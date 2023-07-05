@@ -17,7 +17,7 @@ export async function getTokenInfo(code: string): Promise<GithubTokenInfo> {
 }
 
 export async function refreshTokenInfo(tokenInfo: GithubTokenInfo): Promise<GithubTokenInfo> {
-  const response = await api.post(URL_GITHUB_REFRESH_TOKEN, tokenInfo);
+  const response = await api.post(URL_GITHUB_REFRESH_TOKEN, tokenInfo, { headers: { 'Content-Type': 'application/json' } });
 
   return response.data;
 }
