@@ -5,17 +5,20 @@ export interface GraphArray<T> {
 
 export interface ReleaseAsset {
   name: string
-  createdAt: Date
-  updatedAt: Date
+  createdAt: string
+  updatedAt: string
   downloadCount: number
   downloadUrl: string
 }
 
 export interface Release {
   id: string
+  author: Author
   name: string
   descriptionHTML: string
+  updatedAt: string
   releaseAssets: GraphArray<ReleaseAsset>
+  reactionGroups: ReactionGroup[]
 }
 
 export interface Author {
@@ -27,18 +30,26 @@ export interface Replie {
   id: string
   author: Author
   bodyHTML: string
-  updatedAt: Date
+  updatedAt: string
 }
 
 export interface Comment {
   id: string
   author: Author
   bodyHTML: string
-  updatedAt: Date
+  updatedAt: string
   replies: GraphArray<Replie>
 }
 
 export interface Discussion {
   id: string
   comments: GraphArray<Comment>
+}
+
+export interface ReactionGroup {
+  content: string,
+  viewerHasReacted: boolean,
+  reactors: {
+    totalCount: number
+  }
 }

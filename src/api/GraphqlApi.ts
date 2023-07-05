@@ -20,8 +20,13 @@ export async function getModDetail(mod: Mod): Promise<{ release: Release, discus
   nodes(ids: ${queryArg}) {
     ... on Release {
       id
+      author {
+        login
+        avatarUrl
+      }
       name
       descriptionHTML
+      updatedAt
       releaseAssets(last: 10) {
         nodes {
           id
@@ -30,6 +35,13 @@ export async function getModDetail(mod: Mod): Promise<{ release: Release, discus
           updatedAt
           downloadCount
           downloadUrl
+        }
+      }
+      reactionGroups {
+        content
+        viewerHasReacted
+        reactors {
+          totalCount
         }
       }
     }
