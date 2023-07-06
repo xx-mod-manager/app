@@ -68,6 +68,20 @@ export async function getModDetail(mod: Mod): Promise<{ release: Release, discus
               bodyHTML
               createdAt
               updatedAt
+              reactionGroups {
+                content
+                viewerHasReacted
+                reactors {
+                  totalCount
+                }
+              }
+            }
+          }
+          reactionGroups {
+            content
+            viewerHasReacted
+            reactors {
+              totalCount
             }
           }
         }

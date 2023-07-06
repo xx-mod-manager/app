@@ -31,6 +31,7 @@ export interface Replie {
   author: Author
   bodyHTML: string
   updatedAt: string
+  reactionGroups: ReactionGroup[]
 }
 
 export interface Comment {
@@ -39,6 +40,7 @@ export interface Comment {
   bodyHTML: string
   updatedAt: string
   replies: GraphArray<Replie>
+  reactionGroups: ReactionGroup[]
 }
 
 export interface Discussion {
