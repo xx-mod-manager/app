@@ -13,12 +13,12 @@
 import { ReactionGroup } from 'src/class/GraphqlClass';
 
 const iconMap: Map<string, string> = new Map([
-  ['THUMBS_UP', 'fa-solid fa-thumbs-up'],
-  ['LAUGH', 'fa-solid fa-face-laugh'],
-  ['HOORAY', 'fa-regular fa-party-horn'],
-  ['HEART', 'fa-solid fa-heart'],
-  ['ROCKET', 'fa-solid fa-rocket'],
-  ['EYES', 'fa-solid fa-eyes'],
+  ['THUMBS_UP', 'thumb_up'],
+  ['LAUGH', 'emoji_emotions'],
+  ['HOORAY', 'celebration'],
+  ['HEART', 'favorite'],
+  ['ROCKET', 'rocket_launch'],
+  ['EYES', 'visibility'],
 ])
 
 defineProps<{ reactions: ReactionGroup[] }>()
