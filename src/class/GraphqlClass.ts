@@ -54,4 +54,7 @@ export interface ReactionGroup {
   reactors: {
     totalCount: number
   }
+  subject: {
+    id: string
+  }
 }

@@ -1,8 +1,9 @@
 import 'src/class/GraphqlClass';
 import { api } from 'boot/axios';
-import { Discussion, Release } from 'src/class/GraphqlClass';
+import { Discussion, ReactionGroup, Release } from 'src/class/GraphqlClass';
 import { useAuthDataStore } from 'src/stores/AuthData';
 import { Mod } from 'src/class/Mod';
+import { myLogger } from 'src/boot/logger';
 
 const GRAPHQL_URL = 'https://api.github.com/graphql'
 
@@ -43,6 +44,9 @@ export async function getModDetail(mod: Mod): Promise<{ release: Release, discus
         reactors {
           totalCount
         }
+        subject {
+          id
+        }
       }
     }
     ... on Discussion {
@@ -74,6 +78,9 @@ export async function getModDetail(mod: Mod): Promise<{ release: Release, discus
                 reactors {
                   totalCount
                 }
+                subject {
+                  id
+                }
               }
             }
           }
@@ -82,6 +89,9 @@ export async function getModDetail(mod: Mod): Promise<{ release: Release, discus
             viewerHasReacted
             reactors {
               totalCount
+            }
+            subject {
+              id
             }
           }
         }
@@ -112,4 +122,54 @@ export async function getModDetail(mod: Mod): Promise<{ release: Release, discus
   } else {
     throw Error('getModDetail miss release!')
   }
+}
+
+export async function addReaction(subjectId: string, content: string): Promise<ReactionGroup[]> {
+  const authData = useAuthDataStore()
+  const response = await api.post(GRAPHQL_URL, {
+    query: `mutation {
+  addReaction(input: {subjectId: "${subjectId}", content: ${content}}) {
+    reactionGroups {
+      content
+      viewerHasReacted
+      reactors {
+        totalCount
+      }
+    }
+  }
+}` },
+    {
+      headers: {
+        Authorization: authData.token
+      }
+    })
+
+  myLogger.debug(response.data)
+
+  return response.data.data.addReaction.reactionGroups
+}
+
+export async function removeReaction(subjectId: string, content: string): Promise<ReactionGroup[]> {
+  const authData = useAuthDataStore()
+  const response = await api.post(GRAPHQL_URL, {
+    query: `mutation {
+  removeReaction(input: {subjectId: "${subjectId}", content: ${content}}) {
+    reactionGroups {
+      content
+      viewerHasReacted
+      reactors {
+        totalCount
+      }
+    }
+  }
+}` },
+    {
+      headers: {
+        Authorization: authData.token
+      }
+    })
+
+  myLogger.debug(response.data)
+
+  return response.data.data.removeReaction.reactionGroups
 }
