@@ -11,6 +11,16 @@ export interface ReleaseAsset {
   downloadUrl: string
 }
 
+export const releaseAssetFields = `
+fragment releaseAssetFields on ReleaseAsset {
+  id
+  name
+  createdAt
+  updatedAt
+  downloadCount
+  downloadUrl
+}`
+
 export interface Release {
   id: string
   author: Author
@@ -26,6 +36,12 @@ export interface Author {
   avatarUrl: string
 }
 
+export const authorFields = `
+fragment authorFields on Actor {
+  login
+  avatarUrl
+}`
+
 export interface Replie {
   id: string
   author: Author
@@ -34,13 +50,27 @@ export interface Replie {
   reactionGroups: ReactionGroup[]
 }
 
+export const discussionCommentFields = `
+fragment discussionCommentFields on DiscussionComment {
+  id
+  author {
+    ...authorFields
+  }
+  bodyHTML
+  createdAt
+  updatedAt
+  reactionGroups {
+    ...reactionGroupsFields
+  }
+}`
+
 export interface Comment {
   id: string
   author: Author
   bodyHTML: string
   updatedAt: string
-  replies: GraphArray<Replie>
   reactionGroups: ReactionGroup[]
+  replies: GraphArray<Replie>
 }
 
 export interface Discussion {
@@ -58,3 +88,15 @@ export interface ReactionGroup {
     id: string
   }
 }
+
+export const reactionGroupsFields = `
+fragment reactionGroupsFields on ReactionGroup {
+  content
+  viewerHasReacted
+  reactors {
+    totalCount
+  }
+  subject {
+    id
+  }
+}`

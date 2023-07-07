@@ -1,6 +1,6 @@
 import 'src/class/GraphqlClass';
 import { api } from 'boot/axios';
-import { Discussion, ReactionGroup, Release } from 'src/class/GraphqlClass';
+import { Discussion, ReactionGroup, Release, authorFields, discussionCommentFields, reactionGroupsFields, releaseAssetFields } from 'src/class/GraphqlClass';
 import { useAuthDataStore } from 'src/stores/AuthData';
 import { Mod } from 'src/class/Mod';
 import { myLogger } from 'src/boot/logger';
@@ -16,37 +16,24 @@ export async function getModDetail(mod: Mod): Promise<{ release: Release, discus
   const queres = [mod.id]
   if (mod.discussion_id) queres.push(mod.discussion_id)
   const queryArg = joinQuery(queres)
-  const response = await api.post(GRAPHQL_URL, JSON.stringify({
-    query: `{
+  const query = `
+{
   nodes(ids: ${queryArg}) {
     ... on Release {
       id
       author {
-        login
-        avatarUrl
+        ...authorFields
       }
       name
       descriptionHTML
       updatedAt
       releaseAssets(last: 10) {
         nodes {
-          id
-          name
-          createdAt
-          updatedAt
-          downloadCount
-          downloadUrl
+          ...releaseAssetFields
         }
       }
       reactionGroups {
-        content
-        viewerHasReacted
-        reactors {
-          totalCount
-        }
-        subject {
-          id
-        }
+        ...reactionGroupsFields
       }
     }
     ... on Discussion {
@@ -54,51 +41,19 @@ export async function getModDetail(mod: Mod): Promise<{ release: Release, discus
       comments(first: 10) {
         totalCount
         nodes {
-          id
-          author {
-            login
-            avatarUrl
-          }
-          bodyHTML
-          createdAt
-          updatedAt
+          ...discussionCommentFields
           replies(first: 10) {
+            totalCount
             nodes {
-              id
-              author {
-                login
-                avatarUrl
-              }
-              bodyHTML
-              createdAt
-              updatedAt
-              reactionGroups {
-                content
-                viewerHasReacted
-                reactors {
-                  totalCount
-                }
-                subject {
-                  id
-                }
-              }
-            }
-          }
-          reactionGroups {
-            content
-            viewerHasReacted
-            reactors {
-              totalCount
-            }
-            subject {
-              id
+              ...discussionCommentFields
             }
           }
         }
       }
     }
   }
-}`}), {
+}` + authorFields + reactionGroupsFields + discussionCommentFields + releaseAssetFields
+  const response = await api.post(GRAPHQL_URL, { query }, {
     headers: {
       Authorization: authData.token
     }
@@ -126,18 +81,15 @@ export async function getModDetail(mod: Mod): Promise<{ release: Release, discus
 
 export async function addReaction(subjectId: string, content: string): Promise<ReactionGroup[]> {
   const authData = useAuthDataStore()
-  const response = await api.post(GRAPHQL_URL, {
-    query: `mutation {
+  const query = `
+mutation {
   addReaction(input: {subjectId: "${subjectId}", content: ${content}}) {
     reactionGroups {
-      content
-      viewerHasReacted
-      reactors {
-        totalCount
-      }
+      ...reactionGroupsFields
     }
   }
-}` },
+}` + reactionGroupsFields
+  const response = await api.post(GRAPHQL_URL, { query },
     {
       headers: {
         Authorization: authData.token
@@ -151,18 +103,15 @@ export async function addReaction(subjectId: string, content: string): Promise<R
 
 export async function removeReaction(subjectId: string, content: string): Promise<ReactionGroup[]> {
   const authData = useAuthDataStore()
-  const response = await api.post(GRAPHQL_URL, {
-    query: `mutation {
+  const query = `
+mutation {
   removeReaction(input: {subjectId: "${subjectId}", content: ${content}}) {
     reactionGroups {
-      content
-      viewerHasReacted
-      reactors {
-        totalCount
-      }
+      ...reactionGroupsFields
     }
   }
-}` },
+}` + reactionGroupsFields
+  const response = await api.post(GRAPHQL_URL, { query },
     {
       headers: {
         Authorization: authData.token
