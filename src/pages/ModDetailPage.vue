@@ -3,8 +3,11 @@
     <q-page class="fit row wrap justify-start items-start content-start" style="padding: 0.3rem;">
       <template v-if="detail">
         <ModDetail class="col-12" :release="detail.release" />
-        <CommentCard style="margin-top: 0.2rem;" class="col-12" v-for="comment in detail.discussion?.comments.nodes"
-          :key="comment.id" :comment="comment" />
+        <template v-if="detail.discussion">
+          <CommentCard style="margin-top: 0.2rem;" class="col-12" v-for="comment in detail.discussion?.comments.nodes"
+            :key="comment.id" :comment="comment" :discussion-id="detail.discussion?.id" />
+        </template>
+        <ReplyBox v-if="detail.discussion" class="col-12" submit-btn-label="评论" default-open @submit="addComment" />
       </template>
       <template>
         <p>没获取到数据</p>
@@ -15,7 +18,7 @@
 
 <script setup lang="ts">
 import { QPullToRefresh, useQuasar } from 'quasar';
-import { getModDetail } from 'src/api/GraphqlApi';
+import { addDiscussionComment, getModDetail } from 'src/api/GraphqlApi';
 import { myLogger } from 'src/boot/logger';
 import { Release, Discussion } from 'src/class/GraphqlClass';
 import { useMainDataStore } from 'src/stores/MainData';
@@ -23,6 +26,7 @@ import { onMounted, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import ModDetail from 'src/components/ModDetail.vue';
 import CommentCard from 'src/components/CommentCard.vue';
+import ReplyBox from 'src/components/ReplyBox.vue';
 
 const route = useRoute();
 const router = useRouter();
@@ -45,6 +49,13 @@ async function refresh(done: () => void) {
     if (loading.isActive) loading.hide();
     done();
     router.replace('/404');
+  }
+}
+
+async function addComment(markdown: string) {
+  if (detail.value?.discussion) {
+    const newComment = await addDiscussionComment(markdown, detail.value.discussion.id)
+    detail.value.discussion.comments.nodes.push(newComment)
   }
 }
 

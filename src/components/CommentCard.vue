@@ -12,6 +12,10 @@
     <q-card-section>
       <ReplieItem v-for="replie in comment.replies.nodes" :key="replie.id" :replie="replie" />
     </q-card-section>
+    <q-separator />
+    <q-card-section>
+      <ReplyBox class="col-12" submit-btn-label="回复" @submit="addComment" />
+    </q-card-section>
   </q-card>
 </template>
 
@@ -21,8 +25,17 @@ import ReplieItem from './ReplieItem.vue';
 import AuthorSpan from './AuthorSpan.vue';
 import DateFormatSpan from './DateFormatSpan.vue';
 import ReactionGroupSpan from './ReactionGroupSpan.vue';
+import ReplyBox from './ReplyBox.vue';
+import { addDiscussionReply } from 'src/api/GraphqlApi';
+import { ref } from 'vue';
 
-defineProps<{ comment: Comment }>();
+const props = defineProps<{ comment: Comment, discussionId: string }>();
+const comment = ref(props.comment)
+
+async function addComment(markdown: string) {
+  const newComment = await addDiscussionReply(markdown, props.discussionId, props.comment.id)
+  comment.value.replies.nodes.push(newComment)
+}
 </script>
 
 <style>

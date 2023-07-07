@@ -1,6 +1,6 @@
 import 'src/class/GraphqlClass';
 import { api } from 'boot/axios';
-import { Discussion, ReactionGroup, Release, authorFields, discussionCommentFields, reactionGroupsFields, releaseAssetFields } from 'src/class/GraphqlClass';
+import { Discussion, ReactionGroup, Release, authorFields, discussionCommentFields, reactionGroupsFields, releaseAssetFields, Comment, Replie } from 'src/class/GraphqlClass';
 import { useAuthDataStore } from 'src/stores/AuthData';
 import { Mod } from 'src/class/Mod';
 import { myLogger } from 'src/boot/logger';
@@ -121,4 +121,58 @@ mutation {
   myLogger.debug(response.data)
 
   return response.data.data.removeReaction.reactionGroups
+}
+
+export async function addDiscussionComment(body: string, discussionId: string): Promise<Comment> {
+  const authData = useAuthDataStore()
+  const query = `
+mutation {
+  addDiscussionComment(
+    input: {body: "${body}", discussionId: "${discussionId}"}
+  ) {
+    comment {
+      ...discussionCommentFields
+      replies(first: 10) {
+        totalCount
+        nodes {
+          ...discussionCommentFields
+        }
+      }
+    }
+  }
+}` + authorFields + reactionGroupsFields + discussionCommentFields
+  const response = await api.post(GRAPHQL_URL, { query },
+    {
+      headers: {
+        Authorization: authData.token
+      }
+    })
+
+  myLogger.debug(response.data)
+
+  return response.data.data.addDiscussionComment.comment
+}
+
+export async function addDiscussionReply(body: string, discussionId: string, commentId: string): Promise<Replie> {
+  const authData = useAuthDataStore()
+  const query = `
+mutation {
+  addDiscussionComment(
+    input: {body: "${body}", discussionId: "${discussionId}", replyToId: "${commentId}"}
+  ) {
+    comment {
+      ...discussionCommentFields
+    }
+  }
+}` + authorFields + reactionGroupsFields + discussionCommentFields
+  const response = await api.post(GRAPHQL_URL, { query },
+    {
+      headers: {
+        Authorization: authData.token
+      }
+    })
+
+  myLogger.debug(response.data)
+
+  return response.data.data.addDiscussionComment.comment
 }
