@@ -1,22 +1,19 @@
 <template>
   <q-card flat bordered @click="clickMod()">
     <q-card-section>
-      <span class="text-subtitle2">{{ props.mod.name }}</span>
-      <q-badge>{{ props.mod.downloadCount }}<q-icon :name="matDownload" color="white" /></q-badge>
-      <q-badge color="accent" label="作者 todo" />
-      <q-badge color="secondary" label="分类 todo" />
-      <q-badge color="info" :label="props.mod.repo" />
+      <span class="text-subtitle2">{{ mod.name }}</span>
+      <ModBadgesSpan :mod="mod" />
     </q-card-section>
     <q-separator inset />
     <q-card-section class="text-body2">{{
-      props.mod.description
+      mod.description
     }}</q-card-section>
   </q-card>
 </template>
 <script setup lang="ts">
 import { Mod } from 'src/class/Mod';
 import { useRouter } from 'vue-router';
-import { matDownload } from '@quasar/extras/material-icons';
+import ModBadgesSpan from './ModBadgesSpan.vue';
 
 const router = useRouter();
 const props = defineProps<{
@@ -27,8 +24,3 @@ function clickMod() {
   router.push(`/mod/${props.mod.mod_id}`);
 }
 </script>
-<style lang="scss">
-.q-badge {
-  margin-left: 0.3rem;
-}
-</style>

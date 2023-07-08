@@ -1,8 +1,8 @@
 <template>
   <q-pull-to-refresh ref="pullRefresh" @refresh="refresh">
     <q-page class="fit row wrap justify-start items-start content-start" style="padding: 0.3rem;">
-      <template v-if="detail">
-        <ModDetail class="col-12" :release="detail.release" />
+      <template v-if="mod && detail">
+        <ModDetail class="col-12" :mod="mod" :release="detail.release" />
         <template v-if="detail.discussion">
           <CommentCard style="margin-top: 0.6rem;" class="col-12" v-for="comment in detail.discussion?.comments.nodes"
             :key="comment.id" :comment="comment" :discussion-id="detail.discussion?.id" />

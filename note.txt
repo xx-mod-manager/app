@@ -9,3 +9,4 @@
 关于mods列表的两个todo标签，得等上线metadata系统才能办到
 右侧边栏：
   显示各个类别的列表
+删除&修改discussion

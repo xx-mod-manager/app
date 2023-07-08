@@ -1,7 +1,7 @@
 <template>
   <div>
     <q-card>
-      <q-input v-if="showInput" type="text" dense filled v-model="inputValue" @focus="fakeBtnClick()" />
+      <q-input v-if="showInput" type="text" dense filled v-model="inputValue" @focus="fakeBtnFocus()" />
       <template v-else>
         <q-tabs v-model="tab" dense class="text-grey" active-color="primary" indicator-color="primary" align="left"
           narrow-indicator>
@@ -51,7 +51,7 @@ function buttonClick() {
   }
 }
 
-function fakeBtnClick() {
+function fakeBtnFocus() {
   showInput.value = false
   setTimeout(() => {
     if (writeInput.value) {

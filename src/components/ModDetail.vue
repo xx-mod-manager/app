@@ -2,7 +2,8 @@
   <q-card>
     <q-card-section>
       <p class="text-h5">{{ release.name }}</p>
-      <div>
+      <ModBadgesSpan :mod="mod" />
+      <div style="margin-top: 0.5rem;">
         <AuthorSpan :author="release.author" />
         <DateFormatSpan :date="release.updatedAt" style="margin-left: 0.5rem;" />
       </div>
@@ -26,8 +27,11 @@ import { Release } from 'src/class/GraphqlClass';
 import AuthorSpan from './AuthorSpan.vue';
 import DateFormatSpan from './DateFormatSpan.vue';
 import 'github-markdown-css';
+import { Mod } from 'src/class/Mod';
+import ModBadgesSpan from './ModBadgesSpan.vue';
 
 defineProps<{
   release: Release;
+  mod: Mod
 }>();
 </script>
