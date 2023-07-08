@@ -116,7 +116,7 @@ fragment discussionFields on Discussion {
     totalCount
     ${arrayPackage(`
       ...discussionCommentFields
-      replies(first: 10) {
+      replies(first: 5) {
         totalCount
         ${arrayPackage('...discussionCommentFields')}
       }`)}

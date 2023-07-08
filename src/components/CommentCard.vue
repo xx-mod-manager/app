@@ -41,7 +41,7 @@
           href="javascript:void(0);"
           @click="loadDiscussionReply(comment.id, comment.replies)"
         >
-          加载更多回复
+          加载更多
         </a>
       </q-card-section>
     </div>

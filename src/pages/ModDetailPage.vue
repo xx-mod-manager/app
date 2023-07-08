@@ -37,7 +37,7 @@
               )
             "
           >
-            加载更多评论
+            加载更多
           </a>
         </template>
         <ReplyBox
@@ -49,7 +49,7 @@
           @submit="addComment"
         />
       </template>
-      <p v-else>没获取到数据</p>
+      <p v-else>没有数据</p>
     </q-page>
   </QPullToRefresh>
 </template>
