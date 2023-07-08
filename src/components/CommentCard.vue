@@ -34,13 +34,13 @@
     </div>
     <q-separator />
     <q-card-section>
-      <ReplyBox class="col-12" submit-btn-label="回复" @submit="addComment" />
+      <ReplyBox class="col-12" submit-btn-label="回复" @submit="addReply" />
     </q-card-section>
   </q-card>
 </template>
 
 <script setup lang="ts">
-import { Comment } from 'src/class/GraphqlClass';
+import { Comment } from 'src/class/Types';
 import ReplieItem from './ReplieItem.vue';
 import AuthorSpan from './AuthorSpan.vue';
 import DateFormatSpan from './DateFormatSpan.vue';
@@ -61,13 +61,14 @@ const props = defineProps<{ comment: Comment; discussionId: string }>();
 const comment = ref(props.comment);
 const showEditInput = ref(false);
 
-async function addComment(markdown: string) {
+async function addReply(markdown: string) {
   const newComment = await addDiscussionReply(
     markdown,
     props.discussionId,
     props.comment.id
   );
-  comment.value.replies.nodes.push(newComment);
+  newComment.cursor = comment.value.cursor;
+  comment.value = newComment;
 }
 async function updateComment(markdown: string) {
   const newComment = await updateDiscussionComment(markdown, props.comment.id);
@@ -79,11 +80,9 @@ async function updateComment(markdown: string) {
 }
 
 async function deleteReply(id: string) {
-  const deletedReply = await deleteDiscussionReply(id);
-  const newReplys = comment.value.replies.nodes.filter(
-    (it) => it.id != deletedReply.id
-  );
-  comment.value.replies.nodes = newReplys;
+  const newComment = await deleteDiscussionReply(id);
+  newComment.cursor = comment.value.cursor;
+  comment.value = newComment;
 }
 </script>
 

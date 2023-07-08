@@ -1,9 +1,24 @@
-export interface GraphArray<T> {
-  totalCount: number
-  nodes: T[]
+export interface ApiEdge<T> {
+  cursor: string
+  node: T
 }
 
-export interface ReleaseAsset {
+export interface GraphArray<T> {
+  totalCount: number
+  edges: ApiEdge<T>[]
+}
+
+export function arrayPackage(nodeFields: string) {
+  return `
+edges {
+  cursor
+  node {
+    ${nodeFields}
+  }
+}`;
+}
+
+export interface ApiReleaseAsset {
   id: string
   name: string
   createdAt: string
@@ -24,17 +39,34 @@ fragment releaseAssetFields on ReleaseAsset {
   size
 }`;
 
-export interface Release {
+export interface ApiRelease {
   id: string
-  author: Author
+  author: ApiAuthor
   name: string
   descriptionHTML: string
   updatedAt: string
-  releaseAssets: GraphArray<ReleaseAsset>
-  reactionGroups: ReactionGroup[]
+  releaseAssets: GraphArray<ApiReleaseAsset>
+  reactionGroups: ApiReactionGroup[]
 }
 
-export interface Author {
+export const releaseFields = `
+fragment releaseFields on Release {
+  id
+  author {
+    ...authorFields
+  }
+  name
+  descriptionHTML
+  updatedAt
+  releaseAssets(last: 10) {
+    ${arrayPackage('...releaseAssetFields')}
+  }
+  reactionGroups {
+    ...reactionGroupsFields
+  }
+}`;
+
+export interface ApiAuthor {
   login: string
   avatarUrl: string
 }
@@ -45,13 +77,14 @@ fragment authorFields on Actor {
   avatarUrl
 }`;
 
-export interface Replie {
+export interface ApiComment {
   id: string
-  author: Author
+  author: ApiAuthor
   body: string
   bodyHTML: string
   updatedAt: string
-  reactionGroups: ReactionGroup[]
+  reactionGroups: ApiReactionGroup[]
+  replies?: GraphArray<ApiComment>
 }
 
 export const discussionCommentFields = `
@@ -69,23 +102,28 @@ fragment discussionCommentFields on DiscussionComment {
   }
 }`;
 
-export interface Comment {
-  id: string
-  author: Author
-  body: string
-  bodyHTML: string
-  updatedAt: string
-  reactionGroups: ReactionGroup[]
-  replies: GraphArray<Replie>
-}
-
-export interface Discussion {
+export interface ApiDiscussion {
   id: string
   url: string
-  comments: GraphArray<Comment>
+  comments: GraphArray<ApiComment>
 }
 
-export interface ReactionGroup {
+export const discussionFields = `
+fragment discussionFields on Discussion {
+  id
+  url
+  comments(first: 10) {
+    totalCount
+    ${arrayPackage(`
+      ...discussionCommentFields
+      replies(first: 10) {
+        totalCount
+        ${arrayPackage('...discussionCommentFields')}
+      }`)}
+  }
+}`;
+
+export interface ApiReactionGroup {
   content: string,
   viewerHasReacted: boolean,
   reactors: {

@@ -14,7 +14,7 @@
 
 <script setup lang="ts">
 import { format } from 'quasar';
-import { ReleaseAsset } from 'src/class/GraphqlClass';
+import { ReleaseAsset } from 'src/class/Types';
 import { matDownload } from '@quasar/extras/material-icons';
 import DateFormatSpan from './DateFormatSpan.vue';
 

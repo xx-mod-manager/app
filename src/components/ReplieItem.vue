@@ -22,7 +22,7 @@
 </template>
 
 <script setup lang="ts">
-import { Replie } from 'src/class/GraphqlClass';
+import { Comment } from 'src/class/Types';
 import AuthorSpan from './AuthorSpan.vue';
 import DateFormatSpan from './DateFormatSpan.vue';
 import ReactionGroupSpan from './ReactionGroupSpan.vue';
@@ -33,7 +33,7 @@ import { ref } from 'vue';
 import UpdateReplyBox from './UpdateReplyBox.vue';
 
 defineEmits(['delete']);
-const props = defineProps<{ replie: Replie }>();
+const props = defineProps<{ replie: Comment }>();
 const replie = ref(props.replie);
 const showEditInput = ref(false);
 

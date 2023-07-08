@@ -12,16 +12,16 @@
     >
       <q-icon :name="showIcon(reaction)" />
       <span
-        v-if="reaction.reactors.totalCount > 0"
+        v-if="reaction.totalCount > 0"
         style="font-size: 0.7rem; margin-left: 0.2rem"
-        >{{ reaction.reactors.totalCount }}</span
+        >{{ reaction.totalCount }}</span
       >
     </q-btn>
   </span>
 </template>
 
 <script setup lang="ts">
-import { ReactionGroup } from 'src/class/GraphqlClass';
+import { ReactionGroup } from 'src/class/Types';
 import {
   matThumbUp,
   matThumbDown,
@@ -69,14 +69,11 @@ async function clickReaction(reaction: ReactionGroup) {
   let newReactionGroups;
   if (reaction.viewerHasReacted) {
     newReactionGroups = await removeReaction(
-      reaction.subject.id,
+      reaction.subjectId,
       reaction.content
     );
   } else {
-    newReactionGroups = await addReaction(
-      reaction.subject.id,
-      reaction.content
-    );
+    newReactionGroups = await addReaction(reaction.subjectId, reaction.content);
   }
 
   processing.value = false;
@@ -85,7 +82,7 @@ async function clickReaction(reaction: ReactionGroup) {
       (it) => it.content == reactionGroup.content
     );
     if (oldReactionGroup) {
-      oldReactionGroup.reactors.totalCount = reactionGroup.reactors.totalCount;
+      oldReactionGroup.totalCount = reactionGroup.totalCount;
       oldReactionGroup.viewerHasReacted = reactionGroup.viewerHasReacted;
     }
   });

@@ -47,7 +47,7 @@ import {
   getModDetail,
 } from 'src/api/GraphqlApi';
 import { myLogger } from 'src/boot/logger';
-import { Release, Discussion } from 'src/class/GraphqlClass';
+import { Release, Discussion } from 'src/class/Types';
 import { useMainDataStore } from 'src/stores/MainData';
 import { onMounted, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
@@ -81,21 +81,18 @@ async function refresh(done: () => void) {
 
 async function addComment(markdown: string) {
   if (detail.value?.discussion) {
-    const newComment = await addDiscussionComment(
+    const newDiscussion = await addDiscussionComment(
       markdown,
       detail.value.discussion.id
     );
-    detail.value.discussion.comments.nodes.push(newComment);
+    detail.value.discussion = newDiscussion;
   }
 }
 
 async function deleteComment(id: string) {
   if (detail.value?.discussion) {
-    const deletedComment = await deleteDiscussionComment(id);
-    const newComments = detail.value.discussion.comments.nodes.filter(
-      (it) => it.id != deletedComment.id
-    );
-    detail.value.discussion.comments.nodes = newComments;
+    const newDiscussion = await deleteDiscussionComment(id);
+    detail.value.discussion = newDiscussion;
   }
 }
 

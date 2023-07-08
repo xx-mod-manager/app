@@ -25,7 +25,7 @@
   </q-card>
 </template>
 <script setup lang="ts">
-import { Release } from 'src/class/GraphqlClass';
+import { Release } from 'src/class/Types';
 import AuthorSpan from './AuthorSpan.vue';
 import DateFormatSpan from './DateFormatSpan.vue';
 import 'github-markdown-css';

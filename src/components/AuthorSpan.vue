@@ -9,7 +9,7 @@
   </span>
 </template>
 <script setup lang="ts">
-import { Author } from 'src/class/GraphqlClass';
+import { Author } from 'src/class/Types';
 
 const props = defineProps<{
   author: Author;
