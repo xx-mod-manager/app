@@ -9,7 +9,7 @@
     </q-card-section>
     <q-separator inset />
     <q-card-section>
-      <div v-html="release.descriptionHTML"></div>
+      <div class="markdown-body" v-html="release.descriptionHTML"></div>
       <!-- github release viewerHasReacted not work -->
       <!-- <ReactionGroupSpan :reactions="release.reactionGroups" /> -->
     </q-card-section>
@@ -25,6 +25,7 @@
 import { Release } from 'src/class/GraphqlClass';
 import AuthorSpan from './AuthorSpan.vue';
 import DateFormatSpan from './DateFormatSpan.vue';
+import 'github-markdown-css';
 
 defineProps<{
   release: Release;

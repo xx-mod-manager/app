@@ -5,13 +5,16 @@
         <AuthorSpan :author="comment.author" />
         <DateFormatSpan :date="comment.updatedAt" style="margin-left: 0.5rem;" />
       </div>
-      <div v-html="comment.bodyHTML"></div>
+      <div class="markdown-body" v-html="comment.bodyHTML"></div>
       <ReactionGroupSpan :reactions="comment.reactionGroups" />
     </q-card-section>
-    <q-separator inset />
-    <q-card-section>
-      <ReplieItem v-for="replie in comment.replies.nodes" :key="replie.id" :replie="replie" />
-    </q-card-section>
+    <div v-if="comment.replies.nodes.length > 0">
+      <q-separator inset />
+      <q-card-section>
+        <ReplieItem style="padding-left: 1rem; margin-top: 1rem;" v-for="replie in comment.replies.nodes" :key="replie.id"
+          :replie="replie" />
+      </q-card-section>
+    </div>
     <q-separator />
     <q-card-section>
       <ReplyBox class="col-12" submit-btn-label="回复" @submit="addComment" />
@@ -28,6 +31,7 @@ import ReactionGroupSpan from './ReactionGroupSpan.vue';
 import ReplyBox from './ReplyBox.vue';
 import { addDiscussionReply } from 'src/api/GraphqlApi';
 import { ref } from 'vue';
+import 'github-markdown-css';
 
 const props = defineProps<{ comment: Comment, discussionId: string }>();
 const comment = ref(props.comment)

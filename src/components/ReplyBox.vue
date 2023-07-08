@@ -1,7 +1,7 @@
 <template>
   <div>
     <q-card>
-      <q-input v-if="showInput" type="text" filled v-model="inputValue" @focus="showInput = false" />
+      <q-input v-if="showInput" type="text" dense filled v-model="inputValue" @focus="fakeBtnClick()" />
       <template v-else>
         <q-tabs v-model="tab" dense class="text-grey" active-color="primary" indicator-color="primary" align="left"
           narrow-indicator>
@@ -13,7 +13,7 @@
 
         <q-tab-panels v-model="tab" animated>
           <q-tab-panel name="write">
-            <q-input v-model="markdown" filled type="textarea" />
+            <q-input ref="writeInput" v-model="markdown" filled type="textarea" />
           </q-tab-panel>
 
           <q-tab-panel name="preview">
@@ -22,15 +22,16 @@
           </q-tab-panel>
         </q-tab-panels>
         <q-separator />
-        <q-card-section align="right">
+        <q-card-actions align="right">
           <q-btn v-if="!defaultOpen" label="取消" @click="showInput = true" />
           <q-btn :label="submitBtnLabel" @click="buttonClick()" />
-        </q-card-section>
+        </q-card-actions>
       </template>
     </q-card>
   </div>
 </template>
 <script setup lang="ts">
+import { QInput } from 'quasar';
 import { ref } from 'vue'
 import Markdown from 'vue3-markdown-it';
 
@@ -41,11 +42,21 @@ const tab = ref('write')
 const markdown = ref('')
 const inputValue = ref('')
 const showInput = ref(!props.defaultOpen)
+const writeInput = ref(null as QInput | null)
 
 function buttonClick() {
   if (markdown.value.trim().length > 0) {
     emit('submit', markdown.value)
     markdown.value = ''
   }
+}
+
+function fakeBtnClick() {
+  showInput.value = false
+  setTimeout(() => {
+    if (writeInput.value) {
+      writeInput.value.focus()
+    }
+  })
 }
 </script>

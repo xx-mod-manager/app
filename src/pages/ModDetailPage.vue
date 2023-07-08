@@ -4,10 +4,11 @@
       <template v-if="detail">
         <ModDetail class="col-12" :release="detail.release" />
         <template v-if="detail.discussion">
-          <CommentCard style="margin-top: 0.2rem;" class="col-12" v-for="comment in detail.discussion?.comments.nodes"
+          <CommentCard style="margin-top: 0.6rem;" class="col-12" v-for="comment in detail.discussion?.comments.nodes"
             :key="comment.id" :comment="comment" :discussion-id="detail.discussion?.id" />
         </template>
-        <ReplyBox v-if="detail.discussion" class="col-12" submit-btn-label="评论" default-open @submit="addComment" />
+        <ReplyBox style="margin-top: 1rem;" v-if="detail.discussion" class="col-12" submit-btn-label="评论" default-open
+          @submit="addComment" />
       </template>
       <template>
         <p>没获取到数据</p>
