@@ -24,11 +24,3 @@ defineProps<{
 
 const { humanStorageSize } = format;
 </script>
-
-<style>
-a {
-  background-color: transparent;
-  color: #0969da;
-  text-decoration: none;
-}
-</style>

@@ -24,6 +24,21 @@
             :discussion-id="detail.discussion?.id"
             @delete="deleteComment"
           />
+          <a
+            v-if="!detail.discussion.comments.isFull()"
+            style="margin-top: 0.6rem"
+            align="center"
+            class="col-12"
+            href="javascript:void(0);"
+            @click="
+              loadDiscussionComment(
+                detail.discussion.id,
+                detail.discussion.comments
+              )
+            "
+          >
+            加载更多评论
+          </a>
         </template>
         <ReplyBox
           v-if="detail.discussion"
@@ -45,6 +60,7 @@ import {
   addDiscussionComment,
   deleteDiscussionComment,
   getModDetail,
+  loadDiscussionComment,
 } from 'src/api/GraphqlApi';
 import { myLogger } from 'src/boot/logger';
 import { Release, Discussion } from 'src/class/Types';

@@ -13,9 +13,11 @@ export class PageArray<T extends ConnectionItem> {
     return this.nodes.length == this.totalCount;
   }
 
-  public load(node: T) {
-    if ((this.nodes.length + 1) > this.totalCount) throw Error('PageArray nodes size greate totalCount!');
-    this.nodes.push(node);
+  public loadAll<V>(graphArray: GraphArray<V>, converFun: (value: ApiEdge<V>) => T) {
+    this.totalCount = graphArray.totalCount;
+    graphArray.edges.forEach((it) => {
+      this.nodes.push(converFun(it));
+    });
   }
 
   public updateAll<V>(graphArray: GraphArray<V>, converFun: (value: ApiEdge<V>) => T) {

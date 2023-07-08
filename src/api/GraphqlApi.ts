@@ -1,10 +1,10 @@
 import 'src/class/GraphqlClass';
 import { api } from 'boot/axios';
-import { ApiDiscussion, ApiReactionGroup, ApiRelease, authorFields, discussionCommentFields, reactionGroupsFields, releaseAssetFields, releaseFields, discussionFields, ApiComment, arrayPackage } from 'src/class/GraphqlClass';
+import { ApiDiscussion, ApiReactionGroup, ApiRelease, authorFields, discussionCommentFields, reactionGroupsFields, releaseAssetFields, releaseFields, discussionFields, ApiComment, arrayPackage, GraphArray } from 'src/class/GraphqlClass';
 import { useAuthDataStore } from 'src/stores/AuthData';
 import { Mod } from 'src/class/Mod';
 import { myLogger } from 'src/boot/logger';
-import { Discussion, ReactionGroup, Release, Comment } from 'src/class/Types';
+import { Discussion, ReactionGroup, Release, Comment, PageArray } from 'src/class/Types';
 
 const GRAPHQL_URL = 'https://api.github.com/graphql';
 
@@ -101,6 +101,38 @@ mutation {
   const apiReactionGroups: ApiReactionGroup[] = response.data.data.removeReaction.reactionGroups;
 
   return apiReactionGroups.map((it) => new ReactionGroup(it));
+}
+
+export async function loadDiscussionComment(discussionId: string, comments: PageArray<Comment>) {
+  if (comments.totalCount == 0 || comments.isFull() || comments.nodes.length == 0) return;
+  const endCursor = comments.nodes[comments.nodes.length - 1].cursor;
+  const authData = useAuthDataStore();
+  const query = `
+{
+  node(id: "${discussionId}") {
+    ... on Discussion {
+      comments(
+        first: 10
+        after: "${endCursor}"
+      ) {
+        totalCount
+        ${arrayPackage(`
+          ...discussionCommentFields
+          replies(first: 10) {
+            totalCount
+            ${arrayPackage('...discussionCommentFields')}
+          }`)}
+      }
+    }
+  }
+}` + authorFields + reactionGroupsFields + discussionCommentFields;
+  const response = await api.post(GRAPHQL_URL, { query }, {
+    headers: {
+      Authorization: authData.token
+    }
+  });
+  const apiComments: GraphArray<ApiComment> = response.data.data.node.comments;
+  comments.loadAll(apiComments, (value) => new Comment(value));
 }
 
 export async function addDiscussionComment(body: string, discussionId: string): Promise<Discussion> {
