@@ -4,11 +4,13 @@ export interface GraphArray<T> {
 }
 
 export interface ReleaseAsset {
+  id: string
   name: string
   createdAt: string
   updatedAt: string
   downloadCount: number
   downloadUrl: string
+  size: number
 }
 
 export const releaseAssetFields = `
@@ -19,6 +21,7 @@ fragment releaseAssetFields on ReleaseAsset {
   updatedAt
   downloadCount
   downloadUrl
+  size
 }`;
 
 export interface Release {

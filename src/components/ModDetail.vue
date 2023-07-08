@@ -16,13 +16,11 @@
     </q-card-section>
     <q-separator />
     <q-card-section>
-      <a
+      <AssetItem
         v-for="asset in release.releaseAssets.nodes"
-        :key="asset.downloadUrl"
-        :href="asset.downloadUrl"
-      >
-        <p>{{ asset.name }}</p>
-      </a>
+        :key="asset.id"
+        :asset="asset"
+      />
     </q-card-section>
   </q-card>
 </template>
@@ -33,6 +31,7 @@ import DateFormatSpan from './DateFormatSpan.vue';
 import 'github-markdown-css';
 import { Mod } from 'src/class/Mod';
 import ModBadgesSpan from './ModBadgesSpan.vue';
+import AssetItem from './AssetItem.vue';
 
 defineProps<{
   release: Release;
