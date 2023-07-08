@@ -4,7 +4,7 @@
   </span>
 </template>
 <script setup lang="ts">
-import { date as dateUtil } from 'quasar'
+import { date as dateUtil } from 'quasar';
 
 defineProps<{
   date: Date | string;

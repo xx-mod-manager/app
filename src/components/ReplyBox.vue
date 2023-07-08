@@ -1,10 +1,24 @@
 <template>
   <div>
     <q-card>
-      <q-input v-if="showInput" type="text" dense filled v-model="inputValue" @focus="fakeBtnFocus()" />
+      <QInput
+        v-if="showInput"
+        v-model="inputValue"
+        type="text"
+        dense
+        filled
+        @focus="fakeBtnFocus()"
+      />
       <template v-else>
-        <q-tabs v-model="tab" dense class="text-grey" active-color="primary" indicator-color="primary" align="left"
-          narrow-indicator>
+        <q-tabs
+          v-model="tab"
+          dense
+          class="text-grey"
+          active-color="primary"
+          indicator-color="primary"
+          align="left"
+          narrow-indicator
+        >
           <q-tab name="write" label="回复" />
           <q-tab name="preview" label="预览" />
         </q-tabs>
@@ -13,11 +27,20 @@
 
         <q-tab-panels v-model="tab" animated>
           <q-tab-panel name="write">
-            <q-input ref="writeInput" v-model="markdown" filled type="textarea" />
+            <QInput
+              ref="writeInput"
+              v-model="markdown"
+              filled
+              type="textarea"
+            />
           </q-tab-panel>
 
           <q-tab-panel name="preview">
-            <Markdown class="markdown-body" v-if="markdown.trim().length > 0" :source="markdown" />
+            <Markdown
+              v-if="markdown.trim().length > 0"
+              class="markdown-body"
+              :source="markdown"
+            />
             <p v-else>没有内容</p>
           </q-tab-panel>
         </q-tab-panels>
@@ -32,32 +55,32 @@
 </template>
 <script setup lang="ts">
 import { QInput } from 'quasar';
-import { ref } from 'vue'
+import { ref } from 'vue';
 import Markdown from 'vue3-markdown-it';
 import 'github-markdown-css';
 
-const props = defineProps<{ submitBtnLabel: string, defaultOpen?: boolean }>()
-const emit = defineEmits(['submit'])
+const props = defineProps<{ submitBtnLabel: string; defaultOpen?: boolean }>();
+const emit = defineEmits(['submit']);
 
-const tab = ref('write')
-const markdown = ref('')
-const inputValue = ref('')
-const showInput = ref(!props.defaultOpen)
-const writeInput = ref(null as QInput | null)
+const tab = ref('write');
+const markdown = ref('');
+const inputValue = ref('');
+const showInput = ref(!props.defaultOpen);
+const writeInput = ref(null as QInput | null);
 
 function buttonClick() {
   if (markdown.value.trim().length > 0) {
-    emit('submit', markdown.value)
-    markdown.value = ''
+    emit('submit', markdown.value);
+    markdown.value = '';
   }
 }
 
 function fakeBtnFocus() {
-  showInput.value = false
+  showInput.value = false;
   setTimeout(() => {
     if (writeInput.value) {
-      writeInput.value.focus()
+      writeInput.value.focus();
     }
-  })
+  });
 }
 </script>

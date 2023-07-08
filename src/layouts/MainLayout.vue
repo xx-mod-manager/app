@@ -2,7 +2,14 @@
   <q-layout v-if="!needAuth" view="hHr LpR fFf">
     <q-header elevated>
       <q-toolbar>
-        <q-btn flat dense round :icon="matMenu" aria-label="Menu" @click="leftDrawerOpen = !leftDrawerOpen" />
+        <q-btn
+          flat
+          dense
+          round
+          :icon="matMenu"
+          aria-label="Menu"
+          @click="leftDrawerOpen = !leftDrawerOpen"
+        />
 
         <q-toolbar-title> Quasar App </q-toolbar-title>
       </q-toolbar>
@@ -25,7 +32,7 @@
 <script setup lang="ts">
 import { useAuthDataStore } from 'src/stores/AuthData';
 import { ref } from 'vue';
-import { matMenu } from '@quasar/extras/material-icons'
+import { matMenu } from '@quasar/extras/material-icons';
 
 const authDataStore = useAuthDataStore();
 const leftDrawerOpen = ref(false);

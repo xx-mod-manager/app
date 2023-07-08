@@ -5,9 +5,7 @@
       <ModBadgesSpan :mod="mod" />
     </q-card-section>
     <q-separator inset />
-    <q-card-section class="text-body2">{{
-      mod.description
-    }}</q-card-section>
+    <q-card-section class="text-body2">{{ mod.description }}</q-card-section>
   </q-card>
 </template>
 <script setup lang="ts">

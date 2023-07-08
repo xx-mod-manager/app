@@ -19,7 +19,7 @@ fragment releaseAssetFields on ReleaseAsset {
   updatedAt
   downloadCount
   downloadUrl
-}`
+}`;
 
 export interface Release {
   id: string
@@ -40,7 +40,7 @@ export const authorFields = `
 fragment authorFields on Actor {
   login
   avatarUrl
-}`
+}`;
 
 export interface Replie {
   id: string
@@ -62,7 +62,7 @@ fragment discussionCommentFields on DiscussionComment {
   reactionGroups {
     ...reactionGroupsFields
   }
-}`
+}`;
 
 export interface Comment {
   id: string
@@ -99,4 +99,4 @@ fragment reactionGroupsFields on ReactionGroup {
   subject {
     id
   }
-}`
+}`;

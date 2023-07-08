@@ -3,7 +3,7 @@ import { Mod } from 'src/class/Mod';
 import { useAuthDataStore } from 'src/stores/AuthData';
 
 export async function getMods(): Promise<Mod[]> {
-  const authData = useAuthDataStore()
+  const authData = useAuthDataStore();
   const response = await api.get(
     'https://api.github.com/repos/HeYaoDaDa/CddaModCommunityData/contents/mods.json',
     {

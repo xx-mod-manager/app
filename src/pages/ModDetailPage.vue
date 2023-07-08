@@ -1,20 +1,33 @@
 <template>
-  <q-pull-to-refresh ref="pullRefresh" @refresh="refresh">
-    <q-page class="fit row wrap justify-start items-start content-start" style="padding: 0.3rem;">
+  <QPullToRefresh ref="pullRefresh" @refresh="refresh">
+    <q-page
+      class="fit row wrap justify-start items-start content-start"
+      style="padding: 0.3rem"
+    >
       <template v-if="mod && detail">
         <ModDetail class="col-12" :mod="mod" :release="detail.release" />
         <template v-if="detail.discussion">
-          <CommentCard style="margin-top: 0.6rem;" class="col-12" v-for="comment in detail.discussion?.comments.nodes"
-            :key="comment.id" :comment="comment" :discussion-id="detail.discussion?.id" />
+          <CommentCard
+            v-for="comment in detail.discussion?.comments.nodes"
+            :key="comment.id"
+            style="margin-top: 0.6rem"
+            class="col-12"
+            :comment="comment"
+            :discussion-id="detail.discussion?.id"
+          />
         </template>
-        <ReplyBox style="margin-top: 1rem;" v-if="detail.discussion" class="col-12" submit-btn-label="评论" default-open
-          @submit="addComment" />
+        <ReplyBox
+          v-if="detail.discussion"
+          style="margin-top: 1rem"
+          class="col-12"
+          submit-btn-label="评论"
+          default-open
+          @submit="addComment"
+        />
       </template>
-      <template>
-        <p>没获取到数据</p>
-      </template>
+      <p v-else>没获取到数据</p>
     </q-page>
-  </q-pull-to-refresh>
+  </QPullToRefresh>
 </template>
 
 <script setup lang="ts">
@@ -36,8 +49,8 @@ const { loading } = useQuasar();
 const mod = mainDataStore.getMod(route.params.id as string);
 const detail = ref(
   undefined as
-  | { release: Release; discussion: Discussion | undefined }
-  | undefined
+    | { release: Release; discussion: Discussion | undefined }
+    | undefined
 );
 
 async function refresh(done: () => void) {
@@ -55,8 +68,11 @@ async function refresh(done: () => void) {
 
 async function addComment(markdown: string) {
   if (detail.value?.discussion) {
-    const newComment = await addDiscussionComment(markdown, detail.value.discussion.id)
-    detail.value.discussion.comments.nodes.push(newComment)
+    const newComment = await addDiscussionComment(
+      markdown,
+      detail.value.discussion.id
+    );
+    detail.value.discussion.comments.nodes.push(newComment);
   }
 }
 

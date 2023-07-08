@@ -1,10 +1,18 @@
 <template>
-  <q-pull-to-refresh @refresh="refresh" ref="pullRefresh">
-    <q-page class="fit row wrap justify-start items-start content-start"
-      style="padding-left: 0.3rem; padding-right: 0.3rem">
-      <mod-item class="col-12" style="margin-top: 0.4rem" v-for="mod in mainDataStore.mods" :key="mod.id" :mod="mod" />
+  <QPullToRefresh ref="pullRefresh" @refresh="refresh">
+    <q-page
+      class="fit row wrap justify-start items-start content-start"
+      style="padding-left: 0.3rem; padding-right: 0.3rem"
+    >
+      <ModItem
+        v-for="mod in mainDataStore.mods"
+        :key="mod.id"
+        class="col-12"
+        style="margin-top: 0.4rem"
+        :mod="mod"
+      />
     </q-page>
-  </q-pull-to-refresh>
+  </QPullToRefresh>
 </template>
 
 <script setup lang="ts">

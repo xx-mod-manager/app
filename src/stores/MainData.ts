@@ -20,7 +20,7 @@ export const useMainDataStore = defineStore(KEY_MAIN_DATA, {
       myLogger.debug('update main data end.');
     },
     getMod(modId: string) {
-      return this.mods.find((mod) => mod.mod_id == modId)
+      return this.mods.find((mod) => mod.mod_id == modId);
     }
   },
 });

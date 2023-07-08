@@ -2,7 +2,7 @@
   <div>
     <div>
       <AuthorSpan :author="replie.author" />
-      <DateFormatSpan :date="replie.updatedAt" style="margin-left: 0.5rem;" />
+      <DateFormatSpan :date="replie.updatedAt" style="margin-left: 0.5rem" />
     </div>
     <div class="markdown-body" v-html="replie.bodyHTML"></div>
     <ReactionGroupSpan :reactions="replie.reactionGroups" />

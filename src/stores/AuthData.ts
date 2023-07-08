@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia';
 import { myLogger } from 'src/boot/logger';
 import { GithubTokenInfo } from 'src/class/GithubTokenInfo';
-import { Loading } from 'quasar'
+import { Loading } from 'quasar';
 import { refreshTokenInfo } from 'src/api/GithubAuthApi';
 
 export const KEY_AUTH_DATA = 'AuthData';
@@ -51,18 +51,18 @@ export const useAuthDataStore = defineStore(KEY_AUTH_DATA, {
 
     },
     async authGithub() {
-      const activeToken = this.activeToken
-      const activeRefreshToken = this.activeRefreshToken
+      const activeToken = this.activeToken;
+      const activeRefreshToken = this.activeRefreshToken;
 
-      myLogger.debug(`active token is ${activeToken}, active refresh token is ${activeRefreshToken}.`)
+      myLogger.debug(`active token is ${activeToken}, active refresh token is ${activeRefreshToken}.`);
 
       if (activeToken) {
-        myLogger.debug('token is active, no need auth.')
+        myLogger.debug('token is active, no need auth.');
       } else {
 
         if (!activeRefreshToken) {
           Loading.show({ message: '跳转Github授权页中...' });
-          myLogger.debug('refresh token is not active, need create new token.')
+          myLogger.debug('refresh token is not active, need create new token.');
           window.open(
             'https://github.com/login/oauth/authorize?client_id=Iv1.23bebc2931676eb7',
             '_self'
@@ -71,13 +71,13 @@ export const useAuthDataStore = defineStore(KEY_AUTH_DATA, {
           Loading.show({ message: '刷新Github Token中...' });
 
           if (this.token_info) {
-            const newToken = await refreshTokenInfo(this.token_info)
+            const newToken = await refreshTokenInfo(this.token_info);
 
-            this.updateToken(newToken)
-            window.open('/', '_self')
+            this.updateToken(newToken);
+            window.open('/', '_self');
           } else {
-            Loading.hide()
-            throw Error('token is null!')
+            Loading.hide();
+            throw Error('token is null!');
           }
         }
       }

@@ -3,9 +3,9 @@
     <q-card-section>
       <p class="text-h5">{{ release.name }}</p>
       <ModBadgesSpan :mod="mod" />
-      <div style="margin-top: 0.5rem;">
+      <div style="margin-top: 0.5rem">
         <AuthorSpan :author="release.author" />
-        <DateFormatSpan :date="release.updatedAt" style="margin-left: 0.5rem;" />
+        <DateFormatSpan :date="release.updatedAt" style="margin-left: 0.5rem" />
       </div>
     </q-card-section>
     <q-separator inset />
@@ -16,7 +16,11 @@
     </q-card-section>
     <q-separator />
     <q-card-section>
-      <a v-for="asset in release.releaseAssets.nodes" :key="asset.downloadUrl" :href="asset.downloadUrl">
+      <a
+        v-for="asset in release.releaseAssets.nodes"
+        :key="asset.downloadUrl"
+        :href="asset.downloadUrl"
+      >
         <p>{{ asset.name }}</p>
       </a>
     </q-card-section>
@@ -32,6 +36,6 @@ import ModBadgesSpan from './ModBadgesSpan.vue';
 
 defineProps<{
   release: Release;
-  mod: Mod
+  mod: Mod;
 }>();
 </script>
