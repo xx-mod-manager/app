@@ -14,6 +14,7 @@
             class="col-12"
             :comment="comment"
             :discussion-id="detail.discussion?.id"
+            @delete="deleteComment"
           />
         </template>
         <ReplyBox
@@ -32,7 +33,11 @@
 
 <script setup lang="ts">
 import { QPullToRefresh, useQuasar } from 'quasar';
-import { addDiscussionComment, getModDetail } from 'src/api/GraphqlApi';
+import {
+  addDiscussionComment,
+  deleteDiscussionComment,
+  getModDetail,
+} from 'src/api/GraphqlApi';
 import { myLogger } from 'src/boot/logger';
 import { Release, Discussion } from 'src/class/GraphqlClass';
 import { useMainDataStore } from 'src/stores/MainData';
@@ -73,6 +78,16 @@ async function addComment(markdown: string) {
       detail.value.discussion.id
     );
     detail.value.discussion.comments.nodes.push(newComment);
+  }
+}
+
+async function deleteComment(id: string) {
+  if (detail.value?.discussion) {
+    const deletedComment = await deleteDiscussionComment(id);
+    const newComments = detail.value.discussion.comments.nodes.filter(
+      (it) => it.id != deletedComment.id
+    );
+    detail.value.discussion.comments.nodes = newComments;
   }
 }
 

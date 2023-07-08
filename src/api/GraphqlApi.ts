@@ -153,6 +153,36 @@ mutation {
   return response.data.data.addDiscussionComment.comment;
 }
 
+export async function deleteDiscussionComment(id: string): Promise<Comment> {
+  const authData = useAuthDataStore();
+  const query = `
+mutation {
+  deleteDiscussionComment(
+    input: {id: "${id}"}
+  ) {
+    comment {
+      ...discussionCommentFields
+      replies(first: 10) {
+        totalCount
+        nodes {
+          ...discussionCommentFields
+        }
+      }
+    }
+  }
+}` + authorFields + reactionGroupsFields + discussionCommentFields;
+  const response = await api.post(GRAPHQL_URL, { query },
+    {
+      headers: {
+        Authorization: authData.token
+      }
+    });
+
+  myLogger.debug(response.data);
+
+  return response.data.data.deleteDiscussionComment.comment;
+}
+
 export async function addDiscussionReply(body: string, discussionId: string, commentId: string): Promise<Replie> {
   const authData = useAuthDataStore();
   const query = `
@@ -175,4 +205,28 @@ mutation {
   myLogger.debug(response.data);
 
   return response.data.data.addDiscussionComment.comment;
+}
+
+export async function deleteDiscussionReply(id: string): Promise<Comment> {
+  const authData = useAuthDataStore();
+  const query = `
+mutation {
+  deleteDiscussionComment(
+    input: {id: "${id}"}
+  ) {
+    comment {
+      ...discussionCommentFields
+    }
+  }
+}` + authorFields + reactionGroupsFields + discussionCommentFields;
+  const response = await api.post(GRAPHQL_URL, { query },
+    {
+      headers: {
+        Authorization: authData.token
+      }
+    });
+
+  myLogger.debug(response.data);
+
+  return response.data.data.deleteDiscussionComment.comment;
 }
