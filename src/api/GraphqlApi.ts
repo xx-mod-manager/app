@@ -213,6 +213,33 @@ mutation {
   return apiComment;
 }
 
+export async function loadDiscussionReply(discussionId: string, comments: PageArray<Comment>) {
+  if (comments.totalCount == 0 || comments.isFull() || comments.nodes.length == 0) return;
+  const endCursor = comments.nodes[comments.nodes.length - 1].cursor;
+  const authData = useAuthDataStore();
+  const query = `
+{
+  node(id: "${discussionId}") {
+    ... on DiscussionComment {
+      replies(
+        first: 10
+        after: "${endCursor}"
+      ) {
+        totalCount
+        ${arrayPackage('...discussionCommentFields')}
+      }
+    }
+  }
+}` + authorFields + reactionGroupsFields + discussionCommentFields;
+  const response = await api.post(GRAPHQL_URL, { query }, {
+    headers: {
+      Authorization: authData.token
+    }
+  });
+  const apiComments: GraphArray<ApiComment> = response.data.data.node.replies;
+  comments.loadAll(apiComments, (value) => new Comment(value));
+}
+
 export async function addDiscussionReply(body: string, discussionId: string, commentId: string): Promise<Comment> {
   const authData = useAuthDataStore();
   const query = `

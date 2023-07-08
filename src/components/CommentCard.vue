@@ -22,14 +22,27 @@
     </q-card-section>
     <div v-if="comment.replies.nodes.length > 0">
       <q-separator inset />
-      <q-card-section>
+      <q-card-section
+        class="col-12 row wrap justify-start items-center content-start"
+      >
         <ReplieItem
           v-for="replie in comment.replies.nodes"
           :key="replie.id"
+          class="col-12"
           style="padding-left: 1rem; margin-top: 1rem"
           :replie="replie"
           @delete="deleteReply"
         />
+        <a
+          v-if="!comment.replies.isFull()"
+          style="margin-top: 0.6rem"
+          align="center"
+          class="col-12"
+          href="javascript:void(0);"
+          @click="loadDiscussionReply(comment.id, comment.replies)"
+        >
+          加载更多回复
+        </a>
       </q-card-section>
     </div>
     <q-separator />
@@ -49,6 +62,7 @@ import ReplyBox from './ReplyBox.vue';
 import {
   addDiscussionReply,
   deleteDiscussionReply,
+  loadDiscussionReply,
   updateDiscussionComment,
 } from 'src/api/GraphqlApi';
 import { ref } from 'vue';
