@@ -81,6 +81,7 @@ export interface Comment {
 
 export interface Discussion {
   id: string
+  url: string
   comments: GraphArray<Comment>
 }
 

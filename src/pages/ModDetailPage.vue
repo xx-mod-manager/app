@@ -7,6 +7,14 @@
       <template v-if="mod && detail">
         <ModDetail class="col-12" :mod="mod" :release="detail.release" />
         <template v-if="detail.discussion">
+          <a
+            style="margin-top: 0.6rem"
+            align="center"
+            class="col-12"
+            :href="detail.discussion.url"
+            target="_blank"
+            >去github讨论</a
+          >
           <CommentCard
             v-for="comment in detail.discussion?.comments.nodes"
             :key="comment.id"

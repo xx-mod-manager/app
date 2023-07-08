@@ -38,6 +38,7 @@ export async function getModDetail(mod: Mod): Promise<{ release: Release, discus
     }
     ... on Discussion {
       id
+      url
       comments(first: 10) {
         totalCount
         nodes {
