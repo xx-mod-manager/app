@@ -17,7 +17,7 @@
           </q-tab-panel>
 
           <q-tab-panel name="preview">
-            <Markdown v-if="markdown.trim().length > 0" :source="markdown" />
+            <Markdown class="markdown-body" v-if="markdown.trim().length > 0" :source="markdown" />
             <p v-else>没有内容</p>
           </q-tab-panel>
         </q-tab-panels>
@@ -34,6 +34,7 @@
 import { QInput } from 'quasar';
 import { ref } from 'vue'
 import Markdown from 'vue3-markdown-it';
+import 'github-markdown-css';
 
 const props = defineProps<{ submitBtnLabel: string, defaultOpen?: boolean }>()
 const emit = defineEmits(['submit'])
