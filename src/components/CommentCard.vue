@@ -14,7 +14,7 @@
       <ReactionGroupSpan :reactions="comment.reactionGroups" />
       <UpdateReplyBox
         v-if="showEditInput"
-        submit-btn-label="回复"
+        submit-btn-label="评论"
         :old-value="comment.body"
         @cancel="showEditInput = false"
         @submit="updateComment"

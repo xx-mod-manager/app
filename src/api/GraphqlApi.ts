@@ -260,3 +260,27 @@ mutation {
 
   return response.data.data.deleteDiscussionComment.comment;
 }
+
+export async function updateDiscussionReply(body: string, commentId: string): Promise<Replie> {
+  const authData = useAuthDataStore();
+  const query = `
+mutation {
+  updateDiscussionComment(
+    input: {body: "${body}", commentId: "${commentId}"}
+  ) {
+    comment {
+      ...discussionCommentFields
+    }
+  }
+}` + authorFields + reactionGroupsFields + discussionCommentFields;
+  const response = await api.post(GRAPHQL_URL, { query },
+    {
+      headers: {
+        Authorization: authData.token
+      }
+    });
+
+  myLogger.debug(response.data);
+
+  return response.data.data.updateDiscussionComment.comment;
+}
