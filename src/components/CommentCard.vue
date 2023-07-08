@@ -6,12 +6,19 @@
         <DateFormatSpan :date="comment.updatedAt" style="margin-left: 0.5rem" />
         <q-space />
         <CommentMenu
-          @update="$emit('update', comment.id)"
+          @update="showEditInput = true"
           @delete="$emit('delete', comment.id)"
         />
       </div>
       <div class="markdown-body" v-html="comment.bodyHTML"></div>
       <ReactionGroupSpan :reactions="comment.reactionGroups" />
+      <UpdateReplyBox
+        v-if="showEditInput"
+        submit-btn-label="回复"
+        :old-value="comment.body"
+        @cancel="showEditInput = false"
+        @submit="updateComment"
+      />
     </q-card-section>
     <div v-if="comment.replies.nodes.length > 0">
       <q-separator inset />
@@ -39,14 +46,20 @@ import AuthorSpan from './AuthorSpan.vue';
 import DateFormatSpan from './DateFormatSpan.vue';
 import ReactionGroupSpan from './ReactionGroupSpan.vue';
 import ReplyBox from './ReplyBox.vue';
-import { addDiscussionReply, deleteDiscussionReply } from 'src/api/GraphqlApi';
+import {
+  addDiscussionReply,
+  deleteDiscussionReply,
+  updateDiscussionComment,
+} from 'src/api/GraphqlApi';
 import { ref } from 'vue';
 import 'github-markdown-css';
 import CommentMenu from './CommentMenu.vue';
+import UpdateReplyBox from './UpdateReplyBox.vue';
 
-defineEmits(['update', 'delete']);
+defineEmits(['delete']);
 const props = defineProps<{ comment: Comment; discussionId: string }>();
 const comment = ref(props.comment);
+const showEditInput = ref(false);
 
 async function addComment(markdown: string) {
   const newComment = await addDiscussionReply(
@@ -55,6 +68,14 @@ async function addComment(markdown: string) {
     props.comment.id
   );
   comment.value.replies.nodes.push(newComment);
+}
+async function updateComment(markdown: string) {
+  const newComment = await updateDiscussionComment(markdown, props.comment.id);
+  comment.value.body = newComment.body;
+  comment.value.bodyHTML = newComment.bodyHTML;
+  comment.value.updatedAt = newComment.updatedAt;
+  comment.value.id = newComment.id;
+  showEditInput.value = false;
 }
 
 async function deleteReply(id: string) {

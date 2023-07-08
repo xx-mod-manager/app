@@ -45,6 +45,7 @@ fragment authorFields on Actor {
 export interface Replie {
   id: string
   author: Author
+  body: string
   bodyHTML: string
   updatedAt: string
   reactionGroups: ReactionGroup[]
@@ -56,6 +57,7 @@ fragment discussionCommentFields on DiscussionComment {
   author {
     ...authorFields
   }
+  body
   bodyHTML
   createdAt
   updatedAt
@@ -67,6 +69,7 @@ fragment discussionCommentFields on DiscussionComment {
 export interface Comment {
   id: string
   author: Author
+  body: string
   bodyHTML: string
   updatedAt: string
   reactionGroups: ReactionGroup[]
