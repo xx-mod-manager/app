@@ -5,6 +5,7 @@
       <DateFormatSpan :date="replie.updatedAt" style="margin-left: 0.5rem" />
       <q-space />
       <CommentMenu
+        :author="replie.author"
         @update="showEditInput = true"
         @delete="$emit('delete', replie.id)"
       />
