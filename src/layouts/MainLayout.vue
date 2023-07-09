@@ -16,7 +16,7 @@
     </q-header>
 
     <q-drawer v-model="leftDrawerOpen" show-if-above bordered>
-      <p>左侧边栏，计划显示登陆信息，设置的内容</p>
+      <LeftDrawer />
     </q-drawer>
 
     <q-page-container>
@@ -33,6 +33,7 @@
 import { useAuthDataStore } from 'src/stores/AuthData';
 import { ref } from 'vue';
 import { matMenu } from '@quasar/extras/material-icons';
+import LeftDrawer from 'src/components/LeftDrawer.vue';
 
 const authDataStore = useAuthDataStore();
 const leftDrawerOpen = ref(false);

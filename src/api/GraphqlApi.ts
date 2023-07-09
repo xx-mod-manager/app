@@ -1,10 +1,10 @@
 import 'src/class/GraphqlClass';
 import { api } from 'boot/axios';
-import { ApiDiscussion, ApiReactionGroup, ApiRelease, ApiComment, arrayPackage, GraphArray, getFragment } from 'src/class/GraphqlClass';
+import { ApiDiscussion, ApiReactionGroup, ApiRelease, ApiComment, arrayPackage, GraphArray, getFragment, ApiAuthor } from 'src/class/GraphqlClass';
 import { useAuthDataStore } from 'src/stores/AuthData';
 import { Mod } from 'src/class/Mod';
 import { myLogger } from 'src/boot/logger';
-import { Discussion, ReactionGroup, Release, Comment, PageArray } from 'src/class/Types';
+import { Discussion, ReactionGroup, Release, Comment, PageArray, Author } from 'src/class/Types';
 
 const GRAPHQL_URL = 'https://api.github.com/graphql';
 
@@ -38,11 +38,11 @@ export async function getModDetail(mod: Mod): Promise<{ release: Release, discus
   }
 }`;
   const data = await sendGraphql(query);
-  const datas = data.nodes as (ApiRelease | (ApiDiscussion | undefined))[];
+  const nodes = data.nodes as (ApiRelease | (ApiDiscussion | undefined))[];
   let release: ApiRelease | undefined = undefined;
   let discussion: ApiDiscussion | undefined = undefined;
 
-  datas.forEach((data) => {
+  nodes.forEach((data) => {
     if (data) {
       if ('name' in data) {
         release = data;
@@ -57,6 +57,18 @@ export async function getModDetail(mod: Mod): Promise<{ release: Release, discus
   } else {
     throw Error('getModDetail miss release!');
   }
+}
+
+export async function getCurrentAuthor(): Promise<Author> {
+  const query = `
+{
+  viewer {
+    ...authorFields
+  }
+}`;
+  const data = await sendGraphql(query);
+  const viewer: ApiAuthor = data.viewer;
+  return new Author(viewer);
 }
 
 export async function addReaction(subjectId: string, content: string): Promise<ReactionGroup[]> {

@@ -1,5 +1,5 @@
 <template>
-  <QPullToRefresh ref="pullRefresh" @refresh="refresh">
+  <QPullToRefresh ref="pullRefresh" :icon="matRefresh" @refresh="refresh">
     <q-page
       class="fit row wrap justify-start items-start content-start"
       style="padding: 0.3rem"
@@ -70,6 +70,7 @@ import { useRoute, useRouter } from 'vue-router';
 import ModDetail from 'src/components/ModDetail.vue';
 import CommentCard from 'src/components/CommentCard.vue';
 import ReplyBox from 'src/components/ReplyBox.vue';
+import { matRefresh } from '@quasar/extras/material-icons';
 
 const route = useRoute();
 const router = useRouter();
