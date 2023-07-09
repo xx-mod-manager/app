@@ -86,6 +86,19 @@ export const useAuthDataStore = defineStore(KEY_AUTH_DATA, {
 });
 
 function initAuthData(): AuthData {
+  if (import.meta.env.VITE_GITHUB_TOKEN) {
+    myLogger.warn('use persion access token...');
+    return {
+      token_info: {
+        access_token: import.meta.env.VITE_GITHUB_TOKEN,
+        expires_in: undefined,
+        refresh_token: '',
+        refresh_token_expires_in: 0
+      },
+      token_expire_dt: undefined,
+      refresh_token_expire_dt: undefined,
+    };
+  }
   const localAuthDataJson = localStorage.getItem(KEY_AUTH_DATA);
 
   if (localAuthDataJson) {
