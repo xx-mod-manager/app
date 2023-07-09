@@ -7,7 +7,7 @@
         type="text"
         dense
         filled
-        @focus="fakeBtnFocus()"
+        @focus="showInput = false"
       />
       <template v-else>
         <q-tabs
@@ -30,6 +30,7 @@
             <QInput
               ref="writeInput"
               v-model="markdown"
+              autofocus
               filled
               type="textarea"
             />
@@ -73,14 +74,5 @@ function buttonClick() {
     emit('submit', markdown.value);
     markdown.value = '';
   }
-}
-
-function fakeBtnFocus() {
-  showInput.value = false;
-  setTimeout(() => {
-    if (writeInput.value) {
-      writeInput.value.focus();
-    }
-  });
 }
 </script>
