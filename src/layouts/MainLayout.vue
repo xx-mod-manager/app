@@ -6,12 +6,21 @@
           flat
           dense
           round
-          :icon="matMenu"
-          aria-label="Menu"
+          :icon="matTune"
+          aria-label="Settings"
           @click="leftDrawerOpen = !leftDrawerOpen"
         />
 
         <q-toolbar-title> Quasar App </q-toolbar-title>
+        <q-space />
+        <q-btn
+          flat
+          dense
+          round
+          :icon="matMenu"
+          aria-label="Menu"
+          @click="rightDrawerOpen = !rightDrawerOpen"
+        />
       </q-toolbar>
     </q-header>
 
@@ -23,7 +32,7 @@
       <router-view />
     </q-page-container>
 
-    <q-drawer side="right" bordered show-if-above>
+    <q-drawer v-model="rightDrawerOpen" side="right" bordered show-if-above>
       <p>右侧边栏，计划显示分类的列表</p>
     </q-drawer>
   </q-layout>
@@ -32,11 +41,12 @@
 <script setup lang="ts">
 import { useAuthDataStore } from 'src/stores/AuthData';
 import { ref } from 'vue';
-import { matMenu } from '@quasar/extras/material-icons';
+import { matTune, matMenu } from '@quasar/extras/material-icons';
 import LeftDrawer from 'src/components/LeftDrawer.vue';
 
 const authDataStore = useAuthDataStore();
 const leftDrawerOpen = ref(false);
+const rightDrawerOpen = ref(false);
 const needAuth = ref(false);
 
 if (!authDataStore.activeToken) {
