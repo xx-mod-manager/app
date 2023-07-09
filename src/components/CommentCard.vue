@@ -14,7 +14,6 @@
       <ReactionGroupSpan :reactions="comment.reactionGroups" />
       <UpdateReplyBox
         v-if="showEditInput"
-        submit-btn-label="评论"
         :old-value="comment.body"
         @cancel="showEditInput = false"
         @submit="updateComment"
@@ -76,13 +75,12 @@ const comment = ref(props.comment);
 const showEditInput = ref(false);
 
 async function addReply(markdown: string) {
-  const newComment = await addDiscussionReply(
+  await addDiscussionReply(
     markdown,
     props.discussionId,
-    props.comment.id
+    props.comment.id,
+    comment.value.replies
   );
-  newComment.cursor = comment.value.cursor;
-  comment.value = newComment;
 }
 async function updateComment(markdown: string) {
   const newComment = await updateDiscussionComment(markdown, props.comment.id);
@@ -94,9 +92,8 @@ async function updateComment(markdown: string) {
 }
 
 async function deleteReply(id: string) {
-  const newComment = await deleteDiscussionReply(id);
-  newComment.cursor = comment.value.cursor;
-  comment.value = newComment;
+  const { totalCount, deletedReplyId } = await deleteDiscussionReply(id);
+  comment.value.replies.deleteNode(totalCount, deletedReplyId);
 }
 </script>
 

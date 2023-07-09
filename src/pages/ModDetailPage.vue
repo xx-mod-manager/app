@@ -97,18 +97,18 @@ async function refresh(done: () => void) {
 
 async function addComment(markdown: string) {
   if (detail.value?.discussion) {
-    const newDiscussion = await addDiscussionComment(
+    await addDiscussionComment(
       markdown,
-      detail.value.discussion.id
+      detail.value.discussion.id,
+      detail.value.discussion.comments
     );
-    detail.value.discussion = newDiscussion;
   }
 }
 
 async function deleteComment(id: string) {
   if (detail.value?.discussion) {
-    const newDiscussion = await deleteDiscussionComment(id);
-    detail.value.discussion = newDiscussion;
+    const { totalCount, deletedCommentId } = await deleteDiscussionComment(id);
+    detail.value.discussion.comments.deleteNode(totalCount, deletedCommentId);
   }
 }
 

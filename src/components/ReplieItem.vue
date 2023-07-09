@@ -13,7 +13,6 @@
     <ReactionGroupSpan :reactions="replie.reactionGroups" />
     <UpdateReplyBox
       v-if="showEditInput"
-      submit-btn-label="回复"
       :old-value="replie.body"
       @cancel="showEditInput = false"
       @submit="updateReply"

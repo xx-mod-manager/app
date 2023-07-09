@@ -1,6 +1,7 @@
 import { ApiAuthor, ApiComment, ApiDiscussion, ApiEdge, ApiReactionGroup, ApiRelease, ApiReleaseAsset, GraphArray } from './GraphqlClass';
 
 interface ConnectionItem {
+  id: string
   cursor: string
 }
 
@@ -11,6 +12,14 @@ export class PageArray<T extends ConnectionItem> {
   public isFull(): boolean {
     if (this.nodes.length > this.totalCount) throw Error('PageArray nodes size greate totalCount!');
     return this.nodes.length == this.totalCount;
+  }
+
+  public deleteNode(totalCount: number, nodeId: string) {
+    this.totalCount = totalCount;
+    this.nodes.splice(
+      this.nodes.findIndex((it) => it.id == nodeId),
+      1
+    );
   }
 
   public loadAll<V>(graphArray: GraphArray<V>, converFun: (value: ApiEdge<V>) => T) {

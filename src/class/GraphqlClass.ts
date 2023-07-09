@@ -28,7 +28,7 @@ export interface ApiReleaseAsset {
   size: number
 }
 
-export const releaseAssetFields = `
+const releaseAssetFields = `
 fragment releaseAssetFields on ReleaseAsset {
   id
   name
@@ -49,7 +49,7 @@ export interface ApiRelease {
   reactionGroups: ApiReactionGroup[]
 }
 
-export const releaseFields = `
+const releaseFields = `
 fragment releaseFields on Release {
   id
   author {
@@ -71,7 +71,7 @@ export interface ApiAuthor {
   avatarUrl: string
 }
 
-export const authorFields = `
+const authorFields = `
 fragment authorFields on Actor {
   login
   avatarUrl
@@ -87,7 +87,7 @@ export interface ApiComment {
   replies?: GraphArray<ApiComment>
 }
 
-export const discussionCommentFields = `
+const discussionCommentFields = `
 fragment discussionCommentFields on DiscussionComment {
   id
   author {
@@ -108,7 +108,7 @@ export interface ApiDiscussion {
   comments: GraphArray<ApiComment>
 }
 
-export const discussionFields = `
+const discussionFields = `
 fragment discussionFields on Discussion {
   id
   url
@@ -134,7 +134,7 @@ export interface ApiReactionGroup {
   }
 }
 
-export const reactionGroupsFields = `
+const reactionGroupsFields = `
 fragment reactionGroupsFields on ReactionGroup {
   content
   viewerHasReacted
@@ -145,3 +145,45 @@ fragment reactionGroupsFields on ReactionGroup {
     id
   }
 }`;
+
+interface Fragment { key: string, depend: Set<string>, value: string }
+
+const fragments: Fragment[] = [
+  { key: 'releaseAssetFields', depend: new Set(), value: releaseAssetFields },
+  { key: 'reactionGroupsFields', depend: new Set(), value: reactionGroupsFields },
+  { key: 'authorFields', depend: new Set(), value: authorFields },
+  { key: 'releaseFields', depend: new Set(['releaseAssetFields', 'authorFields']), value: releaseFields },
+  { key: 'discussionCommentFields', depend: new Set(['reactionGroupsFields', 'authorFields']), value: discussionCommentFields },
+  { key: 'discussionFields', depend: new Set(['discussionCommentFields']), value: discussionFields },
+];
+
+export function getFragment(query: string): string {
+  const fragmentSet: Set<Fragment> = new Set();
+  fragments.forEach((fragment) => {
+    if (query.includes(fragment.key)) {
+      fragmentSet.add(fragment);
+      getFragmentDepend(fragment).forEach((it) => {
+        fragmentSet.add(it);
+      });
+    }
+  });
+  let result = '';
+  fragmentSet.forEach((fragment) => {
+    result += fragment.value;
+  });
+  return result;
+}
+
+function getFragmentDepend(fragment: Fragment): Set<Fragment> {
+  const result: Set<Fragment> = new Set();
+  fragment.depend.forEach((key) => {
+    const depend = fragments.find((it) => it.key == key);
+    if (depend) {
+      result.add(depend);
+      getFragmentDepend(depend).forEach((it) => {
+        result.add(it);
+      });
+    }
+  });
+  return result;
+}

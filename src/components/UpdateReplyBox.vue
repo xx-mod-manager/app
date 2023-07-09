@@ -33,7 +33,7 @@
       <q-separator />
       <q-card-actions align="right">
         <q-btn label="取消" @click="$emit('cancel')" />
-        <q-btn :label="submitBtnLabel" @click="buttonClick()" />
+        <q-btn label="更新" @click="buttonClick()" />
       </q-card-actions>
     </q-card>
   </div>
@@ -44,7 +44,7 @@ import { ref } from 'vue';
 import Markdown from 'vue3-markdown-it';
 import 'github-markdown-css';
 
-const props = defineProps<{ submitBtnLabel: string; oldValue: string }>();
+const props = defineProps<{ oldValue: string }>();
 const emit = defineEmits(['submit', 'cancel']);
 
 const tab = ref('write');

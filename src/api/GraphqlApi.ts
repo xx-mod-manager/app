@@ -1,6 +1,6 @@
 import 'src/class/GraphqlClass';
 import { api } from 'boot/axios';
-import { ApiDiscussion, ApiReactionGroup, ApiRelease, authorFields, discussionCommentFields, reactionGroupsFields, releaseAssetFields, releaseFields, discussionFields, ApiComment, arrayPackage, GraphArray } from 'src/class/GraphqlClass';
+import { ApiDiscussion, ApiReactionGroup, ApiRelease, ApiComment, arrayPackage, GraphArray, getFragment } from 'src/class/GraphqlClass';
 import { useAuthDataStore } from 'src/stores/AuthData';
 import { Mod } from 'src/class/Mod';
 import { myLogger } from 'src/boot/logger';
@@ -8,12 +8,21 @@ import { Discussion, ReactionGroup, Release, Comment, PageArray } from 'src/clas
 
 const GRAPHQL_URL = 'https://api.github.com/graphql';
 
+async function sendGraphql(query: string) {
+  query += getFragment(query);
+  const authData = useAuthDataStore();
+  const response = await api.post(GRAPHQL_URL, { query },
+    { headers: { Authorization: authData.token } }
+  );
+  myLogger.debug(response.data);
+  return response.data.data;
+}
+
 function joinQuery(arg: string[]): string {
   return `["${arg.join('\",\"')}"]`;
 }
 
 export async function getModDetail(mod: Mod): Promise<{ release: Release, discussion: Discussion | undefined }> {
-  const authData = useAuthDataStore();
   const queres = [mod.id];
   if (mod.discussion_id) queres.push(mod.discussion_id);
   const queryArg = joinQuery(queres);
@@ -27,14 +36,9 @@ export async function getModDetail(mod: Mod): Promise<{ release: Release, discus
       ...discussionFields
     }
   }
-}` + authorFields + reactionGroupsFields + discussionCommentFields + releaseAssetFields + releaseFields + discussionFields;
-  const response = await api.post(GRAPHQL_URL, { query }, {
-    headers: {
-      Authorization: authData.token
-    }
-  });
-  myLogger.debug(response.data);
-  const datas = response.data.data.nodes as (ApiRelease | (ApiDiscussion | undefined))[];
+}`;
+  const data = await sendGraphql(query);
+  const datas = data.nodes as (ApiRelease | (ApiDiscussion | undefined))[];
   let release: ApiRelease | undefined = undefined;
   let discussion: ApiDiscussion | undefined = undefined;
 
@@ -56,7 +60,6 @@ export async function getModDetail(mod: Mod): Promise<{ release: Release, discus
 }
 
 export async function addReaction(subjectId: string, content: string): Promise<ReactionGroup[]> {
-  const authData = useAuthDataStore();
   const query = `
 mutation {
   addReaction(input: {subjectId: "${subjectId}", content: ${content}}) {
@@ -64,23 +67,15 @@ mutation {
       ...reactionGroupsFields
     }
   }
-}` + reactionGroupsFields;
-  const response = await api.post(GRAPHQL_URL, { query },
-    {
-      headers: {
-        Authorization: authData.token
-      }
-    });
+}`;
+  const data = await sendGraphql(query);
 
-  myLogger.debug(response.data);
-
-  const apiReactionGroups: ApiReactionGroup[] = response.data.data.addReaction.reactionGroups;
+  const apiReactionGroups: ApiReactionGroup[] = data.addReaction.reactionGroups;
 
   return apiReactionGroups.map((it) => new ReactionGroup(it));
 }
 
 export async function removeReaction(subjectId: string, content: string): Promise<ReactionGroup[]> {
-  const authData = useAuthDataStore();
   const query = `
 mutation {
   removeReaction(input: {subjectId: "${subjectId}", content: ${content}}) {
@@ -88,17 +83,10 @@ mutation {
       ...reactionGroupsFields
     }
   }
-}` + reactionGroupsFields;
-  const response = await api.post(GRAPHQL_URL, { query },
-    {
-      headers: {
-        Authorization: authData.token
-      }
-    });
+}`;
+  const data = await sendGraphql(query);
 
-  myLogger.debug(response.data);
-
-  const apiReactionGroups: ApiReactionGroup[] = response.data.data.removeReaction.reactionGroups;
+  const apiReactionGroups: ApiReactionGroup[] = data.removeReaction.reactionGroups;
 
   return apiReactionGroups.map((it) => new ReactionGroup(it));
 }
@@ -106,7 +94,6 @@ mutation {
 export async function loadDiscussionComment(discussionId: string, comments: PageArray<Comment>) {
   if (comments.totalCount == 0 || comments.isFull() || comments.nodes.length == 0) return;
   const endCursor = comments.nodes[comments.nodes.length - 1].cursor;
-  const authData = useAuthDataStore();
   const query = `
 {
   node(id: "${discussionId}") {
@@ -118,25 +105,22 @@ export async function loadDiscussionComment(discussionId: string, comments: Page
         totalCount
         ${arrayPackage(`
           ...discussionCommentFields
-          replies(first: 10) {
+          replies(first: 5) {
             totalCount
             ${arrayPackage('...discussionCommentFields')}
           }`)}
       }
     }
   }
-}` + authorFields + reactionGroupsFields + discussionCommentFields;
-  const response = await api.post(GRAPHQL_URL, { query }, {
-    headers: {
-      Authorization: authData.token
-    }
-  });
-  const apiComments: GraphArray<ApiComment> = response.data.data.node.comments;
+}`;
+  const data = await sendGraphql(query);
+  const apiComments: GraphArray<ApiComment> = data.node.comments;
   comments.loadAll(apiComments, (value) => new Comment(value));
 }
 
-export async function addDiscussionComment(body: string, discussionId: string): Promise<Discussion> {
-  const authData = useAuthDataStore();
+export async function addDiscussionComment(body: string, discussionId: string, comments: PageArray<Comment>) {
+  let endCursor: string | undefined = undefined;
+  if (comments.totalCount > 0) endCursor = comments.nodes[comments.nodes.length - 1].cursor;
   const query = `
 mutation {
   addDiscussionComment(
@@ -144,53 +128,51 @@ mutation {
   ) {
     comment {
       discussion {
-        ...discussionFields
+        comments(
+          first: 10
+          after: "${endCursor}"
+        ) {
+          totalCount
+          ${arrayPackage(`
+            ...discussionCommentFields
+            replies(first: 5) {
+              totalCount
+              ${arrayPackage('...discussionCommentFields')}
+            }`)}
+        }
       }
     }
   }
-}` + authorFields + reactionGroupsFields + discussionCommentFields + discussionFields;
-  const response = await api.post(GRAPHQL_URL, { query },
-    {
-      headers: {
-        Authorization: authData.token
-      }
-    });
+}`;
+  const data = await sendGraphql(query);
 
-  myLogger.debug(response.data);
-
-  const apiDiscussion: ApiDiscussion = response.data.data.addDiscussionComment.comment.discussion;
-  return new Discussion(apiDiscussion);
+  const apiComments: GraphArray<ApiComment> = data.addDiscussionComment.comment.discussion.comments;
+  comments.loadAll(apiComments, (value) => new Comment(value));
 }
 
-export async function deleteDiscussionComment(id: string): Promise<Discussion> {
-  const authData = useAuthDataStore();
+export async function deleteDiscussionComment(id: string): Promise<{ totalCount: number, deletedCommentId: string }> {
   const query = `
 mutation {
   deleteDiscussionComment(
     input: {id: "${id}"}
   ) {
     comment {
+      id
       discussion {
-        ...discussionFields
+        comments {
+          totalCount
+        }
       }
     }
   }
-}` + authorFields + reactionGroupsFields + discussionCommentFields + discussionFields;
-  const response = await api.post(GRAPHQL_URL, { query },
-    {
-      headers: {
-        Authorization: authData.token
-      }
-    });
-
-  myLogger.debug(response.data);
-
-  const apiDiscussion: ApiDiscussion = response.data.data.deleteDiscussionComment.comment.discussion;
-  return new Discussion(apiDiscussion);
+}`;
+  const data = await sendGraphql(query);
+  const deletedCommentId: string = data.deleteDiscussionComment.comment.id;
+  const totalCount: number = data.deleteDiscussionComment.comment.discussion.comments.totalCount;
+  return { totalCount, deletedCommentId };
 }
 
 export async function updateDiscussionComment(body: string, commentId: string): Promise<ApiComment> {
-  const authData = useAuthDataStore();
   const query = `
 mutation {
   updateDiscussionComment(input: {body: "${body}", commentId: "${commentId}"}) {
@@ -198,25 +180,17 @@ mutation {
       ...discussionCommentFields
     }
   }
-}` + authorFields + reactionGroupsFields + discussionCommentFields;
-  const response = await api.post(GRAPHQL_URL, { query },
-    {
-      headers: {
-        Authorization: authData.token
-      }
-    });
+}`;
+  const data = await sendGraphql(query);
 
-  myLogger.debug(response.data);
-
-  const apiComment: ApiComment = response.data.data.updateDiscussionComment.comment;
+  const apiComment: ApiComment = data.updateDiscussionComment.comment;
 
   return apiComment;
 }
 
-export async function loadDiscussionReply(discussionId: string, comments: PageArray<Comment>) {
-  if (comments.totalCount == 0 || comments.isFull() || comments.nodes.length == 0) return;
-  const endCursor = comments.nodes[comments.nodes.length - 1].cursor;
-  const authData = useAuthDataStore();
+export async function loadDiscussionReply(discussionId: string, replies: PageArray<Comment>) {
+  if (replies.totalCount == 0 || replies.isFull() || replies.nodes.length == 0) return;
+  const endCursor = replies.nodes[replies.nodes.length - 1].cursor;
   const query = `
 {
   node(id: "${discussionId}") {
@@ -230,76 +204,59 @@ export async function loadDiscussionReply(discussionId: string, comments: PageAr
       }
     }
   }
-}` + authorFields + reactionGroupsFields + discussionCommentFields;
-  const response = await api.post(GRAPHQL_URL, { query }, {
-    headers: {
-      Authorization: authData.token
-    }
-  });
-  const apiComments: GraphArray<ApiComment> = response.data.data.node.replies;
-  comments.loadAll(apiComments, (value) => new Comment(value));
+}`;
+  const data = await sendGraphql(query);
+  const apiReplies: GraphArray<ApiComment> = data.node.replies;
+  replies.loadAll(apiReplies, (value) => new Comment(value));
 }
 
-export async function addDiscussionReply(body: string, discussionId: string, commentId: string): Promise<Comment> {
-  const authData = useAuthDataStore();
+export async function addDiscussionReply(body: string, discussionId: string, commentId: string, replies: PageArray<Comment>) {
+  let endCursor: string | undefined = undefined;
+  if (replies.totalCount > 0) endCursor = replies.nodes[replies.nodes.length - 1].cursor;
   const query = `
 mutation {
   addDiscussionComment(input: {body: "${body}", discussionId: "${discussionId}", replyToId: "${commentId}"}) {
     comment {
       replyTo {
-        ...discussionCommentFields
-        replies(first: 10) {
+        replies(
+          first: 100
+          ${endCursor ? `after: "${endCursor}"` : ''}
+        ) {
           totalCount
           ${arrayPackage('...discussionCommentFields')}
         }
       }
     }
   }
-}` + authorFields + reactionGroupsFields + discussionCommentFields;
-  const response = await api.post(GRAPHQL_URL, { query },
-    {
-      headers: {
-        Authorization: authData.token
-      }
-    });
+}`;
+  const data = await sendGraphql(query);
 
-  myLogger.debug(response.data);
-
-  const apiComment: ApiComment = response.data.data.addDiscussionComment.comment.replyTo;
-  return new Comment({ node: apiComment, cursor: '' });
+  const apiReplies: GraphArray<ApiComment> = data.addDiscussionComment.comment.replyTo.replies;
+  replies.loadAll(apiReplies, (value) => new Comment(value));
 }
 
-export async function deleteDiscussionReply(id: string): Promise<Comment> {
-  const authData = useAuthDataStore();
+export async function deleteDiscussionReply(id: string): Promise<{ totalCount: number, deletedReplyId: string }> {
   const query = `
 mutation {
   deleteDiscussionComment(input: {id: "${id}"}) {
     comment {
+      id
       replyTo {
-        ...discussionCommentFields
-        replies(first: 10) {
+        replies {
           totalCount
-          ${arrayPackage('...discussionCommentFields')}
         }
       }
     }
   }
-}` + authorFields + reactionGroupsFields + discussionCommentFields;
-  const response = await api.post(GRAPHQL_URL, { query },
-    {
-      headers: {
-        Authorization: authData.token
-      }
-    });
+}`;
+  const data = await sendGraphql(query);
 
-  myLogger.debug(response.data);
-
-  const apiComment: ApiComment = response.data.data.deleteDiscussionComment.comment.replyTo;
-  return new Comment({ node: apiComment, cursor: '' });
+  const deletedReplyId: string = data.deleteDiscussionComment.comment.id;
+  const totalCount: number = data.deleteDiscussionComment.comment.replyTo.replies.totalCount;
+  return { totalCount, deletedReplyId };
 }
 
 export async function updateDiscussionReply(body: string, commentId: string): Promise<ApiComment> {
-  const authData = useAuthDataStore();
   const query = `
 mutation {
   updateDiscussionComment(input: {body: "${body}", commentId: "${commentId}"}) {
@@ -307,17 +264,10 @@ mutation {
       ...discussionCommentFields
     }
   }
-}` + authorFields + reactionGroupsFields + discussionCommentFields;
-  const response = await api.post(GRAPHQL_URL, { query },
-    {
-      headers: {
-        Authorization: authData.token
-      }
-    });
+}`;
+  const data = await sendGraphql(query);
 
-  myLogger.debug(response.data);
-
-  const apiComment: ApiComment = response.data.data.updateDiscussionComment.comment;
+  const apiComment: ApiComment = data.updateDiscussionComment.comment;
 
   return apiComment;
 }
