@@ -10,13 +10,22 @@
       mainDataStore.user.login
     }}</span>
     <q-space />
-    <q-btn flat round :icon="matLogout" @click="mainDataStore.logout()" />
+    <q-btn flat round :icon="matLogout" @click="logout" />
   </div>
 </template>
 
 <script setup lang="ts">
 import { useMainDataStore } from 'src/stores/MainData';
 import { matLogout } from '@quasar/extras/material-icons';
+import { useAuthDataStore } from 'src/stores/AuthData';
+import { useRouter } from 'vue-router';
 
 const mainDataStore = useMainDataStore();
+const authDataStore = useAuthDataStore();
+const router = useRouter();
+
+function logout() {
+  authDataStore.clearAuthInfo();
+  router.push({ name: 'login' });
+}
 </script>

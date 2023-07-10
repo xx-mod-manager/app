@@ -37,10 +37,6 @@ export const useMainDataStore = defineStore(KEY_MAIN_DATA, {
     },
     getMod(modId: string) {
       return this.mods.find((mod) => mod.mod_id == modId);
-    },
-    logout() {
-      this.user = { avatarUrl: '', login: '' };
-      window.open('/', '_self');
     }
   },
 });

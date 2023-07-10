@@ -1,7 +1,6 @@
 export interface GithubTokenInfo {
   access_token: string;
-  //no need
-  expires_in: number | undefined;
+  expires_in: number;
   refresh_token: string;
   refresh_token_expires_in: number;
 }

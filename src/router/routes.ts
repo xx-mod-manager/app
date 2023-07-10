@@ -5,12 +5,18 @@ const routes: RouteRecordRaw[] = [
     path: '/',
     component: () => import('layouts/MainLayout.vue'),
     children: [
-      { path: '', component: () => import('pages/ModsPage.vue') },
+      { path: '', name: 'home', component: () => import('pages/ModsPage.vue') },
       { path: '/mod/:id', component: () => import('pages/ModDetailPage.vue') }
     ],
   },
   {
+    path: '/login',
+    name: 'login',
+    component: () => import('layouts/LoginLayout.vue'),
+  },
+  {
     path: '/github',
+    name: 'github-callback',
     component: () => import('layouts/AuthLayout.vue'),
   },
 
@@ -18,6 +24,7 @@ const routes: RouteRecordRaw[] = [
   // but you can also remove it
   {
     path: '/:catchAll(.*)*',
+    name: '404',
     component: () => import('pages/ErrorNotFound.vue'),
   },
 ];

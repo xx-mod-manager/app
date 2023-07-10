@@ -8,118 +8,105 @@ export const KEY_AUTH_DATA = 'AuthData';
 
 export const useAuthDataStore = defineStore(KEY_AUTH_DATA, {
   state: initAuthData,
+
   getters: {
     activeToken: (stata) => {
-      if (stata.token_info && stata.token_expire_dt == undefined) {
-        return true;
-      }
-
-      if (stata.token_info && stata.token_expire_dt) {
-        return Date.now() < stata.token_expire_dt;
+      if (stata.authInfo) {
+        return Date.now() < stata.authInfo.accessTokenDate;
       } else {
         return false;
       }
     },
+
     activeRefreshToken: (stata) => {
-      if (stata.token_info && stata.refresh_token_expire_dt) {
-        return Date.now() < stata.refresh_token_expire_dt;
+      if (stata.authInfo) {
+        return Date.now() < stata.authInfo.refreshTokenDate;
       } else {
         return false;
       }
     },
-    token: (stata) => `bearer ${stata.token_info?.access_token}`,
-    refresh_token: (stata) => stata.token_info?.refresh_token,
+
+    token: (stata) => `bearer ${stata.authInfo?.accessToken}`,
+
+    refresh_token: (stata) => stata.authInfo?.refreshTokenDate,
   },
+
   actions: {
-    async updateToken(github_token_info: GithubTokenInfo) {
+    updateToken(githubTokenInfo: GithubTokenInfo) {
       myLogger.debug('auth data update.');
-      myLogger.debug(github_token_info);
-
       const current = Date.now();
-
-      this.token_info = github_token_info;
-
-      if (github_token_info.expires_in) {
-        this.token_expire_dt = current + github_token_info.expires_in * 1000;
-      } else {
-        this.token_expire_dt = undefined;
-      }
-
-      this.refresh_token_expire_dt =
-        current + github_token_info.refresh_token_expires_in * 1000;
+      const accessTokenDate = current + githubTokenInfo.expires_in * 1000;
+      const refreshTokenDate = current + githubTokenInfo.refresh_token_expires_in * 1000;
+      this.authInfo = {
+        accessToken: githubTokenInfo.access_token,
+        accessTokenDate,
+        refreshToken: githubTokenInfo.refresh_token,
+        refreshTokenDate
+      };
       localStorage.setItem(KEY_AUTH_DATA, JSON.stringify(this.$state));
-
     },
-    async authGithub() {
-      const activeToken = this.activeToken;
-      const activeRefreshToken = this.activeRefreshToken;
 
-      myLogger.debug(`active token is ${activeToken}, active refresh token is ${activeRefreshToken}.`);
-
-      if (activeToken) {
-        myLogger.debug('token is active, no need auth.');
-      } else {
-
-        if (!activeRefreshToken) {
-          Loading.show({ message: '跳转Github授权页中...' });
-          myLogger.debug('refresh token is not active, need create new token.');
-          window.open(
-            'https://github.com/login/oauth/authorize?client_id=Iv1.23bebc2931676eb7',
-            '_self'
-          );
-        } else {
-          Loading.show({ message: '刷新Github Token中...' });
-
-          if (this.token_info) {
-            const newToken = await refreshTokenInfo(this.token_info);
-
+    async refreshToken() {
+      if ((!this.activeToken) && this.activeRefreshToken) {
+        Loading.show({ message: '刷新Github Token中...', delay: 400 });
+        try {
+          if (this.authInfo) {
+            const newToken = await refreshTokenInfo({
+              access_token: this.authInfo.accessToken,
+              refresh_token: this.authInfo.refreshToken,
+              expires_in: 0,
+              refresh_token_expires_in: 0
+            });
             this.updateToken(newToken);
-            window.open('/', '_self');
-          } else {
-            Loading.hide();
-            throw Error('token is null!');
           }
+        } finally {
+          Loading.hide();
         }
+      } else {
+        myLogger.debug('not need refresh token');
       }
     },
+
+    clearAuthInfo() {
+      this.$state.authInfo = undefined;
+      localStorage.removeItem(KEY_AUTH_DATA);
+    }
   },
 });
 
 function initAuthData(): AuthData {
   if (import.meta.env.VITE_GITHUB_TOKEN) {
     myLogger.warn('use persion access token...');
+    const expiryDate = new Date(2999, 1).getTime();
     return {
-      token_info: {
-        access_token: import.meta.env.VITE_GITHUB_TOKEN,
-        expires_in: undefined,
-        refresh_token: '',
-        refresh_token_expires_in: 0
-      },
-      token_expire_dt: undefined,
-      refresh_token_expire_dt: undefined,
+      authInfo: {
+        accessToken: import.meta.env.VITE_GITHUB_TOKEN,
+        accessTokenDate: expiryDate,
+        refreshToken: '',
+        refreshTokenDate: expiryDate
+      }
     };
   }
   const localAuthDataJson = localStorage.getItem(KEY_AUTH_DATA);
-
   if (localAuthDataJson) {
     const localAuthData = JSON.parse(localAuthDataJson) as AuthData;
-
     myLogger.debug('resume auth data from localStorage.');
-
     return localAuthData;
   } else {
     myLogger.debug('auth data miss from localStorage.');
-
     return {
-      token_info: undefined,
-      token_expire_dt: undefined,
-      refresh_token_expire_dt: undefined,
+      authInfo: undefined
     };
   }
 }
 
 interface AuthData {
-  token_info: GithubTokenInfo | undefined;
-  token_expire_dt: number | undefined;
-  refresh_token_expire_dt: number | undefined;
+  authInfo?: AuthInfo
+}
+
+interface AuthInfo {
+  accessToken: string;
+  accessTokenDate: number;
+  refreshToken: string;
+  refreshTokenDate: number;
 }
