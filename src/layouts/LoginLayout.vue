@@ -12,9 +12,21 @@
         color="white"
         text-color="blue"
         unelevated
-        label="授权Github"
+        label="Github网页授权"
         no-caps
         @click="authGithub()"
+      />
+
+      <q-space />
+
+      <q-btn
+        class="q-mt-xl"
+        color="white"
+        text-color="blue"
+        unelevated
+        label="Github验证码授权"
+        no-caps
+        :to="{ name: 'deviceAuth' }"
       />
     </div>
 

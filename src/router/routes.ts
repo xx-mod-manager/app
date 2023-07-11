@@ -16,8 +16,13 @@ const routes: RouteRecordRaw[] = [
   },
   {
     path: '/github',
-    name: 'github-callback',
+    name: 'githubCallback',
     component: () => import('layouts/AuthLayout.vue'),
+  },
+  {
+    path: '/device',
+    name: 'deviceAuth',
+    component: () => import('layouts/DeviceAuthLayout.vue'),
   },
 
   // Always leave this as last one,
