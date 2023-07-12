@@ -15,6 +15,7 @@
   "dependencies": {
     "@quasar/extras": "^1.16.4",
     "axios": "^1.2.1",
+    "fuse.js": "^6.6.2",
     "github-markdown-css": "^5.2.0",
     "markdown-it": "^13.0.1",
     "octokit": "^2.1.0",
