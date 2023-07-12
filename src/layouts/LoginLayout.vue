@@ -2,72 +2,55 @@
   <div
     class="fullscreen bg-blue text-white text-center q-pa-md flex flex-center"
   >
-    <div
-      v-if="!(authDataStore.activeToken || authDataStore.activeRefreshToken)"
-    >
-      <div class="text-h2">授权Github登陆</div>
+    <div>
+      <OauthAuthPage v-if="oauthCode" :code="oauthCode" />
 
-      <q-btn
-        class="q-mt-xl"
-        color="white"
-        text-color="blue"
-        unelevated
-        label="Github网页授权"
-        no-caps
-        @click="authGithub()"
+      <DeviceAuthPage
+        v-else-if="deviceCodeInfo"
+        :device-code-info="deviceCodeInfo"
       />
 
-      <q-space />
-
-      <q-btn
-        class="q-mt-xl"
-        color="white"
-        text-color="blue"
-        unelevated
-        label="Github验证码授权"
-        no-caps
-        :to="{ name: 'deviceAuth' }"
-      />
-    </div>
-
-    <div v-else>
-      <div class="text-h2">已登陆</div>
-
-      <q-btn
-        class="q-mt-xl"
-        color="white"
-        text-color="blue"
-        unelevated
-        to="/"
-        label="首页"
-        no-caps
-      />
+      <LoginOptionPage v-else @device-auth="requestDeviceCodeInfo" />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { useAuthDataStore } from 'src/stores/AuthData';
-import { useQuasar } from 'quasar';
+import { GithubDeviceCodeInfo } from 'src/class/GithubTokenInfo';
+import OauthAuthPage from 'src/pages/OauthAuthPage.vue';
+import { ref } from 'vue';
+import LoginOptionPage from 'src/pages/LoginOptionPage.vue';
+import DeviceAuthPage from 'src/pages/DeviceAuthPage.vue';
+import { useRoute, useRouter } from 'vue-router';
+import { requestDeviceCode } from 'src/api/GithubAuthApi';
+import { useQuasar, Loading } from 'quasar';
 import { matPriorityHigh } from '@quasar/extras/material-icons';
 
-const authDataStore = useAuthDataStore();
+const route = useRoute();
+const router = useRouter();
 const quasar = useQuasar();
 
-authDataStore.refreshToken().catch(() => {
-  quasar.notify({
-    type: 'warning',
-    message: '刷新Github Token失败!',
-    icon: matPriorityHigh,
-  });
-  authDataStore.clearAuthInfo();
-});
+const oauthCode = ref(undefined as string | undefined);
+const deviceCodeInfo = ref(undefined as GithubDeviceCodeInfo | undefined);
 
-function authGithub() {
-  quasar.loading.show({ message: '跳转Github授权页面...', delay: 400 });
-  window.open(
-    'https://github.com/login/oauth/authorize?client_id=Iv1.23bebc2931676eb7',
-    '_self'
-  );
+if (route.query.code) {
+  oauthCode.value = route.query.code as string;
+}
+
+function requestDeviceCodeInfo() {
+  Loading.show({ message: '获取验证码中', delay: 400 });
+  requestDeviceCode()
+    .then((codeInfo) => {
+      deviceCodeInfo.value = codeInfo;
+    })
+    .catch(() => {
+      quasar.notify({
+        type: 'warning',
+        message: '获取Github验证码失败!',
+        icon: matPriorityHigh,
+      });
+      router.push('login');
+    })
+    .finally(() => Loading.hide());
 }
 </script>

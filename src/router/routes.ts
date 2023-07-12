@@ -15,19 +15,6 @@ const routes: RouteRecordRaw[] = [
     component: () => import('layouts/LoginLayout.vue'),
   },
   {
-    path: '/github',
-    name: 'githubCallback',
-    component: () => import('layouts/AuthLayout.vue'),
-  },
-  {
-    path: '/device',
-    name: 'deviceAuth',
-    component: () => import('layouts/DeviceAuthLayout.vue'),
-  },
-
-  // Always leave this as last one,
-  // but you can also remove it
-  {
     path: '/:catchAll(.*)*',
     name: '404',
     component: () => import('pages/ErrorNotFound.vue'),
