@@ -19,6 +19,6 @@ const props = defineProps<{
 }>();
 
 function clickMod() {
-  router.push(`/mod/${props.mod.mod_id}`);
+  router.push({ name: 'asset', params: { id: props.mod.mod_id } });
 }
 </script>
