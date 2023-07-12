@@ -30,7 +30,7 @@
             <QInput
               ref="writeInput"
               v-model="markdown"
-              autofocus
+              :autofocus="!defaultOpen"
               filled
               type="textarea"
             />

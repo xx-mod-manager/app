@@ -10,6 +10,13 @@ export const useAuthDataStore = defineStore(KEY_AUTH_DATA, {
   state: initAuthData,
 
   getters: {
+    isLogin: (stata) => {
+      if (stata.authInfo) {
+        return (Date.now() < stata.authInfo.accessTokenDate) || (Date.now() < stata.authInfo.refreshTokenDate);
+      } else {
+        return false;
+      }
+    },
     activeToken: (stata) => {
       if (stata.authInfo) {
         return Date.now() < stata.authInfo.accessTokenDate;

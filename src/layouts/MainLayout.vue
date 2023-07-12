@@ -3,6 +3,7 @@
     <q-header elevated>
       <q-toolbar>
         <q-btn
+          v-if="quasar.platform.is.mobile"
           flat
           dense
           round
@@ -45,33 +46,10 @@ import { useAuthDataStore } from 'src/stores/AuthData';
 import { ref } from 'vue';
 import { matTune, matMenu } from '@quasar/extras/material-icons';
 import LeftDrawer from 'src/components/LeftDrawer.vue';
-import { useRouter } from 'vue-router';
 import { useQuasar } from 'quasar';
-import { myLogger } from 'src/boot/logger';
-import { matPriorityHigh } from '@quasar/extras/material-icons';
 
 const quasar = useQuasar();
 const authDataStore = useAuthDataStore();
-const router = useRouter();
 const leftDrawerOpen = ref(false);
 const rightDrawerOpen = ref(false);
-
-if (!authDataStore.activeToken) {
-  if (authDataStore.activeRefreshToken) {
-    myLogger.debug('need refresh token, start.');
-    authDataStore.refreshToken().catch(() => {
-      myLogger.debug('refresh token fail, route to login.');
-      quasar.notify({
-        type: 'warning',
-        message: '刷新Github Token失败!',
-        icon: matPriorityHigh,
-      });
-      authDataStore.clearAuthInfo();
-      router.push({ name: 'login' });
-    });
-  } else {
-    myLogger.debug('need auth, route to login.');
-    router.push({ name: 'login' });
-  }
-}
 </script>
