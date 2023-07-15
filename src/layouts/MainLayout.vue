@@ -14,7 +14,11 @@
 
         <q-toolbar-title> Quasar App </q-toolbar-title>
 
-        <q-tabs inline-label class="bg-primary text-white">
+        <q-tabs
+          v-if="quasar.platform.is.electron"
+          inline-label
+          class="bg-primary text-white"
+        >
           <q-route-tab
             name="asset"
             :icon="matDownload"
@@ -22,6 +26,7 @@
             :to="{ name: 'assets' }"
           />
           <q-route-tab
+            v-if="quasar.platform.is.electron"
             name="assetManager"
             :icon="matWidgets"
             label="管理资源"
