@@ -33,17 +33,6 @@
             :to="{ name: 'assetManager' }"
           />
         </q-tabs>
-
-        <q-space />
-
-        <q-btn
-          flat
-          dense
-          round
-          :icon="matMenu"
-          aria-label="Menu"
-          @click="rightDrawerOpen = !rightDrawerOpen"
-        />
       </q-toolbar>
     </q-header>
 
@@ -55,10 +44,6 @@
       <q-page-container>
         <router-view />
       </q-page-container>
-
-      <q-drawer v-model="rightDrawerOpen" side="right" bordered>
-        <p>右侧边栏，计划显示分类的列表</p>
-      </q-drawer>
     </template>
   </q-layout>
 </template>
@@ -68,7 +53,6 @@ import { useAuthDataStore } from 'src/stores/AuthData';
 import { ref } from 'vue';
 import {
   matTune,
-  matMenu,
   matDownload,
   matWidgets,
 } from '@quasar/extras/material-icons';
@@ -79,5 +63,4 @@ const quasar = useQuasar();
 const authDataStore = useAuthDataStore();
 
 const leftDrawerOpen = ref(false);
-const rightDrawerOpen = ref(false);
 </script>
