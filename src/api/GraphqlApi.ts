@@ -2,9 +2,8 @@ import 'src/class/GraphqlClass';
 import { api } from 'boot/axios';
 import { ApiDiscussion, ApiReactionGroup, ApiRelease, ApiComment, arrayPackage, GraphArray, getFragment, ApiAuthor } from 'src/class/GraphqlClass';
 import { useAuthDataStore } from 'src/stores/AuthData';
-import { Mod } from 'src/class/Mod';
 import { myLogger } from 'src/boot/logger';
-import { Discussion, ReactionGroup, Release, Comment, PageArray, Author } from 'src/class/Types';
+import { Discussion, ReactionGroup, Release, Comment, PageArray, Author, Asset } from 'src/class/Types';
 
 const GRAPHQL_URL = 'https://api.github.com/graphql';
 
@@ -22,9 +21,9 @@ function joinQuery(arg: string[]): string {
   return `["${arg.join('\",\"')}"]`;
 }
 
-export async function getModDetail(mod: Mod): Promise<{ release: Release, discussion: Discussion | undefined }> {
-  const queres = [mod.id];
-  if (mod.discussion_id) queres.push(mod.discussion_id);
+export async function getAssetDetail(asset: Asset): Promise<{ release: Release, discussion: Discussion | undefined }> {
+  const queres = [asset.releaseNodeId];
+  if (asset.discussionNodeId) queres.push(asset.discussionNodeId);
   const queryArg = joinQuery(queres);
   const query = `
 {
@@ -55,7 +54,7 @@ export async function getModDetail(mod: Mod): Promise<{ release: Release, discus
   if (release) {
     return { release: new Release(release), discussion: discussion ? new Discussion(discussion) : undefined };
   } else {
-    throw Error('getModDetail miss release!');
+    throw Error('getAssetDetail miss release!');
   }
 }
 

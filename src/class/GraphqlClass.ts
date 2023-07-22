@@ -26,6 +26,7 @@ export interface ApiReleaseAsset {
   downloadCount: number
   downloadUrl: string
   size: number
+  contentType: string
 }
 
 const releaseAssetFields = `
@@ -37,6 +38,7 @@ fragment releaseAssetFields on ReleaseAsset {
   downloadCount
   downloadUrl
   size
+  contentType
 }`;
 
 export interface ApiRelease {
@@ -116,7 +118,7 @@ fragment discussionFields on Discussion {
     totalCount
     ${arrayPackage(`
       ...discussionCommentFields
-      replies(first: 5) {
+      replies(first: 2) {
         totalCount
         ${arrayPackage('...discussionCommentFields')}
       }`)}

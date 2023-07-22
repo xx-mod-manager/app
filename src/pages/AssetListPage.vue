@@ -15,12 +15,12 @@
           <q-avatar :icon="matSearch" />
         </template>
       </q-input>
-      <ModItem
-        v-for="mod in result"
-        :key="mod.id"
+      <AssetListItem
+        v-for="asset in result"
+        :key="asset.id"
         class="col-12"
         style="margin-top: 0.4rem"
-        :mod="mod"
+        :asset="asset"
       />
     </q-page>
   </QPullToRefresh>
@@ -29,7 +29,7 @@
 <script setup lang="ts">
 import { QPullToRefresh, useQuasar } from 'quasar';
 import { myLogger } from 'src/boot/logger';
-import ModItem from 'src/components/ModItem.vue';
+import AssetListItem from 'src/components/AssetListItem.vue';
 import { useMainDataStore } from 'src/stores/MainData';
 import { computed, onMounted, ref } from 'vue';
 import { matRefresh, matSearch } from '@quasar/extras/material-icons';
@@ -40,19 +40,19 @@ const { loading } = useQuasar();
 const searchText = ref('');
 const pullRefresh = ref(null as QPullToRefresh | null);
 
-const fuse = new Fuse(mainDataStore.mods, {
+const fuse = new Fuse(mainDataStore.assets, {
   keys: ['name', 'description'],
 });
 
 const result = computed(() =>
   searchText.value.length > 0
     ? fuse.search(searchText.value).map((it) => it.item)
-    : mainDataStore.mods
+    : mainDataStore.assets
 );
 
 function refresh(done: () => void) {
   myLogger.debug('refresh main data');
-  mainDataStore.updateData().finally(() => {
+  mainDataStore.refresh().finally(() => {
     if (loading.isActive) loading.hide();
     done();
   });
@@ -61,7 +61,7 @@ function refresh(done: () => void) {
 onMounted(() => {
   if (
     pullRefresh.value &&
-    (mainDataStore.mods.length == 0 || mainDataStore.user.login.length == 0)
+    (mainDataStore.assets.length == 0 || mainDataStore.user.login.length == 0)
   ) {
     loading.show();
     pullRefresh.value.trigger();

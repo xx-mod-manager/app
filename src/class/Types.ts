@@ -70,6 +70,7 @@ export class ReleaseAsset implements ConnectionItem {
   downloadCount: number;
   downloadUrl: string;
   size: number;
+  contentType: string;
   cursor: string;
 
   constructor({ node, cursor }: ApiEdge<ApiReleaseAsset>) {
@@ -80,6 +81,7 @@ export class ReleaseAsset implements ConnectionItem {
     this.downloadCount = node.downloadCount;
     this.downloadUrl = node.downloadUrl;
     this.size = node.size;
+    this.contentType = node.contentType;
     this.cursor = cursor;
   }
 }
@@ -137,5 +139,91 @@ export class Discussion {
     this.id = apiDiscussion.id;
     this.url = apiDiscussion.url;
     this.comments.updateAll(apiDiscussion.comments, (it) => new Comment(it));
+  }
+}
+
+export interface ApiMainData {
+  updated: number,
+  assets: ApiAsset[]
+}
+
+export interface ApiAsset {
+  id: string
+  name: string
+  description: string
+  cover?: string
+  author: string
+  category: string
+  tags: string[]
+  repo: string
+  created: number
+  updated: number
+  downloadCount: number
+  releaseNodeId: string
+  discussionNodeId?: string
+}
+
+export enum AssetStatus {
+  NONE, DOWNLOADED, INTALLED
+}
+
+export class Asset {
+  id: string;
+  name: string;
+  description: string;
+  cover?: string;
+  author: string;
+  category: string;
+  tags: string[];
+  repo: string;
+  created: Date;
+  updated: Date;
+  downloadCount: number;
+  releaseNodeId: string;
+  discussionNodeId?: string;
+  existOnline: boolean;
+  versions: Map<string, AssetStatus>;
+
+  constructor(apiAsset: ApiAsset) {
+    this.id = apiAsset.id;
+    this.name = apiAsset.name;
+    this.description = apiAsset.description;
+    this.cover = apiAsset.cover;
+    this.author = apiAsset.author;
+    this.category = apiAsset.category;
+    this.tags = apiAsset.tags;
+    this.repo = apiAsset.repo;
+    this.created = new Date(apiAsset.created);
+    this.updated = new Date(apiAsset.updated);
+    this.downloadCount = apiAsset.downloadCount;
+    this.releaseNodeId = apiAsset.releaseNodeId;
+    this.discussionNodeId = apiAsset.discussionNodeId;
+    this.existOnline = true;
+    this.versions = new Map();
+  }
+
+  updateFromRemote(newAsset: Asset) {
+    this.id = newAsset.id;
+    this.name = newAsset.name;
+    this.description = newAsset.description;
+    this.cover = newAsset.cover;
+    this.author = newAsset.author;
+    this.category = newAsset.category;
+    this.tags = newAsset.tags;
+    this.repo = newAsset.repo;
+    this.created = newAsset.created;
+    this.updated = newAsset.updated;
+    this.downloadCount = newAsset.downloadCount;
+    this.releaseNodeId = newAsset.releaseNodeId;
+    this.discussionNodeId = newAsset.discussionNodeId;
+    this.existOnline = true;
+  }
+
+  existLocal(): boolean {
+    if (this.versions.size == 0) return false;
+    for (const status of this.versions.values()) {
+      if (status != AssetStatus.NONE) return true;
+    }
+    return false;
   }
 }

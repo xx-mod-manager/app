@@ -1,69 +1,96 @@
 import { defineStore } from 'pinia';
 import { getCurrentAuthor } from 'src/api/GraphqlApi';
-import { getMods as getModsByRemote } from 'src/api/ModsApi';
+import { requestMainData } from 'src/api/MainDataApi';
 import { myLogger } from 'src/boot/logger';
-import { Mod } from 'src/class/Mod';
-import { Author } from 'src/class/Types';
+import { ApiAsset, ApiMainData, Asset, Author } from 'src/class/Types';
 
-export const KEY_MAIN_DATA = 'mainData';
+const KEY_MAIN_DATA = 'mainData';
 
 export const useMainDataStore = defineStore(KEY_MAIN_DATA, {
-  state: initMainData,
+  state: initMainDataStore,
+
   getters: {},
+
   actions: {
-    async updateData() {
-      myLogger.debug('update main data start.');
-
-      const promises = [getModsByRemote(), getCurrentAuthor()];
-
-      const result = await Promise.all(promises);
-
-      myLogger.debug(promises);
-      let newMods: Mod[] = [];
+    async refresh() {
+      myLogger.debug('Update MainDataStore start.');
+      const result = await Promise.all([requestMainData(), getCurrentAuthor()]);
+      let newMainData: ApiMainData = { updated: 0, assets: [] };
       let newUser: Author = { avatarUrl: '', login: '' };
-      result.forEach((it) => {
-        if (Array.isArray(it)) {
-          newMods = it;
-        } else {
-          newUser = it as unknown as Author;
-        }
-      });
-
-      myLogger.debug(`new mods count is  ${newMods.length}, new user name is ${newUser.login}.`);
-      this.mods = newMods;
+      result.forEach((it) => ('updated' in it) ? newMainData = it : newUser = it);
+      myLogger.debug(`New MainData.\n updateed: ${newMainData.updated}.\n assets count:${newMainData.assets.length}.`);
+      if (this.updated.getTime() < newMainData.updated) {
+        this.updated = new Date(newMainData.updated);
+        updateAssets(this.assets, newMainData.assets);
+      } else {
+        myLogger.debug('MainData not update.');
+      }
       this.user = newUser;
       localStorage.setItem(KEY_MAIN_DATA, JSON.stringify(this.$state));
-      myLogger.debug('update main data end.');
+      myLogger.debug('Update MainDataStore end.');
     },
-    getMod(modId: string) {
-      return this.mods.find((mod) => mod.mod_id == modId);
+
+    getAssetById(id: string): Asset | undefined {
+      return this.assets.find((it) => it.id == id);
     }
   },
 });
 
-function initMainData(): {
-  mods: Mod[];
-  user: Author;
-} {
+interface MainData {
+  updated: Date
+  assets: Asset[]
+  //todo move to auth
+  user: Author
+}
+
+function updateAssets(oldAssets: Asset[], newApiAssets: ApiAsset[]) {
+  const newAssets = newApiAssets.map(it => new Asset(it));
+  const deletedAssets: Asset[] = [...oldAssets];
+  newAssets.forEach((newAsset) => {
+    const oldAsset = oldAssets.find((it) => it.id == newAsset.id);
+    if (oldAsset) {
+      oldAsset.updateFromRemote(newAsset);
+      const index = deletedAssets.findIndex((it) => it.id == newAsset.id);
+      if (index > -1) delete deletedAssets[index];
+    } else {
+      oldAssets.push(newAsset);
+      myLogger.debug(`Add new asset ${newAsset.id}`);
+    }
+  });
+  deletedAssets.forEach((deletedAsset) => {
+    const oldAsset = oldAssets.find((it) => it.id == deletedAsset.id);
+    if (oldAsset) {
+      if (oldAsset.existLocal()) {
+        oldAsset.existOnline = false;
+        myLogger.debug(`Set old asset ${oldAsset.id} online to false.`);
+      } else {
+        const index = oldAssets.findIndex((it) => it.id == deletedAsset.id);
+        delete oldAssets[index];
+        myLogger.debug(`Delete old asset ${oldAsset.id}.`);
+      }
+    } else {
+      throw Error(`old assets miss deleted asset ${deletedAsset.id}.`);
+    }
+  });
+}
+
+function initMainDataStore(): MainData {
   const localMainDataJson = localStorage.getItem(KEY_MAIN_DATA);
-
   if (localMainDataJson) {
-    const localMainData = JSON.parse(localMainDataJson) as { mods: Mod[], user: Author; };
-
+    const localMainData = JSON.parse(localMainDataJson) as MainData;
     myLogger.debug(
-      `resume main data from localStorage, mods count is ${localMainData.mods.length}.`
+      `Resume MainDataStore from localStorage.\n updated: ${localMainData.updated}.\n assets count: ${localMainData.assets.length}.`
     );
-
     return localMainData;
   } else {
-    myLogger.debug('main data miss from localStorage, init new main data.');
-
+    myLogger.debug('New MainDataStore.');
     return {
-      mods: [],
+      updated: new Date(0),
+      assets: [],
       user: {
         avatarUrl: '',
-        login: 'null'
-      }
+        login: ''
+      },
     };
   }
 }
