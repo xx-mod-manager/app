@@ -22,7 +22,7 @@ const quasar = useQuasar();
 
 getTokenInfo(props.code as string)
   .then((token) => {
-    authDataStore.updateToken(token);
+    authDataStore.update(token);
     router.push({ name: 'home' });
   })
   .catch(() => {

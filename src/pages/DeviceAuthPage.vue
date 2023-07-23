@@ -64,7 +64,7 @@ function openGithub() {
 function requestCode(deviceCode: string) {
   getDeviceTokenInfo(deviceCode)
     .then((token) => {
-      authDataStore.updateToken(token);
+      authDataStore.update(token);
       router.push({ name: 'home' });
     })
     .catch(() => {

@@ -26,12 +26,12 @@
 <script setup lang="ts">
 import { matMoreHoriz } from '@quasar/extras/material-icons';
 import { Author } from 'src/class/Types';
-import { useMainDataStore } from 'src/stores/MainData';
+import { useAuthDataStore } from 'src/stores/AuthData';
 import { ref } from 'vue';
 
 const props = defineProps<{ author: Author }>();
 defineEmits(['update', 'delete']);
-const mainDataStore = useMainDataStore();
+const authDataStore = useAuthDataStore();
 
-const isCurrentUser = ref(mainDataStore.user.login == props.author.login);
+const isCurrentUser = ref(authDataStore.user?.login == props.author.login);
 </script>

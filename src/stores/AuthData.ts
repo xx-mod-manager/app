@@ -3,11 +3,13 @@ import { myLogger } from 'src/boot/logger';
 import { GithubTokenInfo } from 'src/class/GithubTokenInfo';
 import { Loading } from 'quasar';
 import { refreshTokenInfo } from 'src/api/GithubAuthApi';
+import { Author } from 'src/class/Types';
+import { getCurrentAuthor } from 'src/api/GraphqlApi';
 
-export const KEY_AUTH_DATA = 'AuthData';
+const KEY_AUTH_DATA = 'AuthData';
 
 export const useAuthDataStore = defineStore(KEY_AUTH_DATA, {
-  state: initAuthData,
+  state: init,
 
   getters: {
     isLogin: (stata) => {
@@ -17,6 +19,7 @@ export const useAuthDataStore = defineStore(KEY_AUTH_DATA, {
         return false;
       }
     },
+
     activeToken: (stata) => {
       if (stata.authInfo) {
         return Date.now() < stata.authInfo.accessTokenDate;
@@ -39,8 +42,8 @@ export const useAuthDataStore = defineStore(KEY_AUTH_DATA, {
   },
 
   actions: {
-    updateToken(githubTokenInfo: GithubTokenInfo) {
-      myLogger.debug('auth data update.');
+    async update(githubTokenInfo: GithubTokenInfo) {
+      myLogger.debug('Update AuthDataStore start.');
       const current = Date.now();
       const accessTokenDate = current + githubTokenInfo.expires_in * 1000;
       const refreshTokenDate = current + githubTokenInfo.refresh_token_expires_in * 1000;
@@ -50,10 +53,19 @@ export const useAuthDataStore = defineStore(KEY_AUTH_DATA, {
         refreshToken: githubTokenInfo.refresh_token,
         refreshTokenDate
       };
+      await this.refreshAuthor();
       localStorage.setItem(KEY_AUTH_DATA, JSON.stringify(this.$state));
+      myLogger.debug('Update AuthDataStore end.');
+    },
+
+    async refreshAuthor() {
+      const newAuthor = await getCurrentAuthor();
+      this.user = newAuthor;
+      myLogger.debug(`new author name is ${newAuthor.login}.`);
     },
 
     async refreshToken() {
+      myLogger.debug('refreshToken start.');
       if ((!this.activeToken) && this.activeRefreshToken) {
         Loading.show({ message: '刷新Github Token中...', delay: 400 });
         try {
@@ -64,7 +76,7 @@ export const useAuthDataStore = defineStore(KEY_AUTH_DATA, {
               expires_in: 0,
               refresh_token_expires_in: 0
             });
-            this.updateToken(newToken);
+            this.update(newToken);
           }
         } finally {
           Loading.hide();
@@ -74,15 +86,17 @@ export const useAuthDataStore = defineStore(KEY_AUTH_DATA, {
       }
     },
 
-    clearAuthInfo() {
+    clear() {
       this.$state.authInfo = undefined;
+      this.$state.user = undefined;
       localStorage.removeItem(KEY_AUTH_DATA);
     }
   },
 });
 
-function initAuthData(): AuthData {
+function init(): AuthData {
   if (import.meta.env.VITE_GITHUB_TOKEN) {
+    // Dev test
     myLogger.warn('use persion access token...');
     const expiryDate = new Date(2999, 1).getTime();
     return {
@@ -91,6 +105,10 @@ function initAuthData(): AuthData {
         accessTokenDate: expiryDate,
         refreshToken: '',
         refreshTokenDate: expiryDate
+      },
+      user: {
+        login: 'HeYaoDaDa',
+        avatarUrl: 'https://avatars.githubusercontent.com/u/37257891?u=649b03ef58d43f9ffa5f73fb6f79d52c0429cfd8&v=4'
       }
     };
   }
@@ -101,14 +119,13 @@ function initAuthData(): AuthData {
     return localAuthData;
   } else {
     myLogger.debug('auth data miss from localStorage.');
-    return {
-      authInfo: undefined
-    };
+    return {};
   }
 }
 
 interface AuthData {
   authInfo?: AuthInfo
+  user?: Author
 }
 
 interface AuthInfo {

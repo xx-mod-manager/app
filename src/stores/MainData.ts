@@ -1,23 +1,19 @@
 import { defineStore } from 'pinia';
-import { getCurrentAuthor } from 'src/api/GraphqlApi';
 import { requestMainData } from 'src/api/MainDataApi';
 import { myLogger } from 'src/boot/logger';
-import { ApiAsset, ApiMainData, Asset, Author } from 'src/class/Types';
+import { ApiAsset, Asset } from 'src/class/Types';
 
 const KEY_MAIN_DATA = 'mainData';
 
 export const useMainDataStore = defineStore(KEY_MAIN_DATA, {
-  state: initMainDataStore,
+  state: init,
 
   getters: {},
 
   actions: {
     async refresh() {
       myLogger.debug('Update MainDataStore start.');
-      const result = await Promise.all([requestMainData(), getCurrentAuthor()]);
-      let newMainData: ApiMainData = { updated: 0, assets: [] };
-      let newUser: Author = { avatarUrl: '', login: '' };
-      result.forEach((it) => ('updated' in it) ? newMainData = it : newUser = it);
+      const newMainData = await requestMainData();
       myLogger.debug(`New MainData.\n updateed: ${newMainData.updated}.\n assets count:${newMainData.assets.length}.`);
       if (this.updated.getTime() < newMainData.updated) {
         this.updated = new Date(newMainData.updated);
@@ -25,7 +21,6 @@ export const useMainDataStore = defineStore(KEY_MAIN_DATA, {
       } else {
         myLogger.debug('MainData not update.');
       }
-      this.user = newUser;
       localStorage.setItem(KEY_MAIN_DATA, JSON.stringify(this.$state));
       myLogger.debug('Update MainDataStore end.');
     },
@@ -39,8 +34,6 @@ export const useMainDataStore = defineStore(KEY_MAIN_DATA, {
 interface MainData {
   updated: Date
   assets: Asset[]
-  //todo move to auth
-  user: Author
 }
 
 function updateAssets(oldAssets: Asset[], newApiAssets: ApiAsset[]) {
@@ -74,7 +67,7 @@ function updateAssets(oldAssets: Asset[], newApiAssets: ApiAsset[]) {
   });
 }
 
-function initMainDataStore(): MainData {
+function init(): MainData {
   const localMainDataJson = localStorage.getItem(KEY_MAIN_DATA);
   if (localMainDataJson) {
     const localMainData = JSON.parse(localMainDataJson) as MainData;
@@ -86,11 +79,7 @@ function initMainDataStore(): MainData {
     myLogger.debug('New MainDataStore.');
     return {
       updated: new Date(0),
-      assets: [],
-      user: {
-        avatarUrl: '',
-        login: ''
-      },
+      assets: []
     };
   }
 }

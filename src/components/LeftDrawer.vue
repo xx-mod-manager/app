@@ -2,11 +2,11 @@
   <div>
     <div id="userInfoDiv" class="row justify-start items-center content-start">
       <q-avatar>
-        <img :src="mainDataStore.user.avatarUrl" />
+        <img :src="authDataStore.user?.avatarUrl" />
       </q-avatar>
 
       <span class="text-subtitle1" style="padding-left: 1rem">{{
-        mainDataStore.user.login
+        authDataStore.user?.login
       }}</span>
 
       <q-space />
@@ -33,7 +33,6 @@
 </template>
 
 <script setup lang="ts">
-import { useMainDataStore } from 'src/stores/MainData';
 import {
   matLogout,
   matDownload,
@@ -43,13 +42,12 @@ import { useAuthDataStore } from 'src/stores/AuthData';
 import { useRouter } from 'vue-router';
 import { useQuasar } from 'quasar';
 
-const mainDataStore = useMainDataStore();
 const authDataStore = useAuthDataStore();
 const router = useRouter();
 const quasar = useQuasar();
 
 function logout() {
-  authDataStore.clearAuthInfo();
+  authDataStore.clear();
   router.push({ name: 'login' });
 }
 </script>

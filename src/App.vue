@@ -38,7 +38,7 @@ router.afterEach(() => {
           message: '刷新Github Token失败!',
           icon: matPriorityHigh,
         });
-        authDataStore.clearAuthInfo();
+        authDataStore.clear();
         router.push({ name: 'login' });
       });
     }

@@ -34,9 +34,12 @@ import { useMainDataStore } from 'src/stores/MainData';
 import { computed, onMounted, ref } from 'vue';
 import { matRefresh, matSearch } from '@quasar/extras/material-icons';
 import Fuse from 'fuse.js';
+import { useAuthDataStore } from 'src/stores/AuthData';
 
 const mainDataStore = useMainDataStore();
+const authDataStore = useAuthDataStore();
 const { loading } = useQuasar();
+
 const searchText = ref('');
 const pullRefresh = ref(null as QPullToRefresh | null);
 
@@ -61,7 +64,7 @@ function refresh(done: () => void) {
 onMounted(() => {
   if (
     pullRefresh.value &&
-    (mainDataStore.assets.length == 0 || mainDataStore.user.login.length == 0)
+    (mainDataStore.assets.length == 0 || authDataStore.user == undefined)
   ) {
     loading.show();
     pullRefresh.value.trigger();
