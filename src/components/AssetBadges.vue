@@ -1,13 +1,17 @@
 <template>
-  <q-badge color="secondary"
-    >{{ asset.downloadCount }}<q-icon :name="matDownload" color="white"
-  /></q-badge>
+  <div>
+    <q-badge
+      >{{ asset.downloadCount }}<q-icon :name="matDownload" color="white"
+    /></q-badge>
 
-  <q-badge color="secondary" :label="asset.category" />
+    <q-badge :label="asset.category" />
 
-  <q-badge color="secondary" :label="asset.author" />
+    <q-badge :label="asset.author" />
 
-  <q-badge color="secondary" :label="asset.repo" />
+    <q-badge :label="asset.repo" />
+
+    <q-badge v-for="tag in asset.tags" :key="tag" :label="tag" />
+  </div>
 </template>
 
 <script setup lang="ts">

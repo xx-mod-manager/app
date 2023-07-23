@@ -1,27 +1,17 @@
 <template>
   <QPullToRefresh ref="pullRefresh" :icon="matRefresh" @refresh="refresh">
-    <q-page
-      class="fit row wrap justify-start items-start content-start"
-      style="padding-left: 0.3rem; padding-right: 0.3rem"
-    >
-      <q-input
-        v-model="searchText"
-        rounded
-        outlined
-        class="col-12"
-        style="margin-top: 0.4rem"
+    <q-page>
+      <div
+        class="row wrap justify-start items-stretch content-start"
+        style="padding-left: 0.3rem; padding-right: 0.3rem"
       >
-        <template #append>
-          <q-avatar :icon="matSearch" />
-        </template>
-      </q-input>
-      <AssetListItem
-        v-for="asset in result"
-        :key="asset.id"
-        class="col-12"
-        style="margin-top: 0.4rem"
-        :asset="asset"
-      />
+        <AssetListItem
+          v-for="asset in result"
+          :key="asset.id"
+          style="margin: 0.2rem; width: 20rem"
+          :asset="asset"
+        />
+      </div>
     </q-page>
   </QPullToRefresh>
 </template>
@@ -29,12 +19,12 @@
 <script setup lang="ts">
 import { QPullToRefresh, useQuasar } from 'quasar';
 import { myLogger } from 'src/boot/logger';
-import AssetListItem from 'src/components/AssetListItem.vue';
 import { useMainDataStore } from 'src/stores/MainData';
 import { computed, onMounted, ref } from 'vue';
-import { matRefresh, matSearch } from '@quasar/extras/material-icons';
+import { matRefresh } from '@quasar/extras/material-icons';
 import Fuse from 'fuse.js';
 import { useAuthDataStore } from 'src/stores/AuthData';
+import AssetListItem from 'src/components/AssetListItem.vue';
 
 const mainDataStore = useMainDataStore();
 const authDataStore = useAuthDataStore();
