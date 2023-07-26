@@ -8,7 +8,7 @@ const routes: RouteRecordRaw[] = [
     component: () => import('layouts/MainLayout.vue'),
     meta: { requiresAuth: true },
     children: [
-      { path: 'asset', name: 'assets', component: () => import('pages/AssetListPage.vue') },
+      { path: 'asset', name: 'assets', component: () => import('pages/AssetsPage.vue') },
       { path: 'asset/:id', name: 'asset', component: () => import('pages/AssetPage.vue') },
       { path: 'asset-manager', name: 'assetManager', component: () => import('pages/AssetManagerPage.vue') }
     ],

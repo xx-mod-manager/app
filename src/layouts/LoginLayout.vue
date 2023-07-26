@@ -17,10 +17,10 @@
 
 <script setup lang="ts">
 import { GithubDeviceCodeInfo } from 'src/class/GithubTokenInfo';
-import OauthAuthPage from 'src/pages/OauthAuthPage.vue';
+import OauthAuthPage from 'src/pages/login/OauthAuthPage.vue';
 import { ref } from 'vue';
-import LoginOptionPage from 'src/pages/LoginOptionPage.vue';
-import DeviceAuthPage from 'src/pages/DeviceAuthPage.vue';
+import LoginOptionPage from 'src/pages/login/LoginOptionPage.vue';
+import DeviceAuthPage from 'src/pages/login/DeviceAuthPage.vue';
 import { useRoute, useRouter } from 'vue-router';
 import { requestDeviceCode } from 'src/api/GithubAuthApi';
 import { useQuasar, Loading } from 'quasar';
