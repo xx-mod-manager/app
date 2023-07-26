@@ -22,7 +22,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/:catchAll(.*)*',
     name: '404',
-    component: () => import('pages/ErrorNotFound.vue'),
+    component: () => import('layouts/ErrorNotFoundLayout.vue'),
   },
 ];
 
