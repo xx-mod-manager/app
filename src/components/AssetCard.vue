@@ -1,21 +1,24 @@
 <template>
   <q-card>
     <q-card-section>
-      <p class="text-h5">{{ release.name }}</p>
+      <p class="text-h5">{{ discussion.title }}</p>
 
       <AssetBadges :asset="asset" />
 
       <div style="margin-top: 0.5rem">
-        <AuthorSpan :author="release.author" />
+        <AuthorSpan :author="discussion.author" />
 
-        <DateFormatSpan :date="release.updatedAt" style="margin-left: 0.5rem" />
+        <DateFormatSpan
+          :date="discussion.updatedAt"
+          style="margin-left: 0.5rem"
+        />
       </div>
     </q-card-section>
 
     <q-separator inset />
 
     <q-card-section>
-      <div class="markdown-body" v-html="release.descriptionHTML"></div>
+      <div class="markdown-body" v-html="discussion.bodyHTML"></div>
 
       <!-- github release viewerHasReacted not work -->
       <!-- <ReactionGroupSpan :reactions="release.reactionGroups" /> -->
@@ -25,7 +28,7 @@
 
     <q-card-section>
       <AssetItem
-        v-for="assetFile in filterReleaseAsset(release.releaseAssets.nodes)"
+        v-for="assetFile in filterReleaseAsset(releaseAssets)"
         :key="assetFile.id"
         :asset="assetFile"
       />
@@ -33,7 +36,7 @@
   </q-card>
 </template>
 <script setup lang="ts">
-import { Asset, Release, ReleaseAsset } from 'src/class/Types';
+import { Asset, Discussion, ReleaseAsset } from 'src/class/Types';
 import AuthorSpan from './AuthorSpan.vue';
 import DateFormatSpan from './DateFormatSpan.vue';
 import 'github-markdown-css';
@@ -41,7 +44,8 @@ import AssetItem from './AssetItem.vue';
 import AssetBadges from './AssetBadges.vue';
 
 defineProps<{
-  release: Release;
+  discussion: Discussion;
+  releaseAssets: ReleaseAsset[];
   asset: Asset;
 }>();
 

@@ -43,28 +43,14 @@ fragment releaseAssetFields on ReleaseAsset {
 
 export interface ApiRelease {
   id: string
-  author: ApiAuthor
-  name: string
-  descriptionHTML: string
-  updatedAt: string
   releaseAssets: GraphArray<ApiReleaseAsset>
-  reactionGroups: ApiReactionGroup[]
 }
 
 const releaseFields = `
 fragment releaseFields on Release {
   id
-  author {
-    ...authorFields
-  }
-  name
-  descriptionHTML
-  updatedAt
   releaseAssets(last: 10) {
     ${arrayPackage('...releaseAssetFields')}
-  }
-  reactionGroups {
-    ...reactionGroupsFields
   }
 }`;
 
@@ -106,13 +92,24 @@ fragment discussionCommentFields on DiscussionComment {
 
 export interface ApiDiscussion {
   id: string
+  author: ApiAuthor
+  title: string
+  bodyHTML: string
+  updatedAt: string
   url: string
   comments: GraphArray<ApiComment>
+  reactionGroups: ApiReactionGroup[]
 }
 
 const discussionFields = `
 fragment discussionFields on Discussion {
   id
+  author {
+    ...authorFields
+  }
+  title
+  bodyHTML
+  updatedAt
   url
   comments(first: 10) {
     totalCount
@@ -122,6 +119,9 @@ fragment discussionFields on Discussion {
         totalCount
         ${arrayPackage('...discussionCommentFields')}
       }`)}
+  }
+  reactionGroups {
+    ...reactionGroupsFields
   }
 }`;
 
@@ -154,9 +154,9 @@ const fragments: Fragment[] = [
   { key: 'releaseAssetFields', depend: new Set(), value: releaseAssetFields },
   { key: 'reactionGroupsFields', depend: new Set(), value: reactionGroupsFields },
   { key: 'authorFields', depend: new Set(), value: authorFields },
-  { key: 'releaseFields', depend: new Set(['releaseAssetFields', 'authorFields']), value: releaseFields },
+  { key: 'releaseFields', depend: new Set(['releaseAssetFields']), value: releaseFields },
   { key: 'discussionCommentFields', depend: new Set(['reactionGroupsFields', 'authorFields']), value: discussionCommentFields },
-  { key: 'discussionFields', depend: new Set(['discussionCommentFields']), value: discussionFields },
+  { key: 'discussionFields', depend: new Set(['discussionCommentFields', 'authorFields', 'reactionGroupsFields']), value: discussionFields },
 ];
 
 export function getFragment(query: string): string {

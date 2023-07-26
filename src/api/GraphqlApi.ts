@@ -21,7 +21,7 @@ function joinQuery(arg: string[]): string {
   return `["${arg.join('\",\"')}"]`;
 }
 
-export async function getAssetDetail(asset: Asset): Promise<{ release: Release, discussion: Discussion | undefined }> {
+export async function getAssetDetail(asset: Asset): Promise<{ release: Release, discussion: Discussion }> {
   const queres = [asset.releaseNodeId];
   if (asset.discussionNodeId) queres.push(asset.discussionNodeId);
   const queryArg = joinQuery(queres);
@@ -43,18 +43,18 @@ export async function getAssetDetail(asset: Asset): Promise<{ release: Release, 
 
   nodes.forEach((data) => {
     if (data) {
-      if ('name' in data) {
-        release = data;
-      } else {
+      if ('url' in data) {
         discussion = data;
+      } else {
+        release = data;
       }
     }
   });
 
-  if (release) {
-    return { release: new Release(release), discussion: discussion ? new Discussion(discussion) : undefined };
+  if (release && discussion) {
+    return { release: new Release(release), discussion: new Discussion(discussion) };
   } else {
-    throw Error('getAssetDetail miss release!');
+    throw Error('getAssetDetail miss release or discussion!');
   }
 }
 

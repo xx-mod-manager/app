@@ -7,6 +7,6 @@
 import { date as dateUtil } from 'quasar';
 
 defineProps<{
-  date: Date | string;
+  date: Date | string | number;
 }>();
 </script>

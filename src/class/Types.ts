@@ -88,21 +88,11 @@ export class ReleaseAsset implements ConnectionItem {
 
 export class Release {
   id: string;
-  author: Author;
-  name: string;
-  descriptionHTML: string;
-  updatedAt: string;
   releaseAssets: PageArray<ReleaseAsset> = new PageArray;
-  reactionGroups: ReactionGroup[];
 
   constructor(apiRelese: ApiRelease) {
     this.id = apiRelese.id;
-    this.author = apiRelese.author;
-    this.name = apiRelese.name;
-    this.descriptionHTML = apiRelese.descriptionHTML;
-    this.updatedAt = apiRelese.updatedAt;
     this.releaseAssets.updateAll(apiRelese.releaseAssets, (it) => new ReleaseAsset(it));
-    this.reactionGroups = apiRelese.reactionGroups.map((it) => new ReactionGroup(it));
   }
 }
 
@@ -118,7 +108,7 @@ export class Comment implements ConnectionItem {
 
   constructor({ node, cursor }: ApiEdge<ApiComment>) {
     this.id = node.id;
-    this.author = node.author;
+    this.author = new Author(node.author);
     this.body = node.body;
     this.bodyHTML = node.bodyHTML;
     this.updatedAt = node.updatedAt;
@@ -132,13 +122,23 @@ export class Comment implements ConnectionItem {
 
 export class Discussion {
   id: string;
+  author: Author;
+  title: string;
+  bodyHTML: string;
+  updatedAt: string;
   url: string;
   comments: PageArray<Comment> = new PageArray;
+  reactionGroups: ReactionGroup[];
 
   constructor(apiDiscussion: ApiDiscussion) {
     this.id = apiDiscussion.id;
+    this.author = new Author(apiDiscussion.author);
+    this.title = apiDiscussion.title;
+    this.bodyHTML = apiDiscussion.bodyHTML;
+    this.updatedAt = apiDiscussion.updatedAt;
     this.url = apiDiscussion.url;
     this.comments.updateAll(apiDiscussion.comments, (it) => new Comment(it));
+    this.reactionGroups = apiDiscussion.reactionGroups.map((it) => new ReactionGroup(it));
   }
 }
 

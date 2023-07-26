@@ -5,11 +5,14 @@
       style="padding: 0.3rem"
     >
       <template v-if="asset && detail">
-        <AssetCard class="col-12" :asset="asset" :release="detail.release" />
+        <AssetCard
+          class="col-12"
+          :discussion="detail.discussion"
+          :asset="asset"
+          :release-assets="detail.release.releaseAssets.nodes"
+        />
 
-        <template v-if="detail.discussion">
-          <DiscussionPart :discussion="detail.discussion" />
-        </template>
+        <DiscussionPart :discussion="detail.discussion" />
 
         <ReplyBox
           v-if="detail.discussion"
@@ -46,9 +49,7 @@ const { loading } = useQuasar();
 
 const asset = mainDataStore.getAssetById(route.params.id as string);
 const detail = ref(
-  undefined as
-    | { release: Release; discussion: Discussion | undefined }
-    | undefined
+  undefined as { release: Release; discussion: Discussion } | undefined
 );
 
 async function refresh(done: () => void) {
