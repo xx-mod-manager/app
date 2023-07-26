@@ -160,7 +160,7 @@ export interface ApiAsset {
   updated: number
   downloadCount: number
   releaseNodeId: string
-  discussionNodeId?: string
+  discussionNodeId: string
 }
 
 export enum AssetStatus {
@@ -176,11 +176,11 @@ export class Asset {
   category: string;
   tags: string[];
   repo: string;
-  created: Date;
-  updated: Date;
+  created: number;
+  updated: number;
   downloadCount: number;
   releaseNodeId: string;
-  discussionNodeId?: string;
+  discussionNodeId: string;
   existOnline: boolean;
   versions: Map<string, AssetStatus>;
 
@@ -193,8 +193,8 @@ export class Asset {
     this.category = apiAsset.category;
     this.tags = apiAsset.tags;
     this.repo = apiAsset.repo;
-    this.created = new Date(apiAsset.created);
-    this.updated = new Date(apiAsset.updated);
+    this.created = apiAsset.created;
+    this.updated = apiAsset.updated;
     this.downloadCount = apiAsset.downloadCount;
     this.releaseNodeId = apiAsset.releaseNodeId;
     this.discussionNodeId = apiAsset.discussionNodeId;

@@ -15,8 +15,8 @@ export const useMainDataStore = defineStore(KEY_MAIN_DATA, {
       myLogger.debug('Update MainDataStore start.');
       const newMainData = await requestMainData();
       myLogger.debug(`New MainData.\n updateed: ${newMainData.updated}.\n assets count:${newMainData.assets.length}.`);
-      if (this.updated.getTime() < newMainData.updated) {
-        this.updated = new Date(newMainData.updated);
+      if (this.updated < newMainData.updated) {
+        this.updated = newMainData.updated;
         updateAssets(this.assets, newMainData.assets);
       } else {
         myLogger.debug('MainData not update.');
@@ -32,7 +32,7 @@ export const useMainDataStore = defineStore(KEY_MAIN_DATA, {
 });
 
 interface MainData {
-  updated: Date
+  updated: number
   assets: Asset[]
 }
 
@@ -78,7 +78,7 @@ function init(): MainData {
   } else {
     myLogger.debug('New MainDataStore.');
     return {
-      updated: new Date(0),
+      updated: 0,
       assets: []
     };
   }
