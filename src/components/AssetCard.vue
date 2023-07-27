@@ -1,7 +1,7 @@
 <template>
   <q-card>
     <q-card-section>
-      <p class="text-h5">{{ discussion.title }}</p>
+      <p class="text-h5">{{ asset.name }}</p>
 
       <AssetBadges :asset="asset" />
 
@@ -42,14 +42,11 @@ import DateFormatSpan from './DateFormatSpan.vue';
 import 'github-markdown-css';
 import AssetItem from './AssetItem.vue';
 import AssetBadges from './AssetBadges.vue';
+import { filterReleaseAsset } from 'src/utils/AssetUtils';
 
 defineProps<{
   discussion: Discussion;
   releaseAssets: ReleaseAsset[];
   asset: Asset;
 }>();
-
-function filterReleaseAsset(releaseAssets: ReleaseAsset[]) {
-  return releaseAssets.filter((it) => it.contentType == 'application/zip');
-}
 </script>

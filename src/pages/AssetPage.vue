@@ -54,8 +54,12 @@ const detail = ref(
 
 async function refresh(done: () => void) {
   if (asset) {
-    myLogger.debug(`refresh mod detail ${asset?.id}`);
+    myLogger.debug(`refresh mod detail ${asset.id}`);
     detail.value = await getAssetDetail(asset);
+    mainDataStore.updateReleaseAssets(
+      asset,
+      detail.value.release.releaseAssets.nodes
+    );
     if (loading.isActive) loading.hide();
     done();
   } else {
