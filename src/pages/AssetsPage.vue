@@ -28,7 +28,7 @@ import { computed, onMounted, ref } from 'vue';
 
 const mainDataStore = useMainDataStore();
 const authDataStore = useAuthDataStore();
-const { loading } = useQuasar();
+const { loading, platform } = useQuasar();
 
 const searchText = ref('');
 const pullRefresh = ref(null as QPullToRefresh | null);
@@ -46,6 +46,11 @@ const result = computed(() =>
 function refresh(done: () => void) {
   myLogger.debug('refresh main data');
   mainDataStore.refresh().finally(() => {
+    if (platform.is.electron) {
+      window.electronApi
+        .initAssetManager()
+        .then(mainDataStore.updateDownloadedAsset);
+    }
     if (loading.isActive) loading.hide();
     done();
   });

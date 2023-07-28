@@ -6,5 +6,6 @@
 import { ref } from 'vue';
 
 const userData = ref(undefined as string | undefined);
+
 window.electronApi.getUserData().then((value) => (userData.value = value));
 </script>

@@ -227,3 +227,10 @@ export class Asset {
     return false;
   }
 }
+
+export interface MyProgress {
+  url: string;
+  percent: number;
+  transferredBytes: number;
+  totalBytes: number;
+}

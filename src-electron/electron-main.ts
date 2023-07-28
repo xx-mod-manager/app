@@ -1,7 +1,10 @@
 import { app, BrowserWindow, nativeTheme, shell } from 'electron';
-import path from 'path';
+import electronDl from 'electron-dl';
 import os from 'os';
+import path from 'path';
 import init from './render';
+
+electronDl();
 
 // needed in case process is undefined under Linux
 const platform = process.platform || os.platform();
