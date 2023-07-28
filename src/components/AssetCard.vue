@@ -27,7 +27,7 @@
     <q-separator />
 
     <q-card-section>
-      <AssetItem
+      <ReleaseAssetItem
         v-for="assetFile in filterReleaseAsset(releaseAssets)"
         :key="assetFile.id"
         :asset="assetFile"
@@ -40,7 +40,7 @@ import { Asset, Discussion, ReleaseAsset } from 'src/class/Types';
 import AuthorSpan from './AuthorSpan.vue';
 import DateFormatSpan from './DateFormatSpan.vue';
 import 'github-markdown-css';
-import AssetItem from './AssetItem.vue';
+import ReleaseAssetItem from './ReleaseAssetItem.vue';
 import AssetBadges from './AssetBadges.vue';
 import { filterReleaseAsset } from 'src/utils/AssetUtils';
 

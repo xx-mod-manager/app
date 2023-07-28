@@ -1,6 +1,7 @@
 import { app, BrowserWindow, nativeTheme, shell } from 'electron';
 import path from 'path';
 import os from 'os';
+import init from './render';
 
 // needed in case process is undefined under Linux
 const platform = process.platform || os.platform();
@@ -53,7 +54,7 @@ function createWindow() {
   });
 }
 
-app.whenReady().then(createWindow);
+app.whenReady().then(init).then(createWindow);
 
 app.on('window-all-closed', () => {
   if (platform !== 'darwin') {

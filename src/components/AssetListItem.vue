@@ -27,8 +27,8 @@
 </template>
 <script setup lang="ts">
 import { useRouter } from 'vue-router';
-import AssetBadges from './AssetBadges.vue';
 import { Asset } from 'src/class/Types';
+import AssetBadges from './AssetBadges.vue';
 import DateFormatSpan from './DateFormatSpan.vue';
 
 const router = useRouter();
