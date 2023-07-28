@@ -101,8 +101,14 @@ async function initAssetManager(): Promise<Map<string, string[]>> {
   }
 }
 
+async function deleteAssetVersion(assetId: string, version: string) {
+  const assetPath = pathJoin(getUserData(), PATH_ASSETS, assetId + '-' + version);
+  await fsPromises.rmdir(assetPath, { recursive: true });
+}
+
 export default function init() {
   ipcMain.handle('getUserData', getUserData);
   ipcMain.on('downloadAsset', (_, url: string, assetId: string, version: string) => downloadAsset(url, assetId, version));
   ipcMain.handle('initAssetManager', initAssetManager);
+  ipcMain.handle('deleteAssetVersion', (_, assetId: string, version: string) => deleteAssetVersion(assetId, version));
 }

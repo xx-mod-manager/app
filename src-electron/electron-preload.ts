@@ -8,5 +8,6 @@ contextBridge.exposeInMainWorld('electronApi', {
   onDownloadStarted: (callback: (url: string) => void) => ipcRenderer.on('onDownloadStarted', (_, url) => callback(url)),
   onDownloadProgress: (callback: (progress: MyProgress) => void) => ipcRenderer.on('onDownloadProgress', (_, progress) => callback(progress)),
   onDownloadCompleted: (callback: (file: File) => void) => ipcRenderer.on('onDownloadCompleted', (_, file) => callback(file)),
-  initAssetManager: () => ipcRenderer.invoke('initAssetManager')
+  initAssetManager: () => ipcRenderer.invoke('initAssetManager'),
+  deleteAssetVersion: (assetId: string, version: string) => ipcRenderer.invoke('deleteAssetVersion', assetId, version)
 });

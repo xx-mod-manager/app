@@ -16,7 +16,7 @@
 
       <div>
         <q-btn label="卸载" :disable="!installed" />
-        <q-btn label="删除" />
+        <q-btn label="删除" @click="deleteAsset" />
 
         <q-btn
           flat
@@ -50,7 +50,7 @@
             :disable="version.status != AssetStatus.INTALLED"
           />
 
-          <q-btn label="删除" />
+          <q-btn label="删除" @click="deleteVersion(version.version)" />
         </div>
       </div>
     </q-card-section>
@@ -61,8 +61,10 @@
 import { matExpandLess, matExpandMore } from '@quasar/extras/material-icons';
 import { Asset, AssetStatus } from 'src/class/Types';
 import { ROUTE_ASSET } from 'src/router';
+import { useMainDataStore } from 'src/stores/MainData';
 import { computed, ref } from 'vue';
 
+const mainDataStore = useMainDataStore();
 const props = defineProps<{
   asset: Asset;
 }>();
@@ -80,4 +82,17 @@ const installed = computed(() => {
   });
   return false;
 });
+
+async function deleteVersion(version: string) {
+  await window.electronApi.deleteAssetVersion(props.asset.id, version);
+  mainDataStore.updateAssetVersion(props.asset.id, version, AssetStatus.NONE);
+}
+
+async function deleteAsset() {
+  for (const i of props.asset.versions)
+    if (i[1] == AssetStatus.DOWNLOADED) {
+      mainDataStore.updateAssetVersion(props.asset.id, i[0], AssetStatus.NONE);
+      await window.electronApi.deleteAssetVersion(props.asset.id, i[0]);
+    }
+}
 </script>
