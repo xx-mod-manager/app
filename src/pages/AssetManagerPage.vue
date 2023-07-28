@@ -1,11 +1,15 @@
 <template>
-  <p>User Data: {{ userData }}</p>
+  <q-page style="padding: 0.5rem">
+    <template v-for="asset in mainDataStore.assets" :key="asset.id">
+      <AssetManagerItem v-if="existLocal(asset)" :asset="asset" />
+    </template>
+  </q-page>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import AssetManagerItem from 'src/components/AssetManagerItem.vue';
+import { useMainDataStore } from 'src/stores/MainData';
+import { existLocal } from 'src/utils/AssetUtils';
 
-const userData = ref(undefined as string | undefined);
-
-window.electronApi.getUserData().then((value) => (userData.value = value));
+const mainDataStore = useMainDataStore();
 </script>

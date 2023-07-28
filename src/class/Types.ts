@@ -218,14 +218,6 @@ export class Asset {
     this.discussionNodeId = newAsset.discussionNodeId;
     this.existOnline = true;
   }
-
-  existLocal(): boolean {
-    if (this.versions.size == 0) return false;
-    for (const status of this.versions.values()) {
-      if (status != AssetStatus.NONE) return true;
-    }
-    return false;
-  }
 }
 
 export interface MyProgress {

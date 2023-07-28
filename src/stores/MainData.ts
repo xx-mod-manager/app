@@ -2,7 +2,7 @@ import { defineStore } from 'pinia';
 import { requestMainData } from 'src/api/MainDataApi';
 import { myLogger } from 'src/boot/logger';
 import { ApiAsset, Asset, AssetStatus, ReleaseAsset } from 'src/class/Types';
-import { filterReleaseAsset } from 'src/utils/AssetUtils';
+import { existLocal, filterReleaseAsset } from 'src/utils/AssetUtils';
 import { replacer, reviver } from 'src/utils/JsonUtil';
 import { parseVersion } from 'src/utils/StringUtils';
 
@@ -48,7 +48,7 @@ export const useMainDataStore = defineStore(KEY_MAIN_DATA, {
         deletedAssets.forEach((deletedAsset) => {
           const oldAsset = oldAssets.find((it) => it.id == deletedAsset.id);
           if (oldAsset) {
-            if (oldAsset.existLocal()) {
+            if (existLocal(oldAsset)) {
               oldAsset.existOnline = false;
               myLogger.debug(`Set old asset ${oldAsset.id} online to false.`);
             } else {
