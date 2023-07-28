@@ -21,29 +21,29 @@
 </template>
 
 <script setup lang="ts">
-import { ReactionGroup } from 'src/class/Types';
 import {
-  matThumbUp,
-  matThumbDown,
-  matEmojiEmotions,
   matCelebration,
-  matSentimentDissatisfied,
+  matEmojiEmotions,
   matFavorite,
-  matRocketLaunch,
-  matVisibility,
   matHelpCenter,
+  matRocketLaunch,
+  matSentimentDissatisfied,
+  matThumbDown,
+  matThumbUp,
+  matVisibility,
 } from '@quasar/extras/material-icons';
 import {
-  outlinedThumbUp,
-  outlinedThumbDown,
-  outlinedEmojiEmotions,
   outlinedCelebration,
-  outlinedSentimentDissatisfied,
+  outlinedEmojiEmotions,
   outlinedFavoriteBorder,
   outlinedRocketLaunch,
+  outlinedSentimentDissatisfied,
+  outlinedThumbDown,
+  outlinedThumbUp,
   outlinedVisibility,
 } from '@quasar/extras/material-icons-outlined';
 import { addReaction, removeReaction } from 'src/api/GraphqlApi';
+import { ReactionGroup } from 'src/class/Types';
 import { ref } from 'vue';
 
 const props = defineProps<{ reactions: ReactionGroup[] }>();

@@ -7,12 +7,12 @@
 </template>
 
 <script setup lang="ts">
+import { matPriorityHigh } from '@quasar/extras/material-icons';
+import { useQuasar } from 'quasar';
 import { getTokenInfo } from 'src/api/GithubAuthApi';
 import { myLogger } from 'src/boot/logger';
 import { useAuthDataStore } from 'src/stores/AuthData';
 import { useRouter } from 'vue-router';
-import { useQuasar } from 'quasar';
-import { matPriorityHigh } from '@quasar/extras/material-icons';
 
 const props = defineProps<{ code: string }>();
 

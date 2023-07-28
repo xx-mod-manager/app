@@ -36,13 +36,13 @@
   </q-card>
 </template>
 <script setup lang="ts">
+import 'github-markdown-css';
 import { Asset, Discussion, ReleaseAsset } from 'src/class/Types';
+import { filterReleaseAsset } from 'src/utils/AssetUtils';
+import AssetBadges from './AssetBadges.vue';
 import AuthorSpan from './AuthorSpan.vue';
 import DateFormatSpan from './DateFormatSpan.vue';
-import 'github-markdown-css';
 import ReleaseAssetItem from './ReleaseAssetItem.vue';
-import AssetBadges from './AssetBadges.vue';
-import { filterReleaseAsset } from 'src/utils/AssetUtils';
 
 defineProps<{
   discussion: Discussion;

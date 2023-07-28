@@ -16,15 +16,15 @@
 </template>
 
 <script setup lang="ts">
+import { matPriorityHigh } from '@quasar/extras/material-icons';
+import { Loading, useQuasar } from 'quasar';
+import { requestDeviceCode } from 'src/api/GithubAuthApi';
 import { GithubDeviceCodeInfo } from 'src/class/GithubTokenInfo';
+import DeviceAuthPage from 'src/pages/login/DeviceAuthPage.vue';
+import LoginOptionPage from 'src/pages/login/LoginOptionPage.vue';
 import OauthAuthPage from 'src/pages/login/OauthAuthPage.vue';
 import { ref } from 'vue';
-import LoginOptionPage from 'src/pages/login/LoginOptionPage.vue';
-import DeviceAuthPage from 'src/pages/login/DeviceAuthPage.vue';
 import { useRoute, useRouter } from 'vue-router';
-import { requestDeviceCode } from 'src/api/GithubAuthApi';
-import { useQuasar, Loading } from 'quasar';
-import { matPriorityHigh } from '@quasar/extras/material-icons';
 
 const route = useRoute();
 const router = useRouter();

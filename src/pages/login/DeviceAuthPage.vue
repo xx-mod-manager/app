@@ -27,15 +27,14 @@
 </template>
 
 <script setup lang="ts">
-import { useAuthDataStore } from 'src/stores/AuthData';
-import { useQuasar } from 'quasar';
 import { matPriorityHigh } from '@quasar/extras/material-icons';
-import { useRouter } from 'vue-router';
-import { ref } from 'vue';
-import { GithubDeviceCodeInfo } from 'src/class/GithubTokenInfo';
+import { copyToClipboard, useQuasar } from 'quasar';
 import { getDeviceTokenInfo } from 'src/api/GithubAuthApi';
 import { myLogger } from 'src/boot/logger';
-import { copyToClipboard } from 'quasar';
+import { GithubDeviceCodeInfo } from 'src/class/GithubTokenInfo';
+import { useAuthDataStore } from 'src/stores/AuthData';
+import { ref } from 'vue';
+import { useRouter } from 'vue-router';
 
 const props = defineProps<{ deviceCodeInfo: GithubDeviceCodeInfo }>();
 

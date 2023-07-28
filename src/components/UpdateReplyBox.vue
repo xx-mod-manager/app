@@ -39,10 +39,10 @@
   </div>
 </template>
 <script setup lang="ts">
+import 'github-markdown-css';
 import { QInput } from 'quasar';
 import { ref } from 'vue';
 import Markdown from 'vue3-markdown-it';
-import 'github-markdown-css';
 
 const props = defineProps<{ oldValue: string }>();
 const emit = defineEmits(['submit', 'cancel']);

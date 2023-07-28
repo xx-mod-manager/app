@@ -17,9 +17,9 @@
 </template>
 
 <script setup lang="ts">
+import { matDownload } from '@quasar/extras/material-icons';
 import { format } from 'quasar';
 import { ReleaseAsset } from 'src/class/Types';
-import { matDownload } from '@quasar/extras/material-icons';
 import DateFormatSpan from './DateFormatSpan.vue';
 
 defineProps<{

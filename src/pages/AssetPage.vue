@@ -30,17 +30,17 @@
 </template>
 
 <script setup lang="ts">
+import { matRefresh } from '@quasar/extras/material-icons';
 import { QPullToRefresh, useQuasar } from 'quasar';
 import { addDiscussionComment, getAssetDetail } from 'src/api/GraphqlApi';
 import { myLogger } from 'src/boot/logger';
-import { Release, Discussion } from 'src/class/Types';
+import { Discussion, Release } from 'src/class/Types';
+import AssetCard from 'src/components/AssetCard.vue';
+import DiscussionPart from 'src/components/DiscussionPart.vue';
+import ReplyBox from 'src/components/ReplyBox.vue';
 import { useMainDataStore } from 'src/stores/MainData';
 import { onMounted, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import AssetCard from 'src/components/AssetCard.vue';
-import ReplyBox from 'src/components/ReplyBox.vue';
-import { matRefresh } from '@quasar/extras/material-icons';
-import DiscussionPart from 'src/components/DiscussionPart.vue';
 
 const route = useRoute();
 const router = useRouter();

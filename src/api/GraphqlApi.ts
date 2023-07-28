@@ -1,9 +1,9 @@
-import 'src/class/GraphqlClass';
 import { api } from 'boot/axios';
-import { ApiDiscussion, ApiReactionGroup, ApiRelease, ApiComment, arrayPackage, GraphArray, getFragment, ApiAuthor } from 'src/class/GraphqlClass';
-import { useAuthDataStore } from 'src/stores/AuthData';
 import { myLogger } from 'src/boot/logger';
-import { Discussion, ReactionGroup, Release, Comment, PageArray, Author, Asset } from 'src/class/Types';
+import 'src/class/GraphqlClass';
+import { ApiAuthor, ApiComment, ApiDiscussion, ApiReactionGroup, ApiRelease, GraphArray, arrayPackage, getFragment } from 'src/class/GraphqlClass';
+import { Asset, Author, Comment, Discussion, PageArray, ReactionGroup, Release } from 'src/class/Types';
+import { useAuthDataStore } from 'src/stores/AuthData';
 
 const GRAPHQL_URL = 'https://api.github.com/graphql';
 

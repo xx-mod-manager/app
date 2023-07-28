@@ -22,14 +22,14 @@
 </template>
 
 <script setup lang="ts">
+import 'github-markdown-css';
+import { updateDiscussionReply } from 'src/api/GraphqlApi';
 import { Comment } from 'src/class/Types';
+import { ref } from 'vue';
 import AuthorSpan from './AuthorSpan.vue';
+import CommentMenu from './CommentMenu.vue';
 import DateFormatSpan from './DateFormatSpan.vue';
 import ReactionGroupSpan from './ReactionGroupSpan.vue';
-import 'github-markdown-css';
-import CommentMenu from './CommentMenu.vue';
-import { updateDiscussionReply } from 'src/api/GraphqlApi';
-import { ref } from 'vue';
 import UpdateReplyBox from './UpdateReplyBox.vue';
 
 defineEmits(['delete']);

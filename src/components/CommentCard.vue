@@ -53,21 +53,21 @@
 </template>
 
 <script setup lang="ts">
-import { Comment } from 'src/class/Types';
-import ReplieItem from './ReplieItem.vue';
-import AuthorSpan from './AuthorSpan.vue';
-import DateFormatSpan from './DateFormatSpan.vue';
-import ReactionGroupSpan from './ReactionGroupSpan.vue';
-import ReplyBox from './ReplyBox.vue';
+import 'github-markdown-css';
 import {
   addDiscussionReply,
   deleteDiscussionReply,
   loadDiscussionReply,
   updateDiscussionComment,
 } from 'src/api/GraphqlApi';
+import { Comment } from 'src/class/Types';
 import { ref } from 'vue';
-import 'github-markdown-css';
+import AuthorSpan from './AuthorSpan.vue';
 import CommentMenu from './CommentMenu.vue';
+import DateFormatSpan from './DateFormatSpan.vue';
+import ReactionGroupSpan from './ReactionGroupSpan.vue';
+import ReplieItem from './ReplieItem.vue';
+import ReplyBox from './ReplyBox.vue';
 import UpdateReplyBox from './UpdateReplyBox.vue';
 
 defineEmits(['delete']);

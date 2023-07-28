@@ -40,10 +40,10 @@
 
 <script setup lang="ts">
 import { matDownload, matWidgets } from '@quasar/extras/material-icons';
+import { useQuasar } from 'quasar';
+import { ROUTE_ASSETS, ROUTE_ASSET_MANAGER, ROUTE_LOGIN } from 'src/router';
 import { useAuthDataStore } from 'src/stores/AuthData';
 import { useRouter } from 'vue-router';
-import { useQuasar } from 'quasar';
-import { ROUTE_LOGIN, ROUTE_ASSETS, ROUTE_ASSET_MANAGER } from 'src/router';
 
 const authDataStore = useAuthDataStore();
 const router = useRouter();

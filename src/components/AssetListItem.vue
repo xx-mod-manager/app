@@ -26,8 +26,8 @@
   </q-card>
 </template>
 <script setup lang="ts">
-import { useRouter } from 'vue-router';
 import { Asset } from 'src/class/Types';
+import { useRouter } from 'vue-router';
 import AssetBadges from './AssetBadges.vue';
 import DateFormatSpan from './DateFormatSpan.vue';
 
