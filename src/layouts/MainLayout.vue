@@ -16,27 +16,28 @@
       </q-toolbar>
     </q-header>
 
-    <template v-if="authDataStore.activeToken">
-      <q-drawer v-model="leftDrawerOpen">
-        <LeftDrawer />
-      </q-drawer>
+    <q-drawer
+      v-model="leftDrawerOpen"
+      persistent
+      :breakpoint="512"
+      :width="256"
+    >
+      <LeftDrawer />
+    </q-drawer>
 
-      <q-page-container>
-        <router-view />
-      </q-page-container>
-    </template>
+    <q-page-container>
+      <router-view />
+    </q-page-container>
   </q-layout>
 </template>
 
 <script setup lang="ts">
-import { useAuthDataStore } from 'src/stores/AuthData';
 import { ref } from 'vue';
 import { matTune } from '@quasar/extras/material-icons';
 import LeftDrawer from 'src/components/LeftDrawer.vue';
 import { useQuasar } from 'quasar';
 
 const quasar = useQuasar();
-const authDataStore = useAuthDataStore();
 
 const leftDrawerOpen = ref(!quasar.platform.is.mobile);
 </script>
