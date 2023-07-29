@@ -3,14 +3,13 @@ import { File } from 'electron-dl';
 import { MyProgress } from 'src/class/Types';
 
 contextBridge.exposeInMainWorld('electronApi', {
-  getUserData: () => ipcRenderer.invoke('getUserData'),
-  downloadAsset: (url: string, assetId: string, version: string) => ipcRenderer.send('downloadAsset', url, assetId, version),
+  downloadResource: (url: string, gameId: string, resourceId: string, version: string) => ipcRenderer.send('downloadResource', url, gameId, resourceId, version),
   onDownloadStarted: (callback: (url: string) => void) => ipcRenderer.on('onDownloadStarted', (_, url) => callback(url)),
   onDownloadProgress: (callback: (progress: MyProgress) => void) => ipcRenderer.on('onDownloadProgress', (_, progress) => callback(progress)),
   onDownloadCompleted: (callback: (file: File) => void) => ipcRenderer.on('onDownloadCompleted', (_, file) => callback(file)),
-  initAssetManager: () => ipcRenderer.invoke('initAssetManager'),
-  initInstealledAssets: () => ipcRenderer.invoke('initInstealledAssets'),
-  deleteAssetVersion: (assetId: string, version: string) => ipcRenderer.invoke('deleteAssetVersion', assetId, version),
-  installAssetVersion: (assetId: string, version: string) => ipcRenderer.invoke('installAssetVersion', assetId, version),
-  uninstallAssetVersion: (assetId: string, version: string) => ipcRenderer.invoke('uninstallAssetVersion', assetId, version),
+  initResourceManage: (gameId: string) => ipcRenderer.invoke('initResourceManage', gameId),
+  initInstealledResources: () => ipcRenderer.invoke('initInstealledResources'),
+  deleteAsset: (gameId: string, resourceId: string, version: string) => ipcRenderer.invoke('deleteAsset', gameId, resourceId, version),
+  installAsset: (gameId: string, resourceId: string, version: string) => ipcRenderer.invoke('installAsset', gameId, resourceId, version),
+  uninstallAsset: (resourceId: string, version: string) => ipcRenderer.invoke('uninstallAsset', resourceId, version),
 });

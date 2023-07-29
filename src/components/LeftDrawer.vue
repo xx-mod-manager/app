@@ -15,7 +15,7 @@
     </q-img>
 
     <q-list padding>
-      <q-item :to="{ name: ROUTE_ASSETS }" exact>
+      <q-item :to="{ name: ROUTE_RESOURCES }" exact>
         <q-item-section avatar>
           <q-icon :name="matDownload" />
         </q-item-section>
@@ -25,7 +25,7 @@
 
       <q-item
         v-if="quasar.platform.is.electron"
-        :to="{ name: ROUTE_ASSET_MANAGER }"
+        :to="{ name: ROUTE_RESOURCE_MANAGE }"
         exact
       >
         <q-item-section avatar>
@@ -41,7 +41,11 @@
 <script setup lang="ts">
 import { matDownload, matWidgets } from '@quasar/extras/material-icons';
 import { useQuasar } from 'quasar';
-import { ROUTE_ASSETS, ROUTE_ASSET_MANAGER, ROUTE_LOGIN } from 'src/router';
+import {
+  ROUTE_LOGIN,
+  ROUTE_RESOURCES,
+  ROUTE_RESOURCE_MANAGE,
+} from 'src/router';
 import { useAuthDataStore } from 'src/stores/AuthData';
 import { useRouter } from 'vue-router';
 

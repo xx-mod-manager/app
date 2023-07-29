@@ -142,12 +142,7 @@ export class Discussion {
   }
 }
 
-export interface ApiMainData {
-  updated: number,
-  assets: ApiAsset[]
-}
-
-export interface ApiAsset {
+export interface ApiResource {
   id: string
   name: string
   description: string
@@ -167,7 +162,13 @@ export enum AssetStatus {
   NONE, DOWNLOADED, INTALLED
 }
 
-export class Asset {
+export interface Asset {
+  id: string;
+  status: AssetStatus;
+  downloadUrl?: string;
+}
+
+export interface Resource {
   id: string;
   name: string;
   description: string;
@@ -182,42 +183,7 @@ export class Asset {
   releaseNodeId: string;
   discussionNodeId: string;
   existOnline: boolean;
-  versions: Map<string, AssetStatus>;
-
-  constructor(apiAsset: ApiAsset) {
-    this.id = apiAsset.id;
-    this.name = apiAsset.name;
-    this.description = apiAsset.description;
-    this.cover = apiAsset.cover;
-    this.author = apiAsset.author;
-    this.category = apiAsset.category;
-    this.tags = apiAsset.tags;
-    this.repo = apiAsset.repo;
-    this.created = apiAsset.created;
-    this.updated = apiAsset.updated;
-    this.downloadCount = apiAsset.downloadCount;
-    this.releaseNodeId = apiAsset.releaseNodeId;
-    this.discussionNodeId = apiAsset.discussionNodeId;
-    this.existOnline = true;
-    this.versions = new Map();
-  }
-
-  updateFromRemote(newAsset: Asset) {
-    this.id = newAsset.id;
-    this.name = newAsset.name;
-    this.description = newAsset.description;
-    this.cover = newAsset.cover;
-    this.author = newAsset.author;
-    this.category = newAsset.category;
-    this.tags = newAsset.tags;
-    this.repo = newAsset.repo;
-    this.created = newAsset.created;
-    this.updated = newAsset.updated;
-    this.downloadCount = newAsset.downloadCount;
-    this.releaseNodeId = newAsset.releaseNodeId;
-    this.discussionNodeId = newAsset.discussionNodeId;
-    this.existOnline = true;
-  }
+  assets: Asset[];
 }
 
 export interface MyProgress {
@@ -225,4 +191,25 @@ export interface MyProgress {
   percent: number;
   transferredBytes: number;
   totalBytes: number;
+}
+
+export interface ApiGame {
+  id: string
+  name: string
+  dataRepo: string
+  steamAppName?: string
+  relativeRootInstallPath?: string
+  autoMkRelativeRootInstallPath?: boolean
+  icon?: string
+}
+
+export interface Game {
+  id: string
+  name: string
+  dataRepo: string
+  steamAppName?: string
+  relativeRootInstallPath?: string
+  autoMkRelativeRootInstallPath?: boolean
+  icon?: string
+  resources: Resource[]
 }

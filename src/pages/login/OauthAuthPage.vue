@@ -11,6 +11,7 @@ import { matPriorityHigh } from '@quasar/extras/material-icons';
 import { useQuasar } from 'quasar';
 import { getTokenInfo } from 'src/api/GithubAuthApi';
 import { myLogger } from 'src/boot/logger';
+import { ROUTE_HOME, ROUTE_LOGIN } from 'src/router';
 import { useAuthDataStore } from 'src/stores/AuthData';
 import { useRouter } from 'vue-router';
 
@@ -23,7 +24,7 @@ const quasar = useQuasar();
 getTokenInfo(props.code as string)
   .then((token) => {
     authDataStore.update(token);
-    router.push({ name: 'home' });
+    router.push({ name: ROUTE_HOME });
   })
   .catch(() => {
     myLogger.debug('get token info fail, route to login.');
@@ -32,6 +33,6 @@ getTokenInfo(props.code as string)
       message: '获取 Github Token失败!',
       icon: matPriorityHigh,
     });
-    router.push({ name: 'login' });
+    router.push({ name: ROUTE_LOGIN });
   });
 </script>

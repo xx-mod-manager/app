@@ -2,16 +2,15 @@ import { File } from 'electron-dl';
 import { MyProgress } from 'src/class/Types';
 
 export interface IElectronAPI {
-  getUserData: () => Promise<string>,
-  downloadAsset: (url: string, assetId: string, version: string) => void,
+  downloadResource: (url: string, gameId: string, resourceId: string, version: string) => void,
   onDownloadStarted: (callback: (url: string) => void) => void,
   onDownloadProgress: (callback: (progress: MyProgress) => void) => void,
   onDownloadCompleted: (callback: (file: File) => void) => void,
-  initAssetManager: () => Promise<Map<string, string[]>>,
-  initInstealledAssets: () => Promise<Map<string, string[]>>,
-  deleteAssetVersion: (assetId: string, version: string) => Promise<void>,
-  installAssetVersion: (assetId: string, version: string) => Promise<void>,
-  uninstallAssetVersion: (assetId: string, version: string) => Promise<void>,
+  initResourceManage: (gameId: string) => Promise<Map<string, string[]>>,
+  initInstealledResources: () => Promise<Map<string, string[]>>,
+  deleteAsset: (gameId: string, resourceId: string, version: string) => Promise<void>,
+  installAsset: (gameId: string, resourceId: string, version: string) => Promise<void>,
+  uninstallAsset: (resourceId: string, version: string) => Promise<void>,
 }
 
 declare global {

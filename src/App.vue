@@ -3,11 +3,12 @@
 </template>
 
 <script setup lang="ts">
-import { useRouter } from 'vue-router';
-import { useAuthDataStore } from './stores/AuthData';
-import { myLogger } from './boot/logger';
-import { useQuasar } from 'quasar';
 import { matPriorityHigh } from '@quasar/extras/material-icons';
+import { useQuasar } from 'quasar';
+import { useRouter } from 'vue-router';
+import { myLogger } from './boot/logger';
+import { ROUTE_LOGIN } from './router';
+import { useAuthDataStore } from './stores/AuthData';
 
 const router = useRouter();
 const authDataStore = useAuthDataStore();
@@ -39,7 +40,7 @@ router.afterEach(() => {
           icon: matPriorityHigh,
         });
         authDataStore.clear();
-        router.push({ name: 'login' });
+        router.push({ name: ROUTE_LOGIN });
       });
     }
   }

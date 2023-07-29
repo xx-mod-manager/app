@@ -33,4 +33,4 @@ export default route(function (/* { store, ssrContext } */) {
   return Router;
 });
 
-export { ROUTE_HOME, ROUTE_ASSETS, ROUTE_ASSET, ROUTE_ASSET_MANAGER, ROUTE_LOGIN, ROUTE_404 } from './routes';
+export { ROUTE_HOME, ROUTE_RESOURCES, ROUTE_RESOURCE, ROUTE_RESOURCE_MANAGE, ROUTE_LOGIN, ROUTE_404 } from './routes';

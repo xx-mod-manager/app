@@ -36,25 +36,35 @@ import { useMainDataStore } from 'src/stores/MainData';
 import { clearUrlArgs, parseVersion } from 'src/utils/StringUtils';
 import { computed, ref } from 'vue';
 import DateFormatSpan from './DateFormatSpan.vue';
+import { useUserConfigStore } from 'src/stores/UserConfig';
 
 const props = defineProps<{
   assetId: string;
   asset: ReleaseAsset;
 }>();
 
+const userConfigStore = useUserConfigStore();
 const mainDataStore = useMainDataStore();
 const { humanStorageSize } = format;
 const version = parseVersion(props.asset.name);
 const downloading = ref(false);
 const percentage = ref(0);
 const downloaded = computed(
-  () => !!mainDataStore.getAssetById(props.assetId)?.versions.get(version)
+  () =>
+    !!mainDataStore
+      .getResourceById(userConfigStore.game, props.assetId)
+      ?.assets.find((i) => (i.id = version))?.status
 );
 
 function download(url: string) {
   if (Platform.is.electron) {
     downloading.value = true;
-    window.electronApi.downloadAsset(url, props.assetId, version);
+    window.electronApi.downloadResource(
+      url,
+      userConfigStore.game,
+      props.assetId,
+      version
+    );
     window.electronApi.onDownloadStarted((url) =>
       myLogger.debug(`start download ${clearUrlArgs(url)}.`)
     );
@@ -71,7 +81,8 @@ function download(url: string) {
         }.\nurl:${clearUrlArgs(file.url)}.`
       );
       const version = parseVersion(file.filename);
-      mainDataStore.updateAssetVersion(
+      mainDataStore.updateAssetStatus(
+        userConfigStore.game,
         props.assetId,
         version,
         AssetStatus.DOWNLOADED

@@ -1,10 +1,11 @@
 import { defineStore } from 'pinia';
-import { requestMainData } from 'src/api/MainDataApi';
 import { myLogger } from 'src/boot/logger';
-import { ApiAsset, Asset, AssetStatus, ReleaseAsset } from 'src/class/Types';
-import { existLocal, filterReleaseAsset } from 'src/utils/AssetUtils';
+import { Asset, AssetStatus, Game, Resource } from 'src/class/Types';
+import { deleteItem, deleteItemById, deleteItemsById, findById } from 'src/utils/ArrayUtils';
+import { existLocalAsset, newDownloadedAsset, newInstalledAsset, updateOnlineAsset } from 'src/utils/AssetUtils';
+import { existLocalGame, updateOnlineGame } from 'src/utils/GameUtils';
 import { replacer, reviver } from 'src/utils/JsonUtil';
-import { parseVersion } from 'src/utils/StringUtils';
+import { existLocalResource, newLocalResource, updateOnlineResource } from 'src/utils/ResourceUtils';
 
 const KEY_MAIN_DATA = 'mainData';
 
@@ -16,240 +17,223 @@ export const useMainDataStore = defineStore(KEY_MAIN_DATA, {
   actions: {
     save() {
       localStorage.setItem(KEY_MAIN_DATA, JSON.stringify(this.$state, replacer));
+      myLogger.debug('Save MainDataStore.');
     },
 
-    async refresh() {
-      myLogger.debug('Update MainDataStore start.');
-      const newMainData = await requestMainData();
-      myLogger.debug(`New MainData.\n updateed: ${newMainData.updated}.\n assets count:${newMainData.assets.length}.`);
-      if (this.updated < newMainData.updated) {
-        this.updated = newMainData.updated;
-        updateAssets(this.assets, newMainData.assets);
-      } else {
-        myLogger.debug('MainData not update.');
-      }
-      this.save();
-      myLogger.debug('Update MainDataStore end.');
-
-      function updateAssets(oldAssets: Asset[], newApiAssets: ApiAsset[]) {
-        const newAssets = newApiAssets.map(it => new Asset(it));
-        const deletedAssets: Asset[] = [...oldAssets];
-        newAssets.forEach((newAsset) => {
-          const oldAsset = oldAssets.find((it) => it.id == newAsset.id);
-          if (oldAsset) {
-            oldAsset.updateFromRemote(newAsset);
-            const index = deletedAssets.findIndex((it) => it.id == newAsset.id);
-            if (index > -1) deletedAssets.splice(index, 1);
-          } else {
-            oldAssets.push(newAsset);
-            myLogger.debug(`Add new asset ${newAsset.id}`);
-          }
-        });
-        deletedAssets.forEach((deletedAsset) => {
-          const oldAsset = oldAssets.find((it) => it.id == deletedAsset.id);
-          if (oldAsset) {
-            if (existLocal(oldAsset)) {
-              oldAsset.existOnline = false;
-              myLogger.debug(`Set old asset ${oldAsset.id} online to false.`);
-            } else {
-              const index = oldAssets.findIndex((it) => it.id == deletedAsset.id);
-              oldAssets.splice(index, 1);
-              myLogger.debug(`Delete old asset ${oldAsset.id}.`);
-            }
-          } else {
-            throw Error(`old assets miss deleted asset ${deletedAsset.id}.`);
-          }
-        });
-      }
+    getGameById(id: string): Game | undefined {
+      return this.games.find((it) => it.id == id);
     },
 
-    getAssetById(id: string): Asset | undefined {
-      return this.assets.find((it) => it.id == id);
+    getResourceById(gameId: string, resourceId: string): Resource | undefined {
+      return this.getGameById(gameId)?.resources.find((it) => it.id = resourceId);
     },
 
-    updateReleaseAssets(asset: Asset, releaseAssets: ReleaseAsset[]) {
-      const assetFiles = filterReleaseAsset(releaseAssets);
-      updateAssetVersions(asset.versions, assetFiles);
-      this.save();
-
-      function updateAssetVersions(versions: Map<string, AssetStatus>, assetFiles: ReleaseAsset[]) {
-        const newVersions: string[] = Array.from(new Set(assetFiles.map(it => parseVersion(it.name))));
-        const deletedVersions: string[] = [...versions.keys()];
-        newVersions.forEach((newVersion) => {
-          const index = deletedVersions.indexOf(newVersion);
-          if (index >= 0) {
-            deletedVersions.splice(index, 1);
-          } else {
-            versions.set(newVersion, AssetStatus.NONE);
-          }
-        });
-        deletedVersions.forEach((deletedVersion) => {
-          const status = versions.get(deletedVersion);
-          if (status != undefined) {
-            if (status == AssetStatus.NONE) {
-              versions.delete(deletedVersion);
-            }
-          }
-        });
-      }
-    },
-
-    updateDownloadedAsset(downloadedAssets: Map<string, string[]>) {
-      myLogger.debug(`updateDownloadedAsset start, asset count is ${downloadedAssets.size}`);
-      downloadedAssets.forEach((versions, downloadedAssetId) => {
-        versions.forEach((version) => {
-          myLogger.debug(`update downloaded asset ${downloadedAssetId}/${version}`);
-        });
-      });
-      const deletedAssets = new Map<string, string[]>();
-      this.assets.forEach((asset) => {
-        asset.versions.forEach((status, version) => {
-          if (status == AssetStatus.DOWNLOADED) {
-            let versions = deletedAssets.get(asset.id);
-            if (versions == undefined) {
-              versions = [];
-              deletedAssets.set(asset.id, versions);
-            }
-            versions.push(version);
-            myLogger.debug(`deletedAssets add ${asset.id}/${version}`);
-          }
-        });
-      });
-      downloadedAssets.forEach((versions, assetId) => {
-        let asset = this.getAssetById(assetId);
-        if (asset == undefined) {
-          asset = newLocalAsset(assetId);
-          this.assets.push(asset);
-        }
-        versions.forEach((version) => {
-          const oldStatus = asset?.versions.get(version);
-          if (oldStatus != undefined) {
-            if (oldStatus == AssetStatus.NONE) {
-              asset?.versions.set(version, AssetStatus.DOWNLOADED);
-            } else if (oldStatus == AssetStatus.DOWNLOADED) {
-              const deletedVersions = deletedAssets.get(assetId);
-              deletedVersions?.splice(deletedVersions.indexOf(version), 1);
-              myLogger.debug(`deletedAssets delete ${assetId}/${version}`);
-            }
-          } else {
-            asset?.versions.set(version, AssetStatus.DOWNLOADED);
-          }
-        });
-      });
-      deletedAssets.forEach((versions, assetId) => {
-        const asset = this.getAssetById(assetId);
-        if (asset != undefined) {
-          versions.forEach((version) => {
-            myLogger.debug(`delete downloaded asset ${assetId}/${version}`);
-            asset.versions.delete(version);
-          });
+    updateOnlineGames(onlineGames: Game[]) {
+      const deletedGames: Game[] = [...this.games.filter(i => !existLocalGame(i))];
+      onlineGames.forEach((onlineGame) => {
+        const oldGame = this.getGameById(onlineGame.id);
+        if (oldGame != undefined) {
+          updateOnlineGame(oldGame, onlineGame);
+          deleteItemById(deletedGames, onlineGame);
         } else {
-          myLogger.warn(`Miss deleted asset ${assetId}.`);
+          this.games.push(onlineGame);
+          myLogger.debug(`Add new online game [${onlineGame.id}]`);
         }
       });
+      deleteItemsById(this.games, deletedGames);
       this.save();
     },
 
-    updateInstalledAsset(installedAssets: Map<string, string[]>) {
-      myLogger.debug(`updateInstalledAsset start, asset count is ${installedAssets.size}`);
-      installedAssets.forEach((versions, installedAssetId) => {
-        versions.forEach((version) => {
-          myLogger.debug(`update installed asset ${installedAssetId}/${version}`);
+    updateOnlineResources(gameId: string, onlineResources: Resource[]) {
+      const oldResources = this.getGameById(gameId)?.resources;
+      if (oldResources == undefined)
+        throw Error(`gameId: [${gameId}] miss.`);
+      const deletedResources: Resource[] = [...oldResources.filter(i => !existLocalResource(i))];
+      oldResources.forEach((it) => it.existOnline = false);
+      onlineResources.forEach((onlineResource) => {
+        const oldResource = findById(oldResources, onlineResource);
+        if (oldResource) {
+          updateOnlineResource(oldResource, onlineResource);
+          deleteItemById(deletedResources, onlineResource);
+        } else {
+          oldResources.push(onlineResource);
+          myLogger.debug(`Add new online resource [${onlineResource.id}]`);
+        }
+      });
+      deleteItemsById(oldResources, deletedResources);
+      this.save();
+    },
+
+    updateOnlineAssets(gameId: string, resourceId: string, onlineAssets: Asset[]) {
+      const oldAssets = this.getResourceById(gameId, resourceId)?.assets;
+      if (oldAssets == undefined)
+        throw Error(`Resource: [${gameId}]/[${resourceId}] miss.`);
+      const deletedAssets = oldAssets.filter(i => !existLocalAsset(i));
+      oldAssets.forEach((it) => it.downloadUrl = undefined);
+      onlineAssets.forEach((onlineAsset) => {
+        const oldAsset = findById(oldAssets, onlineAsset);
+        if (oldAsset) {
+          updateOnlineAsset(oldAsset, onlineAsset);
+          deleteItemById(deletedAssets, onlineAsset);
+        } else {
+          oldAssets.push(onlineAsset);
+          myLogger.debug(`Add new online asset [${onlineAsset.id}]`);
+        }
+      });
+      deleteItemsById(oldAssets, deletedAssets);
+      this.save();
+    },
+
+    updateInstalledAsset(gameId: string, installedAssets: Map<string, string[]>) {
+      const oldResources = this.getGameById(gameId)?.resources;
+      if (oldResources == undefined)
+        throw Error(`GameId: [${gameId}] miss.`);
+      myLogger.debug(`updateInstalledAsset start, resource count is ${installedAssets.size}`);
+      installedAssets.forEach((assets, installedResourceId) => {
+        assets.forEach((asset) => {
+          myLogger.debug(`update installed asset ${installedResourceId}/${asset}`);
         });
       });
       const uninstalledAssets = new Map<string, string[]>();
-      this.assets.forEach((asset) => {
-        asset.versions.forEach((status, version) => {
-          if (status == AssetStatus.INTALLED) {
-            let versions = uninstalledAssets.get(asset.id);
-            if (versions == undefined) {
-              versions = [];
-              uninstalledAssets.set(asset.id, versions);
+      oldResources.forEach((resource) => {
+        resource.assets.forEach(asset => {
+          if (asset.status == AssetStatus.INTALLED) {
+            let assetIds = uninstalledAssets.get(resource.id);
+            if (assetIds == undefined) {
+              assetIds = [];
+              uninstalledAssets.set(resource.id, assetIds);
             }
-            versions.push(version);
-            myLogger.debug(`uninstalledAssets add ${asset.id}/${version}`);
+            assetIds.push(asset.id);
+            myLogger.debug(`uninstalledAssets add ${resource.id}/${asset.id}`);
           }
         });
       });
-      installedAssets.forEach((versions, assetId) => {
-        let asset = this.getAssetById(assetId);
-        if (asset == undefined) {
-          asset = newLocalAsset(assetId);
-          this.assets.push(asset);
+      installedAssets.forEach((assetIds, resourceId) => {
+        let resource = oldResources.find(i => i.id == resourceId);
+        if (resource == undefined) {
+          resource = newLocalResource(resourceId);
+          oldResources.push(resource);
         }
-        versions.forEach((version) => {
-          const oldStatus = asset?.versions.get(version);
-          if (oldStatus != undefined) {
-            if (oldStatus == AssetStatus.NONE || oldStatus == AssetStatus.DOWNLOADED) {
-              asset?.versions.set(version, AssetStatus.INTALLED);
-            } else if (oldStatus == AssetStatus.INTALLED) {
-              const uninstalledVersions = uninstalledAssets.get(assetId);
-              uninstalledVersions?.splice(uninstalledVersions.indexOf(version), 1);
-              myLogger.debug(`uninstalledAssets delete ${assetId}/${version}`);
+        for (const assetId of assetIds) {
+          const asset = resource.assets.find(i => i.id == assetId);
+          if (asset != undefined) {
+            if (asset.status == AssetStatus.NONE || asset.status == AssetStatus.DOWNLOADED) {
+              asset.status = AssetStatus.INTALLED;
+            } else if (asset.status == AssetStatus.INTALLED) {
+              const uninstalledVersions = uninstalledAssets.get(resourceId);
+              if (uninstalledVersions)
+                deleteItem(uninstalledVersions, assetId);
+              myLogger.debug(`uninstalledAssets delete ${resourceId}/${assetId}`);
             }
           } else {
-            asset?.versions.set(version, AssetStatus.INTALLED);
+            resource.assets.push(newInstalledAsset(assetId));
           }
-        });
+        }
       });
-      uninstalledAssets.forEach((versions, assetId) => {
-        const asset = this.getAssetById(assetId);
-        if (asset != undefined) {
-          versions.forEach((version) => {
-            myLogger.debug(`uninstall uninstalled asset ${assetId}/${version}`);
-            this.updateAssetVersion(assetId, version, AssetStatus.DOWNLOADED);
+      uninstalledAssets.forEach((assetIds, resourceId) => {
+        const resource = oldResources.find(i => i.id == resourceId);
+        if (resource != undefined) {
+          assetIds.forEach((assetId) => {
+            myLogger.debug(`uninstall uninstalled asset ${resourceId}/${assetId}`);
+            const asset = resource.assets.find(i => i.id == assetId);
+            if (asset)
+              asset.status = AssetStatus.DOWNLOADED;
           });
-        } else {
-          myLogger.warn(`Miss uninstall asset ${assetId}.`);
         }
       });
       this.save();
     },
 
-    updateAssetVersion(assetId: string, version: string, newStatus: AssetStatus) {
-      const asset = this.getAssetById(assetId);
-      if (asset == undefined) {
-        myLogger.warn(`asset: ${assetId} miss.`);
+    updateDonwloadedAsset(gameId: string, downloadedAssets: Map<string, string[]>) {
+      const oldResources = this.getGameById(gameId)?.resources;
+      if (oldResources == undefined)
+        throw Error(`GameId: [${gameId}] miss.`);
+      myLogger.debug(`updateDonwloadedAsset start, resource count is ${downloadedAssets.size}`);
+      downloadedAssets.forEach((assets, downloadedResourceId) => {
+        assets.forEach((asset) => {
+          myLogger.debug(`update downloaded asset ${downloadedResourceId}/${asset}`);
+        });
+      });
+      const deletedAssets = new Map<string, string[]>();
+      oldResources.forEach((resource) => {
+        resource.assets.forEach(asset => {
+          if (asset.status == AssetStatus.DOWNLOADED) {
+            let assetIds = deletedAssets.get(resource.id);
+            if (assetIds == undefined) {
+              assetIds = [];
+              deletedAssets.set(resource.id, assetIds);
+            }
+            assetIds.push(asset.id);
+            myLogger.debug(`deletedAssets add ${resource.id}/${asset.id}`);
+          }
+        });
+      });
+      downloadedAssets.forEach((assetIds, resourceId) => {
+        let resource = oldResources.find(i => i.id == resourceId);
+        if (resource == undefined) {
+          resource = newLocalResource(resourceId);
+          oldResources.push(resource);
+        }
+        for (const assetId of assetIds) {
+          const asset = resource.assets.find(i => i.id == assetId);
+          if (asset != undefined) {
+            if (asset.status == AssetStatus.NONE) {
+              asset.status = AssetStatus.DOWNLOADED;
+            } else if (asset.status == AssetStatus.DOWNLOADED) {
+              const deletedVersions = deletedAssets.get(resourceId);
+              if (deletedVersions)
+                deleteItem(deletedVersions, assetId);
+              myLogger.debug(`deletedAssets delete ${resourceId}/${assetId}`);
+            }
+          } else {
+            resource.assets.push(newDownloadedAsset(assetId));
+          }
+        }
+      });
+      deletedAssets.forEach((assetIds, resourceId) => {
+        const resource = oldResources.find(i => i.id == resourceId);
+        if (resource != undefined) {
+          assetIds.forEach((assetId) => {
+            const asset = resource.assets.find(i => i.id == assetId);
+            if (asset) {
+              if (asset.downloadUrl) {
+                myLogger.debug(`update deleted asset status ${resourceId}/${assetId}`);
+                asset.status = AssetStatus.NONE;
+              } else {
+                myLogger.debug(`delete deleted asset ${resourceId}/${assetId}`);
+                deleteItemById(resource.assets, asset);
+              }
+            }
+          });
+        }
+      });
+      this.save();
+    },
+
+    updateAssetStatus(gameId: string, resourceId: string, assetId: string, newStatus: AssetStatus) {
+      const resource = this.getResourceById(gameId, resourceId);
+      if (resource == undefined) {
+        myLogger.warn(`resource: ${resourceId} miss.`);
         return;
       }
-      const oldStatus = asset.versions.get(version);
-      if (oldStatus == undefined) {
-        myLogger.warn(`asset: ${asset.id} miss version ${version}.`);
+      const oldAsset = resource.assets.find(i => i.id == assetId);
+      if (oldAsset == undefined) {
+        myLogger.warn(`resource: ${resource.id} miss asset ${assetId}.`);
         return;
       }
-      if (oldStatus == newStatus) {
-        myLogger.warn(`asset: ${asset.id} version: ${version}, status:${oldStatus} miss update.`);
+      if (oldAsset.status == newStatus) {
+        myLogger.warn(`resource: ${resource.id} asset: ${assetId}, status:${oldAsset.status} miss update.`);
         return;
       }
-      asset.versions.set(version, newStatus);
-      myLogger.debug(`asset: ${asset.id} version: ${version}, ${oldStatus} => ${newStatus}`);
+      oldAsset.status = newStatus;
+      myLogger.debug(`resource: ${resource.id} asset: ${assetId}, ${oldAsset.status} => ${newStatus}`);
       this.save();
     }
   },
 });
 
 interface MainData {
-  updated: number
-  assets: Asset[]
-}
-
-function newLocalAsset(id: string) {
-  const asset = new Asset({
-    id,
-    name: id,
-    description: id,
-    author: 'none',
-    category: 'other',
-    tags: [],
-    repo: '',
-    created: 0,
-    updated: 0,
-    downloadCount: 0,
-    releaseNodeId: '',
-    discussionNodeId: ''
-  });
-  asset.existOnline = false;
-  return asset;
+  games: Game[]
 }
 
 function init(): MainData {
@@ -257,14 +241,13 @@ function init(): MainData {
   if (localMainDataJson) {
     const localMainData = JSON.parse(localMainDataJson, reviver) as MainData;
     myLogger.debug(
-      `Resume MainDataStore from localStorage.\n updated: ${localMainData.updated}.\n assets count: ${localMainData.assets.length}.`
+      `Resume MainDataStore from localStorage game size: ${localMainData.games.length}.`
     );
     return localMainData;
   } else {
     myLogger.debug('New MainDataStore.');
     return {
-      updated: 0,
-      assets: []
+      games: []
     };
   }
 }

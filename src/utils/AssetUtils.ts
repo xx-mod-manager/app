@@ -1,13 +1,44 @@
+import { ApiReleaseAsset } from 'src/class/GraphqlClass';
 import { Asset, AssetStatus, ReleaseAsset } from 'src/class/Types';
+import { parseVersion } from './StringUtils';
 
-export function filterReleaseAsset(releaseAssets: ReleaseAsset[]) {
-  return releaseAssets.filter((it) => it.contentType == 'application/zip');
+
+export function newOnlineAsset(apiReleaseAsset: ApiReleaseAsset): Asset {
+  const version = parseVersion(apiReleaseAsset.name);
+  const asset: Asset = {
+    id: version,
+    status: AssetStatus.NONE,
+    downloadUrl: apiReleaseAsset.downloadUrl,
+  };
+  return asset;
 }
 
-export function existLocal(asset: Asset): boolean {
-  if (asset.versions.size == 0) return false;
-  for (const status of asset.versions.values()) {
-    if (status != AssetStatus.NONE) return true;
-  }
-  return false;
+export function newInstalledAsset(id: string): Asset {
+  const asset: Asset = {
+    id,
+    status: AssetStatus.INTALLED,
+  };
+  return asset;
+}
+
+export function newDownloadedAsset(id: string): Asset {
+  const asset: Asset = {
+    id,
+    status: AssetStatus.DOWNLOADED,
+  };
+  return asset;
+}
+
+export function updateOnlineAsset(oldAsset: Asset, onlineAsset: Asset) {
+  if (oldAsset.id != onlineAsset.id)
+    throw Error(`updateOnlineAsset asset id different, [${oldAsset.id}] and [${onlineAsset.id}].`);
+  oldAsset.downloadUrl = onlineAsset.downloadUrl;
+}
+
+export function existLocalAsset(asset: Asset): boolean {
+  return asset.status != AssetStatus.NONE;
+}
+
+export function filterReleaseAsset(releaseAssets: ReleaseAsset[]): ReleaseAsset[] {
+  return releaseAssets.filter((it) => it.contentType == 'application/zip');
 }

@@ -32,6 +32,7 @@ import { copyToClipboard, useQuasar } from 'quasar';
 import { getDeviceTokenInfo } from 'src/api/GithubAuthApi';
 import { myLogger } from 'src/boot/logger';
 import { GithubDeviceCodeInfo } from 'src/class/GithubTokenInfo';
+import { ROUTE_HOME, ROUTE_LOGIN } from 'src/router';
 import { useAuthDataStore } from 'src/stores/AuthData';
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
@@ -64,7 +65,7 @@ function requestCode(deviceCode: string) {
   getDeviceTokenInfo(deviceCode)
     .then((token) => {
       authDataStore.update(token);
-      router.push({ name: 'home' });
+      router.push({ name: ROUTE_HOME });
     })
     .catch(() => {
       myLogger.debug('get device token info fail, route to login.');
@@ -73,7 +74,7 @@ function requestCode(deviceCode: string) {
         message: '获取 Github Device Token失败!',
         icon: matPriorityHigh,
       });
-      router.push({ name: 'login' });
+      router.push({ name: ROUTE_LOGIN });
     });
 }
 </script>

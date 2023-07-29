@@ -23,6 +23,7 @@ import { GithubDeviceCodeInfo } from 'src/class/GithubTokenInfo';
 import DeviceAuthPage from 'src/pages/login/DeviceAuthPage.vue';
 import LoginOptionPage from 'src/pages/login/LoginOptionPage.vue';
 import OauthAuthPage from 'src/pages/login/OauthAuthPage.vue';
+import { ROUTE_LOGIN } from 'src/router';
 import { ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
@@ -49,7 +50,7 @@ function requestDeviceCodeInfo() {
         message: '获取Github验证码失败!',
         icon: matPriorityHigh,
       });
-      router.push('login');
+      router.push({ name: ROUTE_LOGIN });
     })
     .finally(() => Loading.hide());
 }

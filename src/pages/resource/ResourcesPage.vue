@@ -5,11 +5,11 @@
         class="row wrap justify-start items-stretch content-start"
         style="padding-left: 0.3rem; padding-right: 0.3rem"
       >
-        <AssetListItem
-          v-for="asset in result"
-          :key="asset.id"
+        <ResourceOnlineItem
+          v-for="resource in result"
+          :key="resource.id"
           style="margin: 0.2rem; width: 20rem"
-          :asset="asset"
+          :resource="resource"
         />
       </div>
     </q-page>
@@ -20,21 +20,27 @@
 import { matRefresh } from '@quasar/extras/material-icons';
 import Fuse from 'fuse.js';
 import { QPullToRefresh, useQuasar } from 'quasar';
+import { requestGameResources, requestGames } from 'src/api/MetaDataApi';
 import { myLogger } from 'src/boot/logger';
-import AssetListItem from 'src/components/AssetListItem.vue';
+import ResourceOnlineItem from 'src/components/ResourceOnlineItem.vue';
 import { useAuthDataStore } from 'src/stores/AuthData';
 import { useMainDataStore } from 'src/stores/MainData';
+import { useUserConfigStore } from 'src/stores/UserConfig';
 import { computed, onMounted, ref } from 'vue';
 
+const userConfigStore = useUserConfigStore();
 const mainDataStore = useMainDataStore();
 const authDataStore = useAuthDataStore();
 const { loading, platform } = useQuasar();
 
+const resources = computed(
+  () => mainDataStore.getGameById(userConfigStore.game)?.resources ?? []
+);
 const searchText = ref('');
 const pullRefresh = ref(null as QPullToRefresh | null);
 
 const fuse = new Fuse(
-  mainDataStore.assets.filter((it) => it.existOnline),
+  resources.value.filter((it) => it.existOnline),
   {
     keys: ['name', 'description'],
   }
@@ -43,18 +49,26 @@ const fuse = new Fuse(
 const result = computed(() =>
   searchText.value.length > 0
     ? fuse.search(searchText.value).map((it) => it.item)
-    : mainDataStore.assets.filter((it) => it.existOnline)
+    : resources.value.filter((it) => it.existOnline)
 );
 
 async function refresh(done: () => void) {
   myLogger.debug('refresh main data');
-  await mainDataStore.refresh();
+  const onlineGames = await requestGames();
+  mainDataStore.updateOnlineGames(onlineGames);
+  //TODO default game process
+  const game = mainDataStore.getGameById(userConfigStore.game);
+  if (game == undefined) throw Error('Current game miss');
+  const onlineResources = await requestGameResources(game.dataRepo);
+  mainDataStore.updateOnlineResources(userConfigStore.game, onlineResources);
   if (platform.is.electron) {
     mainDataStore.updateInstalledAsset(
-      await window.electronApi.initInstealledAssets()
+      userConfigStore.game,
+      await window.electronApi.initInstealledResources()
     );
-    mainDataStore.updateDownloadedAsset(
-      await window.electronApi.initAssetManager()
+    mainDataStore.updateDonwloadedAsset(
+      userConfigStore.game,
+      await window.electronApi.initResourceManage(userConfigStore.game)
     );
   }
   if (loading.isActive) loading.hide();
@@ -64,7 +78,7 @@ async function refresh(done: () => void) {
 onMounted(() => {
   if (
     pullRefresh.value &&
-    (mainDataStore.assets.length == 0 || authDataStore.user == undefined)
+    (resources.value.length == 0 || authDataStore.user == undefined)
   ) {
     loading.show();
     pullRefresh.value.trigger();

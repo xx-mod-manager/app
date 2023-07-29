@@ -2,7 +2,7 @@ import { api } from 'boot/axios';
 import { myLogger } from 'src/boot/logger';
 import 'src/class/GraphqlClass';
 import { ApiAuthor, ApiComment, ApiDiscussion, ApiReactionGroup, ApiRelease, GraphArray, arrayPackage, getFragment } from 'src/class/GraphqlClass';
-import { Asset, Author, Comment, Discussion, PageArray, ReactionGroup, Release } from 'src/class/Types';
+import { Resource, Author, Comment, Discussion, PageArray, ReactionGroup, Release } from 'src/class/Types';
 import { useAuthDataStore } from 'src/stores/AuthData';
 
 const GRAPHQL_URL = 'https://api.github.com/graphql';
@@ -21,7 +21,7 @@ function joinQuery(arg: string[]): string {
   return `["${arg.join('\",\"')}"]`;
 }
 
-export async function getAssetDetail(asset: Asset): Promise<{ release: Release, discussion: Discussion }> {
+export async function getAssetDetail(asset: Resource): Promise<{ release: Release, discussion: Discussion }> {
   const queres = [asset.releaseNodeId];
   if (asset.discussionNodeId) queres.push(asset.discussionNodeId);
   const queryArg = joinQuery(queres);

@@ -1,9 +1,9 @@
 <template>
   <q-card>
     <q-card-section>
-      <p class="text-h5">{{ asset.name }}</p>
+      <p class="text-h5">{{ resource.name }}</p>
 
-      <AssetBadges :asset="asset" />
+      <ResourceBadges :resource="resource" />
 
       <div style="margin-top: 0.5rem">
         <AuthorSpan :author="discussion.author" />
@@ -30,7 +30,7 @@
       <ReleaseAssetItem
         v-for="assetFile in filterReleaseAsset(releaseAssets)"
         :key="assetFile.id"
-        :asset-id="asset.id"
+        :asset-id="resource.id"
         :asset="assetFile"
       />
     </q-card-section>
@@ -38,16 +38,16 @@
 </template>
 <script setup lang="ts">
 import 'github-markdown-css';
-import { Asset, Discussion, ReleaseAsset } from 'src/class/Types';
+import { Discussion, ReleaseAsset, Resource } from 'src/class/Types';
 import { filterReleaseAsset } from 'src/utils/AssetUtils';
-import AssetBadges from './AssetBadges.vue';
 import AuthorSpan from './AuthorSpan.vue';
 import DateFormatSpan from './DateFormatSpan.vue';
 import ReleaseAssetItem from './ReleaseAssetItem.vue';
+import ResourceBadges from './ResourceBadges.vue';
 
 defineProps<{
   discussion: Discussion;
   releaseAssets: ReleaseAsset[];
-  asset: Asset;
+  resource: Resource;
 }>();
 </script>

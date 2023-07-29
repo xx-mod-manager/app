@@ -1,9 +1,9 @@
 import { RouteRecordRaw } from 'vue-router';
 
 export const ROUTE_HOME = 'home';
-export const ROUTE_ASSETS = 'assets';
-export const ROUTE_ASSET = 'asset';
-export const ROUTE_ASSET_MANAGER = 'assetManager';
+export const ROUTE_RESOURCES = 'resources';
+export const ROUTE_RESOURCE = 'resource';
+export const ROUTE_RESOURCE_MANAGE = 'resourceManage';
 export const ROUTE_LOGIN = 'login';
 export const ROUTE_404 = '404';
 
@@ -11,13 +11,13 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/',
     name: ROUTE_HOME,
-    redirect: 'asset',
+    redirect: 'resource',
     component: () => import('layouts/MainLayout.vue'),
     meta: { requiresAuth: true },
     children: [
-      { path: 'asset', name: ROUTE_ASSETS, component: () => import('pages/AssetsPage.vue') },
-      { path: 'asset/:id', name: ROUTE_ASSET, component: () => import('pages/AssetPage.vue') },
-      { path: 'asset-manager', name: ROUTE_ASSET_MANAGER, component: () => import('pages/AssetManagerPage.vue') }
+      { path: 'resource', name: ROUTE_RESOURCES, component: () => import('pages/resource/ResourcesPage.vue') },
+      { path: 'resource/:id', name: ROUTE_RESOURCE, component: () => import('pages/resource/ResourcePage.vue') },
+      { path: 'resource-manage', name: ROUTE_RESOURCE_MANAGE, component: () => import('pages/resource/ResourceManagePage.vue') }
     ],
   },
   {

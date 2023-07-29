@@ -6,14 +6,18 @@ import { join as pathJoin } from 'path';
 import { myLogger } from 'src/boot/logger';
 import { parseAssetDir } from 'src/utils/StringUtils';
 
-const PATH_ASSETS = 'assets';
-const TEMP_CSTI = 'Card Survival Tropical Island';
+const PATH_RESOURCE = 'resource';
+const TEMP_CSTI = 'Card Survival Tropical Island';//TODO remove
 
-function getUserData(): string {
-  return app.getPath('userData');
+function getGamePath(gameId: string): string {
+  return pathJoin(app.getPath('userData'), gameId);
 }
 
-function downloadAsset(url: string, assetId: string, version: string) {
+function getResourcePath(gameId: string): string {
+  return pathJoin(getGamePath(gameId), PATH_RESOURCE);
+}
+
+function downloadResource(url: string, gameId: string, resourceId: string, version: string) {
   const win = BrowserWindow.getFocusedWindow();
   if (!win) throw Error('Miss Focused Window');
   download(win, url, { overwrite: true, directory: app.getPath('temp'), onStarted, onProgress, onCompleted });
@@ -28,27 +32,27 @@ function downloadAsset(url: string, assetId: string, version: string) {
 
   function onCompleted(file: File) {
     win?.webContents.send('onDownloadCompleted', file);
-    unzip(file.path, assetId, version);
+    unzip(file.path, gameId, resourceId, version);
   }
 }
 
-function unzip(zipPath: string, assetId: string, version: string) {
+function unzip(zipPath: string, gameId: string, resourceId: string, version: string) {
   const zip = new AdmZip(zipPath);
   const entries = zip.getEntries();
   const nestedPath = getNestedPath(entries);
   entries.forEach((entry) => {
     if (!entry.isDirectory) {
-      const targetPath = getTargetPath(assetId + '-' + version, nestedPath, entry);
+      const targetPath = getTargetPath(resourceId + '-' + version, nestedPath, entry);
       zip.extractEntryTo(entry.entryName, targetPath, false, true);
     }
   });
 
-  function getTargetPath(assetPath: string, nestedPath: string | undefined, entry: AdmZip.IZipEntry) {
-    const assetsPath = pathJoin(getUserData(), PATH_ASSETS);
+  function getTargetPath(resourceName: string, nestedPath: string | undefined, entry: AdmZip.IZipEntry) {
+    const assetsPath = getResourcePath(gameId);
     const entryName = nestedPath == undefined ? entry.entryName : entry.entryName.replace(nestedPath, '');
     const paths = entryName.split('/');
     paths.splice(paths.length - 1, 1);
-    return pathJoin(assetsPath, assetPath, ...paths);
+    return pathJoin(assetsPath, resourceName, ...paths);
   }
 
 
@@ -66,22 +70,22 @@ function unzip(zipPath: string, assetId: string, version: string) {
   }
 }
 
-async function initAssetManager(): Promise<Map<string, string[]>> {
-  await syncInstallToDownloadAsset();
-  const assetsPath = pathJoin(getUserData(), PATH_ASSETS);
-  if (existsSync(assetsPath)) {
-    const assetsStat = await fsPromises.stat(assetsPath);
+async function initResourceManage(gameId: string): Promise<Map<string, string[]>> {
+  await syncInstallTodownloadResource(gameId);
+  const resourcesPath = getResourcePath(gameId);
+  if (existsSync(resourcesPath)) {
+    const assetsStat = await fsPromises.stat(resourcesPath);
     if (!assetsStat.isDirectory()) {
-      await fsPromises.unlink(assetsPath);
-      await fsPromises.mkdir(assetsPath);
+      await fsPromises.unlink(resourcesPath);
+      await fsPromises.mkdir(resourcesPath);
       myLogger.warn('assets path is not dir.');
       return new Map;
     }
     const result = new Map<string, string[]>();
-    const assetFiles = await fsPromises.readdir(assetsPath);
+    const assetFiles = await fsPromises.readdir(resourcesPath);
     myLogger.debug(`assets count is ${assetFiles.length}`);
     const promises = assetFiles.map(async (assetFile) => {
-      const assetFilePath = pathJoin(assetsPath, assetFile);
+      const assetFilePath = pathJoin(resourcesPath, assetFile);
       const assetFileStat = await fsPromises.stat(assetFilePath);
       if (assetFileStat.isDirectory()) {
         const { assetId, version } = parseAssetDir(assetFile);
@@ -97,15 +101,15 @@ async function initAssetManager(): Promise<Map<string, string[]>> {
     await Promise.all(promises);
     return result;
   } else {
-    await fsPromises.mkdir(assetsPath);
+    await fsPromises.mkdir(resourcesPath, { recursive: true });
     myLogger.debug('new assets path dir.');
     return new Map;
   }
 
-  async function syncInstallToDownloadAsset() {
+  async function syncInstallTodownloadResource(gameId: string) {
     const installPath = getDefaultPath();
     if (installPath == undefined) throw Error('miss install path');
-    const assetsPath = pathJoin(getUserData(), PATH_ASSETS);
+    const resourcesPath = getResourcePath(gameId);
     const installedAssets = await fsPromises.readdir(installPath);
     Promise.all(installedAssets.map(async (assetName) => {
       const installedAssetPath = pathJoin(installPath, assetName);
@@ -114,7 +118,7 @@ async function initAssetManager(): Promise<Map<string, string[]>> {
         const { assetId, version } = parseAssetDir(assetName);
         const newAssetName = assetId + '-' + version;
         myLogger.debug(`need sync asset ${assetName} to ${newAssetName}`);
-        const downloadedAssetPath = pathJoin(assetsPath, newAssetName);
+        const downloadedAssetPath = pathJoin(resourcesPath, newAssetName);
         fsPromises.rename(installedAssetPath, downloadedAssetPath);
         fsPromises.symlink(downloadedAssetPath, pathJoin(installPath, newAssetName));
       }
@@ -122,7 +126,7 @@ async function initAssetManager(): Promise<Map<string, string[]>> {
   }
 }
 
-async function initInstealledAssets(): Promise<Map<string, string[]>> {
+async function initInstealledResources(): Promise<Map<string, string[]>> {
   const installPath = getDefaultPath();
   if (installPath == undefined) throw Error('miss install path');
   const result = new Map<string, string[]>();
@@ -146,23 +150,23 @@ async function initInstealledAssets(): Promise<Map<string, string[]>> {
   return result;
 }
 
-async function deleteAssetVersion(assetId: string, version: string) {
-  const assetPath = pathJoin(getUserData(), PATH_ASSETS, assetId + '-' + version);
-  await fsPromises.rmdir(assetPath, { recursive: true });
+async function deleteAsset(gameId: string, resourceId: string, version: string) {
+  const resourcesPath = pathJoin(getResourcePath(gameId), resourceId + '-' + version);
+  await fsPromises.rmdir(resourcesPath, { recursive: true });
 }
 
-async function installAssetVersion(assetId: string, version: string) {
+async function installAsset(gameId: string, resourceId: string, version: string) {
   const installPath = getDefaultPath();
   if (installPath == undefined) throw Error('miss install path');
-  const assetPath = pathJoin(getUserData(), PATH_ASSETS, assetId + '-' + version);
-  const installAssetPath = pathJoin(installPath, assetId + '-' + version);
-  await fsPromises.symlink(assetPath, installAssetPath);
+  const resourcesPath = pathJoin(getResourcePath(gameId), resourceId + '-' + version);
+  const installAssetPath = pathJoin(installPath, resourceId + '-' + version);
+  await fsPromises.symlink(resourcesPath, installAssetPath);
 }
 
-async function uninstallAssetVersion(assetId: string, version: string) {
+async function uninstallAsset(resourceId: string, version: string) {
   const installPath = getDefaultPath();
   if (installPath == undefined) throw Error('miss install path');
-  const assetPath = pathJoin(installPath, assetId + '-' + version);
+  const assetPath = pathJoin(installPath, resourceId + '-' + version);
   await fsPromises.rmdir(assetPath, { recursive: true });
 }
 
@@ -176,11 +180,10 @@ function getDefaultPath(): string | undefined {
 }
 
 export default function init() {
-  ipcMain.handle('getUserData', getUserData);
-  ipcMain.on('downloadAsset', (_, url: string, assetId: string, version: string) => downloadAsset(url, assetId, version));
-  ipcMain.handle('initAssetManager', initAssetManager);
-  ipcMain.handle('initInstealledAssets', initInstealledAssets);
-  ipcMain.handle('deleteAssetVersion', (_, assetId: string, version: string) => deleteAssetVersion(assetId, version));
-  ipcMain.handle('installAssetVersion', (_, assetId: string, version: string) => installAssetVersion(assetId, version));
-  ipcMain.handle('uninstallAssetVersion', (_, assetId: string, version: string) => uninstallAssetVersion(assetId, version));
+  ipcMain.on('downloadResource', (_, url: string, gameId: string, resourceId: string, version: string) => downloadResource(url, gameId, resourceId, version));
+  ipcMain.handle('initResourceManage', (_, gameId: string) => initResourceManage(gameId));
+  ipcMain.handle('initInstealledResources', initInstealledResources);
+  ipcMain.handle('deleteAsset', (_, gameId: string, resourceId: string, version: string) => deleteAsset(gameId, resourceId, version));
+  ipcMain.handle('installAsset', (_, gameId: string, resourceId: string, version: string) => installAsset(gameId, resourceId, version));
+  ipcMain.handle('uninstallAsset', (_, resourceId: string, version: string) => uninstallAsset(resourceId, version));
 }
