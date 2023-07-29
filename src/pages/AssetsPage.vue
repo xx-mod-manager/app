@@ -33,27 +33,32 @@ const { loading, platform } = useQuasar();
 const searchText = ref('');
 const pullRefresh = ref(null as QPullToRefresh | null);
 
-const fuse = new Fuse(mainDataStore.assets, {
-  keys: ['name', 'description'],
-});
+const fuse = new Fuse(
+  mainDataStore.assets.filter((it) => it.existOnline),
+  {
+    keys: ['name', 'description'],
+  }
+);
 
 const result = computed(() =>
   searchText.value.length > 0
     ? fuse.search(searchText.value).map((it) => it.item)
-    : mainDataStore.assets
+    : mainDataStore.assets.filter((it) => it.existOnline)
 );
 
-function refresh(done: () => void) {
+async function refresh(done: () => void) {
   myLogger.debug('refresh main data');
-  mainDataStore.refresh().finally(() => {
-    if (platform.is.electron) {
-      window.electronApi
-        .initAssetManager()
-        .then(mainDataStore.updateDownloadedAsset);
-    }
-    if (loading.isActive) loading.hide();
-    done();
-  });
+  await mainDataStore.refresh();
+  if (platform.is.electron) {
+    mainDataStore.updateInstalledAsset(
+      await window.electronApi.initInstealledAssets()
+    );
+    mainDataStore.updateDownloadedAsset(
+      await window.electronApi.initAssetManager()
+    );
+  }
+  if (loading.isActive) loading.hide();
+  done();
 }
 
 onMounted(() => {

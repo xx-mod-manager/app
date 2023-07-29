@@ -150,6 +150,62 @@ export const useMainDataStore = defineStore(KEY_MAIN_DATA, {
       this.save();
     },
 
+    updateInstalledAsset(installedAssets: Map<string, string[]>) {
+      myLogger.debug(`updateInstalledAsset start, asset count is ${installedAssets.size}`);
+      installedAssets.forEach((versions, installedAssetId) => {
+        versions.forEach((version) => {
+          myLogger.debug(`update installed asset ${installedAssetId}/${version}`);
+        });
+      });
+      const uninstalledAssets = new Map<string, string[]>();
+      this.assets.forEach((asset) => {
+        asset.versions.forEach((status, version) => {
+          if (status == AssetStatus.INTALLED) {
+            let versions = uninstalledAssets.get(asset.id);
+            if (versions == undefined) {
+              versions = [];
+              uninstalledAssets.set(asset.id, versions);
+            }
+            versions.push(version);
+            myLogger.debug(`uninstalledAssets add ${asset.id}/${version}`);
+          }
+        });
+      });
+      installedAssets.forEach((versions, assetId) => {
+        let asset = this.getAssetById(assetId);
+        if (asset == undefined) {
+          asset = newLocalAsset(assetId);
+          this.assets.push(asset);
+        }
+        versions.forEach((version) => {
+          const oldStatus = asset?.versions.get(version);
+          if (oldStatus != undefined) {
+            if (oldStatus == AssetStatus.NONE || oldStatus == AssetStatus.DOWNLOADED) {
+              asset?.versions.set(version, AssetStatus.INTALLED);
+            } else if (oldStatus == AssetStatus.INTALLED) {
+              const uninstalledVersions = uninstalledAssets.get(assetId);
+              uninstalledVersions?.splice(uninstalledVersions.indexOf(version), 1);
+              myLogger.debug(`uninstalledAssets delete ${assetId}/${version}`);
+            }
+          } else {
+            asset?.versions.set(version, AssetStatus.INTALLED);
+          }
+        });
+      });
+      uninstalledAssets.forEach((versions, assetId) => {
+        const asset = this.getAssetById(assetId);
+        if (asset != undefined) {
+          versions.forEach((version) => {
+            myLogger.debug(`uninstall uninstalled asset ${assetId}/${version}`);
+            this.updateAssetVersion(assetId, version, AssetStatus.DOWNLOADED);
+          });
+        } else {
+          myLogger.warn(`Miss uninstall asset ${assetId}.`);
+        }
+      });
+      this.save();
+    },
+
     updateAssetVersion(assetId: string, version: string, newStatus: AssetStatus) {
       const asset = this.getAssetById(assetId);
       if (asset == undefined) {

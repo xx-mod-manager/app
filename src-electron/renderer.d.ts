@@ -8,7 +8,10 @@ export interface IElectronAPI {
   onDownloadProgress: (callback: (progress: MyProgress) => void) => void,
   onDownloadCompleted: (callback: (file: File) => void) => void,
   initAssetManager: () => Promise<Map<string, string[]>>,
+  initInstealledAssets: () => Promise<Map<string, string[]>>,
   deleteAssetVersion: (assetId: string, version: string) => Promise<void>,
+  installAssetVersion: (assetId: string, version: string) => Promise<void>,
+  uninstallAssetVersion: (assetId: string, version: string) => Promise<void>,
 }
 
 declare global {

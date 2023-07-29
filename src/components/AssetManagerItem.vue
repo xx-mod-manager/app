@@ -15,7 +15,7 @@
       <q-space />
 
       <div>
-        <q-btn label="卸载" :disable="!installed" />
+        <q-btn label="卸载" :disable="!installed" @click="uninstallAsset" />
         <q-btn label="删除" @click="deleteAsset" />
 
         <q-btn
@@ -43,11 +43,13 @@
           <q-btn
             label="安装"
             :disable="version.status != AssetStatus.DOWNLOADED"
+            @click="installVersion(version.version)"
           />
 
           <q-btn
             label="卸载"
             :disable="version.status != AssetStatus.INTALLED"
+            @click="uninstallVersion(version.version)"
           />
 
           <q-btn label="删除" @click="deleteVersion(version.version)" />
@@ -59,6 +61,7 @@
 
 <script setup lang="ts">
 import { matExpandLess, matExpandMore } from '@quasar/extras/material-icons';
+import { myLogger } from 'src/boot/logger';
 import { Asset, AssetStatus } from 'src/class/Types';
 import { ROUTE_ASSET } from 'src/router';
 import { useMainDataStore } from 'src/stores/MainData';
@@ -77,22 +80,59 @@ const versions = computed(() => {
   return result;
 });
 const installed = computed(() => {
-  props.asset.versions.forEach((status) => {
-    if (status == AssetStatus.INTALLED) return true;
-  });
+  for (const version of props.asset.versions) {
+    if (version[1] == AssetStatus.INTALLED) return true;
+  }
   return false;
 });
 
 async function deleteVersion(version: string) {
+  const oldStatus = props.asset.versions.get(version);
+  if (oldStatus == AssetStatus.INTALLED) {
+    uninstallVersion(version);
+  } else if (oldStatus == AssetStatus.NONE) {
+    throw Error(`${props.asset.id}/${version} is not download or install.`);
+  }
   await window.electronApi.deleteAssetVersion(props.asset.id, version);
   mainDataStore.updateAssetVersion(props.asset.id, version, AssetStatus.NONE);
 }
 
 async function deleteAsset() {
   for (const i of props.asset.versions)
-    if (i[1] == AssetStatus.DOWNLOADED) {
-      mainDataStore.updateAssetVersion(props.asset.id, i[0], AssetStatus.NONE);
-      await window.electronApi.deleteAssetVersion(props.asset.id, i[0]);
-    }
+    if (i[1] != AssetStatus.NONE) deleteVersion(i[0]);
+}
+
+async function installVersion(version: string) {
+  const oldStatus = props.asset.versions.get(version);
+  if (oldStatus == AssetStatus.NONE) {
+    throw Error(`${props.asset.id}/${version} is not download.`);
+  } else if (oldStatus == AssetStatus.INTALLED) {
+    myLogger.warn(`${props.asset.id}/${version} is already installed.`);
+  } else {
+    await window.electronApi.installAssetVersion(props.asset.id, version);
+    mainDataStore.updateAssetVersion(
+      props.asset.id,
+      version,
+      AssetStatus.INTALLED
+    );
+  }
+}
+
+async function uninstallVersion(version: string) {
+  const oldStatus = props.asset.versions.get(version);
+  if (oldStatus != AssetStatus.INTALLED) {
+    throw Error(`${props.asset.id}/${version} is not install.`);
+  }
+  await window.electronApi.uninstallAssetVersion(props.asset.id, version);
+  mainDataStore.updateAssetVersion(
+    props.asset.id,
+    version,
+    AssetStatus.DOWNLOADED
+  );
+}
+
+async function uninstallAsset() {
+  for (const i of props.asset.versions)
+    if (i[1] == AssetStatus.INTALLED) uninstallVersion(i[0]);
 }
 </script>

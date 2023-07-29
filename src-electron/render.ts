@@ -7,6 +7,7 @@ import { myLogger } from 'src/boot/logger';
 import { parseAssetDir } from 'src/utils/StringUtils';
 
 const PATH_ASSETS = 'assets';
+const TEMP_CSTI = 'Card Survival Tropical Island';
 
 function getUserData(): string {
   return app.getPath('userData');
@@ -66,6 +67,7 @@ function unzip(zipPath: string, assetId: string, version: string) {
 }
 
 async function initAssetManager(): Promise<Map<string, string[]>> {
+  await syncInstallToDownloadAsset();
   const assetsPath = pathJoin(getUserData(), PATH_ASSETS);
   if (existsSync(assetsPath)) {
     const assetsStat = await fsPromises.stat(assetsPath);
@@ -99,6 +101,49 @@ async function initAssetManager(): Promise<Map<string, string[]>> {
     myLogger.debug('new assets path dir.');
     return new Map;
   }
+
+  async function syncInstallToDownloadAsset() {
+    const installPath = getDefaultPath();
+    if (installPath == undefined) throw Error('miss install path');
+    const assetsPath = pathJoin(getUserData(), PATH_ASSETS);
+    const installedAssets = await fsPromises.readdir(installPath);
+    Promise.all(installedAssets.map(async (assetName) => {
+      const installedAssetPath = pathJoin(installPath, assetName);
+      const installedAssetStat = await fsPromises.stat(installedAssetPath);
+      if (installedAssetStat.isDirectory() && !installedAssetStat.isSymbolicLink()) {
+        const { assetId, version } = parseAssetDir(assetName);
+        const newAssetName = assetId + '-' + version;
+        myLogger.debug(`need sync asset ${assetName} to ${newAssetName}`);
+        const downloadedAssetPath = pathJoin(assetsPath, newAssetName);
+        fsPromises.rename(installedAssetPath, downloadedAssetPath);
+        fsPromises.symlink(downloadedAssetPath, pathJoin(installPath, newAssetName));
+      }
+    }));
+  }
+}
+
+async function initInstealledAssets(): Promise<Map<string, string[]>> {
+  const installPath = getDefaultPath();
+  if (installPath == undefined) throw Error('miss install path');
+  const result = new Map<string, string[]>();
+  const assetFiles = await fsPromises.readdir(installPath);
+  myLogger.debug(`installed assets count is ${assetFiles.length}`);
+  const promises = assetFiles.map(async (assetFile) => {
+    const assetFilePath = pathJoin(installPath, assetFile);
+    const assetFileStat = await fsPromises.stat(assetFilePath);
+    if (assetFileStat.isDirectory()) {
+      const { assetId, version } = parseAssetDir(assetFile);
+      myLogger.debug(`installed assets: ${assetId}/${version}`);
+      let versions = result.get(assetId);
+      if (versions == undefined) {
+        versions = [];
+        result.set(assetId, versions);
+      }
+      versions.push(version);
+    }
+  });
+  await Promise.all(promises);
+  return result;
 }
 
 async function deleteAssetVersion(assetId: string, version: string) {
@@ -106,9 +151,36 @@ async function deleteAssetVersion(assetId: string, version: string) {
   await fsPromises.rmdir(assetPath, { recursive: true });
 }
 
+async function installAssetVersion(assetId: string, version: string) {
+  const installPath = getDefaultPath();
+  if (installPath == undefined) throw Error('miss install path');
+  const assetPath = pathJoin(getUserData(), PATH_ASSETS, assetId + '-' + version);
+  const installAssetPath = pathJoin(installPath, assetId + '-' + version);
+  await fsPromises.symlink(assetPath, installAssetPath);
+}
+
+async function uninstallAssetVersion(assetId: string, version: string) {
+  const installPath = getDefaultPath();
+  if (installPath == undefined) throw Error('miss install path');
+  const assetPath = pathJoin(installPath, assetId + '-' + version);
+  await fsPromises.rmdir(assetPath, { recursive: true });
+}
+
+function getDefaultPath(): string | undefined {
+  const homePath = app.getPath('home');
+  const modInstallPath = pathJoin(homePath, '.local/share/Steam/steamapps/common', TEMP_CSTI, 'BepInEx/plugins');
+  if (existsSync(modInstallPath)) {
+    return modInstallPath;
+  }
+  return undefined;
+}
+
 export default function init() {
   ipcMain.handle('getUserData', getUserData);
   ipcMain.on('downloadAsset', (_, url: string, assetId: string, version: string) => downloadAsset(url, assetId, version));
   ipcMain.handle('initAssetManager', initAssetManager);
+  ipcMain.handle('initInstealledAssets', initInstealledAssets);
   ipcMain.handle('deleteAssetVersion', (_, assetId: string, version: string) => deleteAssetVersion(assetId, version));
+  ipcMain.handle('installAssetVersion', (_, assetId: string, version: string) => installAssetVersion(assetId, version));
+  ipcMain.handle('uninstallAssetVersion', (_, assetId: string, version: string) => uninstallAssetVersion(assetId, version));
 }
