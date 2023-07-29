@@ -12,7 +12,7 @@
           @click="leftDrawerOpen = !leftDrawerOpen"
         />
 
-        <q-toolbar-title> Github Asset Community </q-toolbar-title>
+        <q-toolbar-title> Github Resource Community </q-toolbar-title>
       </q-toolbar>
     </q-header>
 

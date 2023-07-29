@@ -1,6 +1,6 @@
-# cdda mod community (cdda-mod-community)
+# github resource community (github-resource-community)
 
-Cataclysm-DDA's mod community.
+Based on github resource community.
 
 ## Install the dependencies
 ```bash
