@@ -1,10 +1,11 @@
 import AdmZip from 'adm-zip';
 import { join as pathJoin } from 'path';
+import { deleteArrayItemByIndex } from 'src/utils/ArrayUtils';
 
 function getTargetPath(resourcesPath: string, assetName: string, nestedPath: string | undefined, entry: AdmZip.IZipEntry) {
   const entryName = nestedPath == undefined ? entry.entryName : entry.entryName.replace(nestedPath, '');
   const paths = entryName.split('/');
-  paths.splice(paths.length - 1, 1);
+  deleteArrayItemByIndex(paths, paths.length - 1);
   return pathJoin(resourcesPath, assetName, ...paths);
 }
 

@@ -1,3 +1,4 @@
+import { deleteArrayItemById } from 'src/utils/ArrayUtils';
 import { ApiAuthor, ApiComment, ApiDiscussion, ApiEdge, ApiReactionGroup, ApiRelease, ApiReleaseAsset, GraphArray } from './GraphqlClass';
 
 interface ConnectionItem {
@@ -16,10 +17,7 @@ export class PageArray<T extends ConnectionItem> {
 
   public deleteNode(totalCount: number, nodeId: string) {
     this.totalCount = totalCount;
-    this.nodes.splice(
-      this.nodes.findIndex((it) => it.id == nodeId),
-      1
-    );
+    deleteArrayItemById(this.nodes, nodeId);
   }
 
   public loadAll<V>(graphArray: GraphArray<V>, converFun: (value: ApiEdge<V>) => T) {

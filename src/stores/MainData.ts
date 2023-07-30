@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia';
 import { myLogger } from 'src/boot/logger';
 import { Asset, AssetStatus, Game, Resource } from 'src/class/Types';
-import { deleteItem, deleteItemById, deleteItemsById, findById } from 'src/utils/ArrayUtils';
+import { deleteArrayItem, deleteArrayItemByFieldId, deleteArrayItemById, deleteArrayItemsByFileId, findArrayItemByFieldId } from 'src/utils/ArrayUtils';
 import { existLocalAsset, newDownloadedAsset, newInstalledAsset, updateOnlineAsset } from 'src/utils/AssetUtils';
 import { existLocalGame, updateOnlineGame } from 'src/utils/GameUtils';
 import { replacer, reviver } from 'src/utils/JsonUtil';
@@ -41,7 +41,7 @@ export const useMainDataStore = defineStore(KEY_MAIN_DATA, {
     deleteAssetById(gameId: string, resourceId: string, assetId: string) {
       const assets = this.getResourceById(gameId, resourceId)?.assets;
       if (assets == undefined) return false;
-      deleteItemById(assets, { id: assetId });
+      deleteArrayItemById(assets, assetId);
       this.save();
       return true;
     },
@@ -52,13 +52,13 @@ export const useMainDataStore = defineStore(KEY_MAIN_DATA, {
         const oldGame = this.getGameById(onlineGame.id);
         if (oldGame != undefined) {
           updateOnlineGame(oldGame, onlineGame);
-          deleteItemById(deletedGames, onlineGame);
+          deleteArrayItemByFieldId(deletedGames, onlineGame);
         } else {
           this.games.push(onlineGame);
           myLogger.debug(`Add new online game [${onlineGame.id}]`);
         }
       });
-      deleteItemsById(this.games, deletedGames);
+      deleteArrayItemsByFileId(this.games, deletedGames);
       this.save();
     },
 
@@ -69,16 +69,16 @@ export const useMainDataStore = defineStore(KEY_MAIN_DATA, {
       const deletedResources: Resource[] = [...oldResources.filter(i => !existLocalResource(i))];
       oldResources.forEach((it) => it.existOnline = false);
       onlineResources.forEach((onlineResource) => {
-        const oldResource = findById(oldResources, onlineResource);
+        const oldResource = findArrayItemByFieldId(oldResources, onlineResource);
         if (oldResource) {
           updateOnlineResource(oldResource, onlineResource);
-          deleteItemById(deletedResources, onlineResource);
+          deleteArrayItemByFieldId(deletedResources, onlineResource);
         } else {
           oldResources.push(onlineResource);
           myLogger.debug(`Add new online resource [${onlineResource.id}]`);
         }
       });
-      deleteItemsById(oldResources, deletedResources);
+      deleteArrayItemsByFileId(oldResources, deletedResources);
       this.save();
     },
 
@@ -89,18 +89,18 @@ export const useMainDataStore = defineStore(KEY_MAIN_DATA, {
       const deletedAssets = oldAssets.filter(i => !existLocalAsset(i));
       oldAssets.forEach((it) => it.downloadUrl = undefined);
       onlineAssets.forEach((onlineAsset) => {
-        const oldAsset = findById(oldAssets, onlineAsset);
+        const oldAsset = findArrayItemByFieldId(oldAssets, onlineAsset);
         if (oldAsset) {
           myLogger.debug(`Update online asset [${onlineAsset.id}]`);
           updateOnlineAsset(oldAsset, onlineAsset);
-          deleteItemById(deletedAssets, onlineAsset);
+          deleteArrayItemByFieldId(deletedAssets, onlineAsset);
         } else {
           oldAssets.push(onlineAsset);
           myLogger.debug(`Add new online asset [${onlineAsset.id}]`);
         }
       });
       deletedAssets.forEach(deleteAsset => myLogger.debug(`delete asset [${deleteAsset.id}]`));
-      deleteItemsById(oldAssets, deletedAssets);
+      deleteArrayItemsByFileId(oldAssets, deletedAssets);
       this.save();
     },
 
@@ -142,7 +142,7 @@ export const useMainDataStore = defineStore(KEY_MAIN_DATA, {
             } else if (asset.status == AssetStatus.INTALLED) {
               const uninstalledVersions = uninstalledAssets.get(resourceId);
               if (uninstalledVersions)
-                deleteItem(uninstalledVersions, assetId);
+                deleteArrayItem(uninstalledVersions, assetId);
               myLogger.debug(`uninstalledAssets delete ${resourceId}/${assetId}`);
             }
           } else {
@@ -202,7 +202,7 @@ export const useMainDataStore = defineStore(KEY_MAIN_DATA, {
             } else if (asset.status == AssetStatus.DOWNLOADED) {
               const deletedVersions = deletedAssets.get(resourceId);
               if (deletedVersions)
-                deleteItem(deletedVersions, assetId);
+                deleteArrayItem(deletedVersions, assetId);
               myLogger.debug(`deletedAssets delete ${resourceId}/${assetId}`);
             }
           } else {
@@ -221,7 +221,7 @@ export const useMainDataStore = defineStore(KEY_MAIN_DATA, {
                 asset.status = AssetStatus.NONE;
               } else {
                 myLogger.debug(`delete deleted asset ${resourceId}/${assetId}`);
-                deleteItemById(resource.assets, asset);
+                deleteArrayItemByFieldId(resource.assets, asset);
               }
             }
           });
