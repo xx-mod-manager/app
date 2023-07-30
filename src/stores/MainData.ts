@@ -25,7 +25,7 @@ export const useMainDataStore = defineStore(KEY_MAIN_DATA, {
     },
 
     getResourceById(gameId: string, resourceId: string): Resource | undefined {
-      return this.getGameById(gameId)?.resources.find((it) => it.id = resourceId);
+      return this.getGameById(gameId)?.resources.find((it) => it.id == resourceId);
     },
 
     getOptionAssetById(gameId: string, resourceId: string, assetId: string): Asset | undefined {
@@ -261,7 +261,8 @@ function init(): MainData {
   if (localMainDataJson) {
     const localMainData = JSON.parse(localMainDataJson, reviver) as MainData;
     myLogger.debug(
-      `Resume MainDataStore from localStorage game size: ${localMainData.games.length}.`
+      `Resume MainDataStore from localStorage game size: ${localMainData.games.length}.`,
+      localMainData
     );
     return localMainData;
   } else {
