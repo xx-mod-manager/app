@@ -35,7 +35,7 @@ import { AssetStatus, ReleaseAsset } from 'src/class/Types';
 import { useMainDataStore } from 'src/stores/MainData';
 import { useUserConfigStore } from 'src/stores/UserConfig';
 import { existLocalAsset } from 'src/utils/AssetUtils';
-import { clearUrlArgs, parseVersion } from 'src/utils/StringUtils';
+import { parseVersion } from 'src/utils/StringUtils';
 import { ref } from 'vue';
 import DateFormatSpan from './DateFormatSpan.vue';
 
@@ -72,19 +72,15 @@ function download(url: string) {
       version
     );
     window.electronApi.onDownloadStarted((url) =>
-      myLogger.debug(`start download ${clearUrlArgs(url)}.`)
+      myLogger.debug(`start download ${url}.`)
     );
     window.electronApi.onDownloadProgress((progress) => {
-      myLogger.debug(
-        `url:${clearUrlArgs(url)}.\npercentage: ${progress.percent}`
-      );
-      percentage.value = progress.percent;
+      myLogger.debug(`url:${progress.url}.\npercentage: ${progress.percent}`);
+      percentage.value = progress.percent * 100;
     });
     window.electronApi.onDownloadCompleted((file) => {
       myLogger.debug(
-        `complete download ${file.filename}.\npath: ${
-          file.path
-        }.\nurl:${clearUrlArgs(file.url)}.`
+        `complete download ${file.filename}.\npath: ${file.path}.\nurl:${file.url}.`
       );
       const version = parseVersion(file.filename);
       mainDataStore.updateAssetStatus(
