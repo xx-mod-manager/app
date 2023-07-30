@@ -7,7 +7,7 @@ contextBridge.exposeInMainWorld('electronApi', {
   onDownloadStarted: (callback: (url: string) => void) => ipcRenderer.on('onDownloadStarted', (_, url) => callback(url)),
   onDownloadProgress: (callback: (progress: MyProgress) => void) => ipcRenderer.on('onDownloadProgress', (_, progress) => callback(progress)),
   onDownloadCompleted: (callback: (file: File) => void) => ipcRenderer.on('onDownloadCompleted', (_, file) => callback(file)),
-  initResourceManage: (gameId: string) => ipcRenderer.invoke('initResourceManage', gameId),
+  initDownloadedResources: (gameId: string) => ipcRenderer.invoke('initDownloadedResources', gameId),
   initInstealledResources: () => ipcRenderer.invoke('initInstealledResources'),
   deleteAsset: (gameId: string, resourceId: string, version: string) => ipcRenderer.invoke('deleteAsset', gameId, resourceId, version),
   installAsset: (gameId: string, resourceId: string, version: string) => ipcRenderer.invoke('installAsset', gameId, resourceId, version),

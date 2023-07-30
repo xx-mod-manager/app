@@ -6,15 +6,11 @@ import { join as pathJoin } from 'path';
 import { myLogger } from 'src/boot/logger';
 import { parseAssetDir } from 'src/utils/StringUtils';
 
-const PATH_RESOURCE = 'resource';
+const PATH_RESOURCE = 'Resources';
 const TEMP_CSTI = 'Card Survival Tropical Island';//TODO remove
 
-function getGamePath(gameId: string): string {
-  return pathJoin(app.getPath('userData'), gameId);
-}
-
-function getResourcePath(gameId: string): string {
-  return pathJoin(getGamePath(gameId), PATH_RESOURCE);
+function getGameResourcesPath(gameId: string): string {
+  return pathJoin(app.getPath('userData'), PATH_RESOURCE, gameId);
 }
 
 function downloadResource(url: string, gameId: string, resourceId: string, version: string) {
@@ -40,19 +36,19 @@ function unzip(zipPath: string, gameId: string, resourceId: string, version: str
   const zip = new AdmZip(zipPath);
   const entries = zip.getEntries();
   const nestedPath = getNestedPath(entries);
-  entries.forEach((entry) => {
+  for (const entry of entries) {
     if (!entry.isDirectory) {
-      const targetPath = getTargetPath(resourceId + '-' + version, nestedPath, entry);
+      const targetPath = getTargetPath(gameId, resourceId + '-' + version, nestedPath, entry);
       zip.extractEntryTo(entry.entryName, targetPath, false, true);
     }
-  });
+  }
 
-  function getTargetPath(resourceName: string, nestedPath: string | undefined, entry: AdmZip.IZipEntry) {
-    const assetsPath = getResourcePath(gameId);
+  function getTargetPath(gameId: string, resourceName: string, nestedPath: string | undefined, entry: AdmZip.IZipEntry) {
+    const resourcesPath = getGameResourcesPath(gameId);
     const entryName = nestedPath == undefined ? entry.entryName : entry.entryName.replace(nestedPath, '');
     const paths = entryName.split('/');
     paths.splice(paths.length - 1, 1);
-    return pathJoin(assetsPath, resourceName, ...paths);
+    return pathJoin(resourcesPath, resourceName, ...paths);
   }
 
 
@@ -70,57 +66,59 @@ function unzip(zipPath: string, gameId: string, resourceId: string, version: str
   }
 }
 
-async function initResourceManage(gameId: string): Promise<Map<string, string[]>> {
-  await syncInstallTodownloadResource(gameId);
-  const resourcesPath = getResourcePath(gameId);
+async function initResourcesDir(resourcesPath: string) {
+  myLogger.debug(`initResourcesDir: ${resourcesPath}.`);
   if (existsSync(resourcesPath)) {
     const assetsStat = await fsPromises.stat(resourcesPath);
     if (!assetsStat.isDirectory()) {
       await fsPromises.unlink(resourcesPath);
       await fsPromises.mkdir(resourcesPath);
-      myLogger.warn('assets path is not dir.');
-      return new Map;
+      myLogger.warn('Resources dir not directory, Recreate.');
     }
-    const result = new Map<string, string[]>();
-    const assetFiles = await fsPromises.readdir(resourcesPath);
-    myLogger.debug(`assets count is ${assetFiles.length}`);
-    const promises = assetFiles.map(async (assetFile) => {
-      const assetFilePath = pathJoin(resourcesPath, assetFile);
-      const assetFileStat = await fsPromises.stat(assetFilePath);
-      if (assetFileStat.isDirectory()) {
-        const { assetId, version } = parseAssetDir(assetFile);
-        myLogger.debug(`downloaded assets: ${assetId}/${version}`);
-        let versions = result.get(assetId);
-        if (versions == undefined) {
-          versions = [];
-          result.set(assetId, versions);
-        }
-        versions.push(version);
-      }
-    });
-    await Promise.all(promises);
-    return result;
   } else {
     await fsPromises.mkdir(resourcesPath, { recursive: true });
-    myLogger.debug('new assets path dir.');
-    return new Map;
+    myLogger.debug('Create resources dir.');
   }
+}
 
-  async function syncInstallTodownloadResource(gameId: string) {
+async function initDownloadedResources(gameId: string): Promise<Map<string, string[]>> {
+  const resourcesPath = getGameResourcesPath(gameId);
+  await syncInstallDownloadResource(resourcesPath);
+  const result = new Map<string, string[]>();
+  const assetFiles = await fsPromises.readdir(resourcesPath);
+  myLogger.debug(`Downloaded resource count is ${assetFiles.length}`);
+  const promises = assetFiles.map(async (assetFile) => {
+    const assetFilePath = pathJoin(resourcesPath, assetFile);
+    const assetFileStat = await fsPromises.stat(assetFilePath);
+    if (assetFileStat.isDirectory()) {
+      const { assetId, version } = parseAssetDir(assetFile);
+      myLogger.debug(`Downloaded resource: ${assetId}/${version}`);
+      let versions = result.get(assetId);
+      if (versions == undefined) {
+        versions = [];
+        result.set(assetId, versions);
+      }
+      versions.push(version);
+    }
+  });
+  await Promise.all(promises);
+  return result;
+
+  async function syncInstallDownloadResource(resourcesPath: string) {
+    await initResourcesDir(resourcesPath);
     const installPath = getDefaultPath();
-    if (installPath == undefined) throw Error('miss install path');
-    const resourcesPath = getResourcePath(gameId);
+    if (installPath == undefined) throw Error('Miss install path.');
     const installedAssets = await fsPromises.readdir(installPath);
-    Promise.all(installedAssets.map(async (assetName) => {
-      const installedAssetPath = pathJoin(installPath, assetName);
+    Promise.all(installedAssets.map(async (resourceName) => {
+      const installedAssetPath = pathJoin(installPath, resourceName);
       const installedAssetStat = await fsPromises.stat(installedAssetPath);
       if (installedAssetStat.isDirectory() && !installedAssetStat.isSymbolicLink()) {
-        const { assetId, version } = parseAssetDir(assetName);
-        const newAssetName = assetId + '-' + version;
-        myLogger.debug(`need sync asset ${assetName} to ${newAssetName}`);
-        const downloadedAssetPath = pathJoin(resourcesPath, newAssetName);
+        const { assetId, version } = parseAssetDir(resourceName);
+        const newResourceName = assetId + '-' + version;
+        myLogger.debug(`Need sync resource ${resourceName} to ${newResourceName}`);
+        const downloadedAssetPath = pathJoin(resourcesPath, newResourceName);
         fsPromises.rename(installedAssetPath, downloadedAssetPath);
-        fsPromises.symlink(downloadedAssetPath, pathJoin(installPath, newAssetName));
+        fsPromises.symlink(downloadedAssetPath, pathJoin(installPath, newResourceName));
       }
     }));
   }
@@ -128,16 +126,16 @@ async function initResourceManage(gameId: string): Promise<Map<string, string[]>
 
 async function initInstealledResources(): Promise<Map<string, string[]>> {
   const installPath = getDefaultPath();
-  if (installPath == undefined) throw Error('miss install path');
+  if (installPath == undefined) throw Error('Miss install path.');
   const result = new Map<string, string[]>();
   const assetFiles = await fsPromises.readdir(installPath);
-  myLogger.debug(`installed assets count is ${assetFiles.length}`);
+  myLogger.debug(`Installed resource count is ${assetFiles.length}`);
   const promises = assetFiles.map(async (assetFile) => {
     const assetFilePath = pathJoin(installPath, assetFile);
     const assetFileStat = await fsPromises.stat(assetFilePath);
     if (assetFileStat.isDirectory()) {
       const { assetId, version } = parseAssetDir(assetFile);
-      myLogger.debug(`installed assets: ${assetId}/${version}`);
+      myLogger.debug(`Installed resource: ${assetId}/${version}`);
       let versions = result.get(assetId);
       if (versions == undefined) {
         versions = [];
@@ -151,21 +149,21 @@ async function initInstealledResources(): Promise<Map<string, string[]>> {
 }
 
 async function deleteAsset(gameId: string, resourceId: string, version: string) {
-  const resourcesPath = pathJoin(getResourcePath(gameId), resourceId + '-' + version);
+  const resourcesPath = pathJoin(getGameResourcesPath(gameId), resourceId + '-' + version);
   await fsPromises.rmdir(resourcesPath, { recursive: true });
 }
 
 async function installAsset(gameId: string, resourceId: string, version: string) {
   const installPath = getDefaultPath();
-  if (installPath == undefined) throw Error('miss install path');
-  const resourcesPath = pathJoin(getResourcePath(gameId), resourceId + '-' + version);
+  if (installPath == undefined) throw Error('Miss install path');
+  const resourcesPath = pathJoin(getGameResourcesPath(gameId), resourceId + '-' + version);
   const installAssetPath = pathJoin(installPath, resourceId + '-' + version);
   await fsPromises.symlink(resourcesPath, installAssetPath);
 }
 
 async function uninstallAsset(resourceId: string, version: string) {
   const installPath = getDefaultPath();
-  if (installPath == undefined) throw Error('miss install path');
+  if (installPath == undefined) throw Error('Miss install path');
   const assetPath = pathJoin(installPath, resourceId + '-' + version);
   await fsPromises.rmdir(assetPath, { recursive: true });
 }
@@ -181,7 +179,7 @@ function getDefaultPath(): string | undefined {
 
 export default function init() {
   ipcMain.on('downloadResource', (_, url: string, gameId: string, resourceId: string, version: string) => downloadResource(url, gameId, resourceId, version));
-  ipcMain.handle('initResourceManage', (_, gameId: string) => initResourceManage(gameId));
+  ipcMain.handle('initDownloadedResources', (_, gameId: string) => initDownloadedResources(gameId));
   ipcMain.handle('initInstealledResources', initInstealledResources);
   ipcMain.handle('deleteAsset', (_, gameId: string, resourceId: string, version: string) => deleteAsset(gameId, resourceId, version));
   ipcMain.handle('installAsset', (_, gameId: string, resourceId: string, version: string) => installAsset(gameId, resourceId, version));

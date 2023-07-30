@@ -6,7 +6,7 @@ export interface IElectronAPI {
   onDownloadStarted: (callback: (url: string) => void) => void,
   onDownloadProgress: (callback: (progress: MyProgress) => void) => void,
   onDownloadCompleted: (callback: (file: File) => void) => void,
-  initResourceManage: (gameId: string) => Promise<Map<string, string[]>>,
+  initDownloadedResources: (gameId: string) => Promise<Map<string, string[]>>,
   initInstealledResources: () => Promise<Map<string, string[]>>,
   deleteAsset: (gameId: string, resourceId: string, version: string) => Promise<void>,
   installAsset: (gameId: string, resourceId: string, version: string) => Promise<void>,

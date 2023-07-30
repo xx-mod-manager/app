@@ -68,7 +68,7 @@ async function refresh(done: () => void) {
     );
     mainDataStore.updateDonwloadedAsset(
       userConfigStore.game,
-      await window.electronApi.initResourceManage(userConfigStore.game)
+      await window.electronApi.initDownloadedResources(userConfigStore.game)
     );
   }
   if (loading.isActive) loading.hide();
