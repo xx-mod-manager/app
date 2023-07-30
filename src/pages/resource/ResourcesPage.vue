@@ -57,6 +57,7 @@ async function refresh(done: () => void) {
   myLogger.debug('refresh main data');
   const onlineGames = await requestGames();
   mainDataStore.updateOnlineGames(onlineGames);
+  userConfigStore.updateOnlineGames(onlineGames);
   //TODO default game process
   const game = mainDataStore.getGameById(userConfigStore.currentGameId);
   if (game == undefined) throw Error('Current game miss');

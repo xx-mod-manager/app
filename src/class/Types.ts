@@ -213,3 +213,9 @@ export interface Game {
   icon?: string
   resources: Resource[]
 }
+
+export interface GameConfig {
+  id: string
+  installPath?: string
+  lockRootWithInstallPath: boolean
+}

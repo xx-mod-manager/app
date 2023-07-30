@@ -28,6 +28,16 @@ export const useMainDataStore = defineStore(KEY_MAIN_DATA, {
       return this.getGameById(gameId)?.resources.find((it) => it.id = resourceId);
     },
 
+    getOptionAssetById(gameId: string, resourceId: string, assetId: string): Asset | undefined {
+      return this.getResourceById(gameId, resourceId)?.assets.find(i => i.id == assetId);
+    },
+
+    getAssetById(gameId: string, resourceId: string, assetId: string): Asset {
+      const asset = this.getOptionAssetById(gameId, resourceId, assetId);
+      if (asset == undefined) throw Error(`Miss ${gameId}/${resourceId}/${assetId}`);
+      return asset;
+    },
+
     updateOnlineGames(onlineGames: Game[]) {
       const deletedGames: Game[] = [...this.games.filter(i => !existLocalGame(i))];
       onlineGames.forEach((onlineGame) => {
@@ -73,6 +83,7 @@ export const useMainDataStore = defineStore(KEY_MAIN_DATA, {
       onlineAssets.forEach((onlineAsset) => {
         const oldAsset = findById(oldAssets, onlineAsset);
         if (oldAsset) {
+          myLogger.debug(`Update online asset [${onlineAsset.id}]`);
           updateOnlineAsset(oldAsset, onlineAsset);
           deleteItemById(deletedAssets, onlineAsset);
         } else {
@@ -80,6 +91,7 @@ export const useMainDataStore = defineStore(KEY_MAIN_DATA, {
           myLogger.debug(`Add new online asset [${onlineAsset.id}]`);
         }
       });
+      deletedAssets.forEach(deleteAsset => myLogger.debug(`delete asset [${deleteAsset.id}]`));
       deleteItemsById(oldAssets, deletedAssets);
       this.save();
     },

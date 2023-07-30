@@ -5,7 +5,7 @@
       :loading="downloading"
       :percentage="percentage"
       :label="asset.name"
-      :disable="downloaded"
+      :disable="existLocal(parseVersion(asset.name))"
       no-caps
       @click="download(asset.downloadUrl)"
     >
@@ -33,13 +33,14 @@ import { format, Platform } from 'quasar';
 import { myLogger } from 'src/boot/logger';
 import { AssetStatus, ReleaseAsset } from 'src/class/Types';
 import { useMainDataStore } from 'src/stores/MainData';
-import { clearUrlArgs, parseVersion } from 'src/utils/StringUtils';
-import { computed, ref } from 'vue';
-import DateFormatSpan from './DateFormatSpan.vue';
 import { useUserConfigStore } from 'src/stores/UserConfig';
+import { existLocalAsset } from 'src/utils/AssetUtils';
+import { clearUrlArgs, parseVersion } from 'src/utils/StringUtils';
+import { ref } from 'vue';
+import DateFormatSpan from './DateFormatSpan.vue';
 
 const props = defineProps<{
-  assetId: string;
+  resourceId: string;
   asset: ReleaseAsset;
 }>();
 
@@ -49,12 +50,17 @@ const { humanStorageSize } = format;
 const version = parseVersion(props.asset.name);
 const downloading = ref(false);
 const percentage = ref(0);
-const downloaded = computed(
-  () =>
-    !!mainDataStore
-      .getResourceById(userConfigStore.currentGameId, props.assetId)
-      ?.assets.find((i) => (i.id = version))?.status
-);
+
+//todo fix call
+function existLocal(assetId: string) {
+  return existLocalAsset(
+    mainDataStore.getAssetById(
+      userConfigStore.currentGameId,
+      props.resourceId,
+      assetId
+    )
+  );
+}
 
 function download(url: string) {
   if (Platform.is.electron) {
@@ -62,7 +68,7 @@ function download(url: string) {
     window.electronApi.downloadResource(
       url,
       userConfigStore.currentGameId,
-      props.assetId,
+      props.resourceId,
       version
     );
     window.electronApi.onDownloadStarted((url) =>
@@ -83,7 +89,7 @@ function download(url: string) {
       const version = parseVersion(file.filename);
       mainDataStore.updateAssetStatus(
         userConfigStore.currentGameId,
-        props.assetId,
+        props.resourceId,
         version,
         AssetStatus.DOWNLOADED
       );

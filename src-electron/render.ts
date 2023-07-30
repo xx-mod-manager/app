@@ -4,7 +4,7 @@ import { existsSync, promises as fsPromises } from 'fs';
 import { join as pathJoin } from 'path';
 import { myLogger } from 'src/boot/logger';
 import { parseAssetDir } from 'src/utils/StringUtils';
-import { getGameResourcesPath, syncInstallDownloadResource } from './utils/FsUtil';
+import { getDefaultSteamAppPath, getGameResourcesPath, syncInstallDownloadResource } from './utils/FsUtil';
 import { unzipAsset } from './utils/ZipUtil';
 
 const TEMP_CSTI = 'Card Survival Tropical Island';//TODO remove
@@ -96,6 +96,15 @@ async function uninstallAsset(resourceId: string, version: string) {
   await fsPromises.rmdir(assetPath, { recursive: true });
 }
 
+function getIntallPathBySteamAppWithRelativePath(steamAppName: string, relativePath: string) {
+  myLogger.debug(`getIntallPathBySteamAppWithRelativePath steamAppName: ${steamAppName}, relativePath: ${relativePath}.`);
+  const appPath = getDefaultSteamAppPath(steamAppName);
+  if (appPath == undefined) return undefined;
+  const installPath = pathJoin(appPath, relativePath);
+  if (existsSync(installPath)) return installPath;
+  else return undefined;
+}
+
 //TODO remove
 function getDefaultPath(): string | undefined {
   const homePath = app.getPath('home');
@@ -113,4 +122,5 @@ export default function init() {
   ipcMain.handle('deleteAsset', (_, gameId: string, resourceId: string, version: string) => deleteAsset(gameId, resourceId, version));
   ipcMain.handle('installAsset', (_, gameId: string, resourceId: string, version: string) => installAsset(gameId, resourceId, version));
   ipcMain.handle('uninstallAsset', (_, resourceId: string, version: string) => uninstallAsset(resourceId, version));
+  ipcMain.handle('getIntallPathBySteamAppWithRelativePath', (_, steamAppName: string, relativePath: string) => getIntallPathBySteamAppWithRelativePath(steamAppName, relativePath));
 }

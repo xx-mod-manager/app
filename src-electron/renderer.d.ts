@@ -11,6 +11,7 @@ export interface IElectronAPI {
   deleteAsset: (gameId: string, resourceId: string, version: string) => Promise<void>,
   installAsset: (gameId: string, resourceId: string, version: string) => Promise<void>,
   uninstallAsset: (resourceId: string, version: string) => Promise<void>,
+  getIntallPathBySteamAppWithRelativePath: (steamAppName: string, relativePath: string) => Promise<string | undefined>,
 }
 
 declare global {

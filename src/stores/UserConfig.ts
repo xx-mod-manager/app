@@ -1,5 +1,7 @@
 import { defineStore } from 'pinia';
 import { myLogger } from 'src/boot/logger';
+import { Game, GameConfig } from 'src/class/Types';
+import { newOnlineGameConfig, updateOnlineGameConfig } from 'src/utils/GameConfig';
 import { replacer, reviver } from 'src/utils/JsonUtil';
 
 const KEY_USER_CONFIG = 'userConfig';
@@ -15,8 +17,12 @@ export const useUserConfigStore = defineStore(KEY_USER_CONFIG, {
       myLogger.debug('Save UserConfigStore.');
     },
 
+    getOptionGameById(gameId: string) {
+      return this.games.find(i => i.id == gameId);
+    },
+
     getGameById(gameId: string) {
-      const game = this.games.find(i => i.id == gameId);
+      const game = this.getOptionGameById(gameId);
       if (game == undefined) throw Error(`Miss game ${gameId}.`);
       return game;
     },
@@ -28,17 +34,27 @@ export const useUserConfigStore = defineStore(KEY_USER_CONFIG, {
         myLogger.debug(`Update current game, [${this.currentGameId}]=>[${newGameId}].`);
         this.save();
       }
+    },
+
+    async updateOnlineGames(onlineGames: Game[]) {
+      await Promise.all(onlineGames.map(async onlineGame => {
+        const oldGame = this.getOptionGameById(onlineGame.id);
+        if (oldGame == undefined) {
+          myLogger.debug(`Add online game config ${onlineGame.id}`);
+          this.games.push(await newOnlineGameConfig(onlineGame));
+        } else {
+          myLogger.debug(`Update online game config ${onlineGame.id}`);
+          await updateOnlineGameConfig(oldGame, onlineGame);
+        }
+      }));
+      this.save();
     }
   },
 });
 
 interface UserConfig {
   currentGameId: string
-  games: {
-    id: string
-    installPath?: string
-    lockRootWithInstallPath: boolean
-  }[]
+  games: GameConfig[]
 }
 
 function init(): UserConfig {
@@ -50,9 +66,9 @@ function init(): UserConfig {
   } else {
     myLogger.debug('New UserConfigStore.');
     return {
-      currentGameId: 'cdda',
+      currentGameId: 'csti',
       games: [{
-        id: 'cdda',
+        id: 'csti',
         lockRootWithInstallPath: true
       }]
     };

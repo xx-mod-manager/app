@@ -42,3 +42,34 @@ export async function syncInstallDownloadResource(installPath: string, resources
     }
   }));
 }
+
+function getDefaultSteamAppsPath(): string | undefined {
+  let steamPath: string | undefined = undefined;
+  const homePath = app.getPath('home');
+  if (process.platform == 'win32') {
+    const win32 = 'C:\\Program Files (x86)\\Steam';
+    const win64 = 'C:\\Program Files\\Steam';
+    if (existsSync(win32)) steamPath = win32;
+    else if (existsSync(win64)) steamPath = win64;
+  } else if (process.platform == 'linux') {
+    const linux = pathJoin(homePath, '.local/share/Steam');
+    if (existsSync(linux)) steamPath = linux;
+  } else if (process.platform == 'darwin') {
+    const mac = pathJoin(homePath, 'Library/Application Support/Steam');
+    if (existsSync(mac)) steamPath = mac;
+  }
+  if (steamPath == undefined) {
+    return undefined;
+  }
+  const steamAppsPath = pathJoin(steamPath, 'steamapps', 'common');
+  if (existsSync(steamAppsPath)) return steamAppsPath;
+  return undefined;
+}
+
+export function getDefaultSteamAppPath(steamAppName: string): string | undefined {
+  const appsPath = getDefaultSteamAppsPath();
+  if (appsPath == undefined) return undefined;
+  const appPath = pathJoin(appsPath, steamAppName);
+  if (existsSync(appPath)) return appPath;
+  return undefined;
+}
