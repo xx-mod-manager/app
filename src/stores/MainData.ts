@@ -38,6 +38,14 @@ export const useMainDataStore = defineStore(KEY_MAIN_DATA, {
       return asset;
     },
 
+    deleteAssetById(gameId: string, resourceId: string, assetId: string) {
+      const assets = this.getResourceById(gameId, resourceId)?.assets;
+      if (assets == undefined) return false;
+      deleteItemById(assets, { id: assetId });
+      this.save();
+      return true;
+    },
+
     updateOnlineGames(onlineGames: Game[]) {
       const deletedGames: Game[] = [...this.games.filter(i => !existLocalGame(i))];
       onlineGames.forEach((onlineGame) => {

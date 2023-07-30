@@ -34,11 +34,11 @@ export function deleteItemsByField<T, Z>(array: T[], items: T[], field: (v: T) =
   items.forEach((item) => deleteItemByField(array, item, field));
 }
 
-export function deleteItemById<T extends { id: unknown }>(array: T[], item: T): boolean {
+export function deleteItemById<T extends { id: unknown }>(array: T[], item: { id: unknown }): boolean {
   return deleteItemByField(array, item, (i) => i.id);
 }
 
-export function deleteItemsById<T extends { id: unknown }>(array: T[], items: T[]) {
+export function deleteItemsById<T extends { id: unknown }>(array: T[], items: { id: unknown }[]) {
   items.forEach((item) => deleteItemById(array, item));
 }
 

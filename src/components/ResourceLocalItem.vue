@@ -85,25 +85,36 @@ const installed = computed(() => {
   return false;
 });
 
-async function deleteAsset(version: string) {
-  const oldStatus = props.resource.assets.find((i) => i.id == version)?.status;
-  if (oldStatus == AssetStatus.INTALLED) {
-    uninstallAsset(version);
-  } else if (oldStatus == AssetStatus.NONE) {
-    throw Error(`${props.resource.id}/${version} is not download or install.`);
+async function deleteAsset(assetId: string) {
+  const asset = mainDataStore.getAssetById(
+    userConfigStore.currentGameId,
+    props.resource.id,
+    assetId
+  );
+  if (asset.status == AssetStatus.INTALLED) {
+    uninstallAsset(assetId);
+  } else if (asset.status == AssetStatus.NONE) {
+    throw Error(`${props.resource.id}/${assetId} is not download or install.`);
   }
   await window.electronApi.deleteAsset(
     userConfigStore.currentGameId,
     props.resource.id,
-    version
+    assetId
   );
-  //TODO change delete if is local
-  mainDataStore.updateAssetStatus(
-    userConfigStore.currentGameId,
-    props.resource.id,
-    version,
-    AssetStatus.NONE
-  );
+  if (asset.downloadUrl == undefined) {
+    mainDataStore.deleteAssetById(
+      userConfigStore.currentGameId,
+      props.resource.id,
+      assetId
+    );
+  } else {
+    mainDataStore.updateAssetStatus(
+      userConfigStore.currentGameId,
+      props.resource.id,
+      assetId,
+      AssetStatus.NONE
+    );
+  }
 }
 
 async function deleteResource() {
