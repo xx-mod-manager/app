@@ -7,8 +7,7 @@ const KEY_USER_CONFIG = 'userConfig';
 export const useUserConfigStore = defineStore(KEY_USER_CONFIG, {
   state: init,
 
-  getters: {
-  },
+  getters: {},
 
   actions: {
     save() {
@@ -16,11 +15,17 @@ export const useUserConfigStore = defineStore(KEY_USER_CONFIG, {
       myLogger.debug('Save UserConfigStore.');
     },
 
-    updateGame(newGameId: string) {
-      if (this.game == newGameId) {
-        myLogger.debug(`Update UserConfig game, but games are all [${newGameId}].`);
+    getGameById(gameId: string) {
+      const game = this.games.find(i => i.id == gameId);
+      if (game == undefined) throw Error(`Miss game ${gameId}.`);
+      return game;
+    },
+
+    updateCurrentGame(newGameId: string) {
+      if (this.currentGameId == newGameId) {
+        myLogger.debug(`Update current game, but games are all [${newGameId}].`);
       } else {
-        myLogger.debug(`Update UserConfig game, [${this.game}]=>[${newGameId}].`);
+        myLogger.debug(`Update current game, [${this.currentGameId}]=>[${newGameId}].`);
         this.save();
       }
     }
@@ -28,9 +33,12 @@ export const useUserConfigStore = defineStore(KEY_USER_CONFIG, {
 });
 
 interface UserConfig {
-  game: string
-  installPath: Map<string, string>
-  lockRootWithInstallPath: Map<string, boolean>
+  currentGameId: string
+  games: {
+    id: string
+    installPath?: string
+    lockRootWithInstallPath: boolean
+  }[]
 }
 
 function init(): UserConfig {
@@ -42,9 +50,11 @@ function init(): UserConfig {
   } else {
     myLogger.debug('New UserConfigStore.');
     return {
-      game: 'cdda',
-      installPath: new Map,
-      lockRootWithInstallPath: new Map
+      currentGameId: 'cdda',
+      games: [{
+        id: 'cdda',
+        lockRootWithInstallPath: true
+      }]
     };
   }
 }

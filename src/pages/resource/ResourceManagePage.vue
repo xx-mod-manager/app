@@ -21,7 +21,7 @@ const mainDataStore = useMainDataStore();
 const resources = computed(
   () =>
     mainDataStore
-      .getGameById(userConfigStore.game)
+      .getGameById(userConfigStore.currentGameId)
       ?.resources.filter(existLocalResource) ?? []
 );
 </script>

@@ -51,7 +51,7 @@ const router = useRouter();
 const { loading } = useQuasar();
 
 const resource = mainDataStore.getResourceById(
-  userConfigStore.game,
+  userConfigStore.currentGameId,
   route.params.id as string
 );
 const detail = ref(
@@ -63,7 +63,7 @@ async function refresh(done: () => void) {
     myLogger.debug(`refresh mod detail ${resource.id}`);
     detail.value = await getAssetDetail(resource);
     mainDataStore.updateOnlineAssets(
-      userConfigStore.game,
+      userConfigStore.currentGameId,
       resource.id,
       detail.value.release.releaseAssets.nodes.map(newOnlineAsset)
     );

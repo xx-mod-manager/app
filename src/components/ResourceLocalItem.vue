@@ -93,13 +93,13 @@ async function deleteAsset(version: string) {
     throw Error(`${props.resource.id}/${version} is not download or install.`);
   }
   await window.electronApi.deleteAsset(
-    userConfigStore.game,
+    userConfigStore.currentGameId,
     props.resource.id,
     version
   );
   //TODO change delete if is local
   mainDataStore.updateAssetStatus(
-    userConfigStore.game,
+    userConfigStore.currentGameId,
     props.resource.id,
     version,
     AssetStatus.NONE
@@ -119,12 +119,12 @@ async function installAsset(assetId: string) {
     myLogger.warn(`${props.resource.id}/${assetId} is already installed.`);
   } else {
     await window.electronApi.installAsset(
-      userConfigStore.game,
+      userConfigStore.currentGameId,
       props.resource.id,
       assetId
     );
     mainDataStore.updateAssetStatus(
-      userConfigStore.game,
+      userConfigStore.currentGameId,
       props.resource.id,
       assetId,
       AssetStatus.INTALLED
@@ -139,7 +139,7 @@ async function uninstallAsset(assetId: string) {
   }
   await window.electronApi.uninstallAsset(props.resource.id, assetId);
   mainDataStore.updateAssetStatus(
-    userConfigStore.game,
+    userConfigStore.currentGameId,
     props.resource.id,
     assetId,
     AssetStatus.DOWNLOADED

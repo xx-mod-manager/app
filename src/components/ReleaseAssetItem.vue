@@ -52,7 +52,7 @@ const percentage = ref(0);
 const downloaded = computed(
   () =>
     !!mainDataStore
-      .getResourceById(userConfigStore.game, props.assetId)
+      .getResourceById(userConfigStore.currentGameId, props.assetId)
       ?.assets.find((i) => (i.id = version))?.status
 );
 
@@ -61,7 +61,7 @@ function download(url: string) {
     downloading.value = true;
     window.electronApi.downloadResource(
       url,
-      userConfigStore.game,
+      userConfigStore.currentGameId,
       props.assetId,
       version
     );
@@ -82,7 +82,7 @@ function download(url: string) {
       );
       const version = parseVersion(file.filename);
       mainDataStore.updateAssetStatus(
-        userConfigStore.game,
+        userConfigStore.currentGameId,
         props.assetId,
         version,
         AssetStatus.DOWNLOADED

@@ -34,7 +34,8 @@ const authDataStore = useAuthDataStore();
 const { loading, platform } = useQuasar();
 
 const resources = computed(
-  () => mainDataStore.getGameById(userConfigStore.game)?.resources ?? []
+  () =>
+    mainDataStore.getGameById(userConfigStore.currentGameId)?.resources ?? []
 );
 const searchText = ref('');
 const pullRefresh = ref(null as QPullToRefresh | null);
@@ -57,18 +58,23 @@ async function refresh(done: () => void) {
   const onlineGames = await requestGames();
   mainDataStore.updateOnlineGames(onlineGames);
   //TODO default game process
-  const game = mainDataStore.getGameById(userConfigStore.game);
+  const game = mainDataStore.getGameById(userConfigStore.currentGameId);
   if (game == undefined) throw Error('Current game miss');
   const onlineResources = await requestGameResources(game.dataRepo);
-  mainDataStore.updateOnlineResources(userConfigStore.game, onlineResources);
+  mainDataStore.updateOnlineResources(
+    userConfigStore.currentGameId,
+    onlineResources
+  );
   if (platform.is.electron) {
     mainDataStore.updateInstalledAsset(
-      userConfigStore.game,
+      userConfigStore.currentGameId,
       await window.electronApi.initInstealledResources()
     );
     mainDataStore.updateDonwloadedAsset(
-      userConfigStore.game,
-      await window.electronApi.initDownloadedResources(userConfigStore.game)
+      userConfigStore.currentGameId,
+      await window.electronApi.initDownloadedResources(
+        userConfigStore.currentGameId
+      )
     );
   }
   if (loading.isActive) loading.hide();
