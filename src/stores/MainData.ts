@@ -2,7 +2,7 @@ import { defineStore } from 'pinia';
 import { myLogger } from 'src/boot/logger';
 import { Asset, AssetStatus, Game, Resource } from 'src/class/Types';
 import { deleteArrayItem, deleteArrayItemByFieldId, deleteArrayItemById, deleteArrayItemsByFileId, findArrayItemByFieldId } from 'src/utils/ArrayUtils';
-import { existLocalAsset, newDownloadedAsset, newInstalledAsset, updateOnlineAsset } from 'src/utils/AssetUtils';
+import { existLocalAsset, existOnlineAsset, newDownloadedAsset, newInstalledAsset, updateOnlineAsset } from 'src/utils/AssetUtils';
 import { existLocalGame, updateOnlineGame } from 'src/utils/GameUtils';
 import { replacer, reviver } from 'src/utils/JsonUtil';
 import { existLocalResource, newLocalResource, updateOnlineResource } from 'src/utils/ResourceUtils';
@@ -35,6 +35,12 @@ export const useMainDataStore = defineStore(KEY_MAIN_DATA, {
     getAssetById(gameId: string, resourceId: string, assetId: string): Asset {
       const asset = this.getOptionAssetById(gameId, resourceId, assetId);
       if (asset == undefined) throw Error(`Miss ${gameId}/${resourceId}/${assetId}`);
+      return asset;
+    },
+
+    getAssetByNodeId(gameId: string, resourceId: string, assetNodeId: string): Asset {
+      const asset = this.getResourceById(gameId, resourceId)?.assets.find(i => i.nodeId == assetNodeId);
+      if (asset == undefined) throw Error(`Miss ${gameId}/${resourceId}/(NodeId)${assetNodeId}`);
       return asset;
     },
 
@@ -216,7 +222,7 @@ export const useMainDataStore = defineStore(KEY_MAIN_DATA, {
           assetIds.forEach((assetId) => {
             const asset = resource.assets.find(i => i.id == assetId);
             if (asset) {
-              if (asset.downloadUrl) {
+              if (existOnlineAsset(asset)) {
                 myLogger.debug(`update deleted asset status ${resourceId}/${assetId}`);
                 asset.status = AssetStatus.NONE;
               } else {

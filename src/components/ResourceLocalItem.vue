@@ -66,7 +66,7 @@ import { AssetStatus, Resource } from 'src/class/Types';
 import { ROUTE_RESOURCE } from 'src/router';
 import { useMainDataStore } from 'src/stores/MainData';
 import { useUserConfigStore } from 'src/stores/UserConfig';
-import { existLocalAsset } from 'src/utils/AssetUtils';
+import { existLocalAsset, existOnlineAsset } from 'src/utils/AssetUtils';
 import { computed, ref } from 'vue';
 //TODO download btn
 const userConfigStore = useUserConfigStore();
@@ -101,18 +101,18 @@ async function deleteAsset(assetId: string) {
     props.resource.id,
     assetId
   );
-  if (asset.downloadUrl == undefined) {
-    mainDataStore.deleteAssetById(
-      userConfigStore.currentGameId,
-      props.resource.id,
-      assetId
-    );
-  } else {
+  if (existOnlineAsset(asset)) {
     mainDataStore.updateAssetStatus(
       userConfigStore.currentGameId,
       props.resource.id,
       assetId,
       AssetStatus.NONE
+    );
+  } else {
+    mainDataStore.deleteAssetById(
+      userConfigStore.currentGameId,
+      props.resource.id,
+      assetId
     );
   }
 }

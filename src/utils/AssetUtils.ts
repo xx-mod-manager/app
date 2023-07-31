@@ -9,6 +9,7 @@ export function newOnlineAsset(apiReleaseAsset: ApiReleaseAsset): Asset {
     id: version,
     status: AssetStatus.NONE,
     downloadUrl: apiReleaseAsset.downloadUrl,
+    nodeId: apiReleaseAsset.id
   };
   return asset;
 }
@@ -37,6 +38,10 @@ export function updateOnlineAsset(oldAsset: Asset, onlineAsset: Asset) {
 
 export function existLocalAsset(asset: Asset): boolean {
   return asset.status != AssetStatus.NONE;
+}
+
+export function existOnlineAsset(asset: Asset): boolean {
+  return asset.nodeId != undefined && asset.downloadUrl != undefined;
 }
 
 export function filterReleaseAsset(releaseAssets: ReleaseAsset[]): ReleaseAsset[] {

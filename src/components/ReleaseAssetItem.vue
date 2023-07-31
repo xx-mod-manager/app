@@ -4,10 +4,10 @@
       color="primary"
       :loading="downloading"
       :percentage="percentage"
-      :label="asset.name"
-      :disable="existLocal(parseVersion(asset.name))"
+      :label="releaseAsset.name"
+      :disable="existLocal(releaseAsset.id)"
       no-caps
-      @click="download(asset.downloadUrl)"
+      @click="download(releaseAsset.downloadUrl)"
     >
       <template #loading>
         <q-spinner-gears class="on-left" />
@@ -16,14 +16,17 @@
     </q-btn>
 
     <q-badge
-      >{{ asset.downloadCount }}<q-icon :name="matDownload" color="white"
+      >{{ releaseAsset.downloadCount
+      }}<q-icon :name="matDownload" color="white"
     /></q-badge>
 
-    <span style="margin-left: 0.5rem">{{ humanStorageSize(asset.size) }}</span>
+    <span style="margin-left: 0.5rem">{{
+      humanStorageSize(releaseAsset.size)
+    }}</span>
 
     <q-space />
 
-    <DateFormatSpan :date="asset.updatedAt" />
+    <DateFormatSpan :date="releaseAsset.updatedAt" />
   </div>
 </template>
 
@@ -41,23 +44,22 @@ import DateFormatSpan from './DateFormatSpan.vue';
 
 const props = defineProps<{
   resourceId: string;
-  asset: ReleaseAsset;
+  releaseAsset: ReleaseAsset;
 }>();
 
 const userConfigStore = useUserConfigStore();
 const mainDataStore = useMainDataStore();
 const { humanStorageSize } = format;
-const version = parseVersion(props.asset.name);
+const version = parseVersion(props.releaseAsset.name);
 const downloading = ref(false);
 const percentage = ref(0);
 
-//todo fix call
-function existLocal(assetId: string) {
+function existLocal(assetNodeId: string) {
   return existLocalAsset(
-    mainDataStore.getAssetById(
+    mainDataStore.getAssetByNodeId(
       userConfigStore.currentGameId,
       props.resourceId,
-      assetId
+      assetNodeId
     )
   );
 }

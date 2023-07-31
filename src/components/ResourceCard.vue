@@ -31,7 +31,7 @@
         v-for="assetFile in filterReleaseAsset(releaseAssets)"
         :key="assetFile.id"
         :resource-id="resource.id"
-        :asset="assetFile"
+        :release-asset="assetFile"
       />
     </q-card-section>
   </q-card>

@@ -163,6 +163,7 @@ export enum AssetStatus {
 export interface Asset {
   id: string;
   status: AssetStatus;
+  nodeId?: string;
   downloadUrl?: string;
 }
 
