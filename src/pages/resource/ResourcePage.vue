@@ -32,7 +32,7 @@
 <script setup lang="ts">
 import { matRefresh } from '@quasar/extras/material-icons';
 import { QPullToRefresh, useQuasar } from 'quasar';
-import { addDiscussionComment, getAssetDetail } from 'src/api/GraphqlApi';
+import { addDiscussionComment, getResourceDetail } from 'src/api/GraphqlApi';
 import { myLogger } from 'src/boot/logger';
 import { Discussion, Release } from 'src/class/Types';
 import ResourceCard from 'src/components/ResourceCard.vue';
@@ -61,7 +61,7 @@ const detail = ref(
 async function refresh(done: () => void) {
   if (resource) {
     myLogger.debug(`refresh mod detail ${resource.id}`);
-    detail.value = await getAssetDetail(resource);
+    detail.value = await getResourceDetail(resource);
     mainDataStore.updateOnlineAssets(
       userConfigStore.currentGameId,
       resource.id,

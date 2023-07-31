@@ -56,8 +56,8 @@ export function findArrayItemByFieldId<T extends { id: unknown }>(array: T[], it
   return array.find(i => i.id == item.id);
 }
 
-export function findArrayItemById<T extends { id: Z }, Z>(array: T[], id: Z): T | undefined {
-  return array.find(i => i.id == id);
+export function findArrayItemById<T extends { id: Z }, Z>(array: T[] | undefined, id: Z): T | undefined {
+  return array?.find(i => i.id == id);
 }
 
 export function findArrayIndexByFieldId<T extends { id: unknown }>(array: T[], item: { id: unknown }): number {

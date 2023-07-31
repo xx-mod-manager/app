@@ -21,9 +21,9 @@ function joinQuery(arg: string[]): string {
   return `["${arg.join('\",\"')}"]`;
 }
 
-export async function getAssetDetail(asset: Resource): Promise<{ release: Release, discussion: Discussion }> {
-  const queres = [asset.releaseNodeId];
-  if (asset.discussionNodeId) queres.push(asset.discussionNodeId);
+export async function getResourceDetail(resource: Resource): Promise<{ release: Release, discussion: Discussion }> {
+  const queres = [resource.releaseNodeId];
+  if (resource.discussionNodeId) queres.push(resource.discussionNodeId);
   const queryArg = joinQuery(queres);
   const query = `
 {
