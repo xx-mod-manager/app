@@ -62,7 +62,7 @@ async function refresh(done?: () => void) {
     )
   );
   onlineDataStore.updateResourceManage(userConfigStore.currentGameId);
-  if (refreshing.value) refreshing.value = false;
+  refreshing.value = false;
   if (done) done();
 }
 

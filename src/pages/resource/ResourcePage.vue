@@ -1,5 +1,5 @@
 <template>
-  <QPullToRefresh :icon="matRefresh" @refresh="refresh">
+  <q-pull-to-refresh :icon="matRefresh" @refresh="refresh">
     <q-page
       class="fit row wrap justify-start items-start content-start"
       style="padding: 0.3rem"
@@ -25,20 +25,21 @@
       </template>
 
       <p v-else>没有数据</p>
+
+      <q-inner-loading :showing="refreshing" />
     </q-page>
-  </QPullToRefresh>
+  </q-pull-to-refresh>
 </template>
 
 <script setup lang="ts">
 import { matRefresh } from '@quasar/extras/material-icons';
-import { QPullToRefresh, useQuasar } from 'quasar';
 import { addDiscussionComment, getResourceDetail } from 'src/api/GraphqlApi';
 import { myLogger } from 'src/boot/logger';
-import { Discussion, Release } from 'src/class/Types';
-import ResourceCard from 'src/components/ResourceCard.vue';
 import DiscussionPart from 'src/components/DiscussionPart.vue';
 import ReplyBox from 'src/components/ReplyBox.vue';
+import ResourceCard from 'src/components/ResourceCard.vue';
 import { useMainDataStore } from 'src/stores/MainData';
+import { useOnlineDataStore } from 'src/stores/OnlineData';
 import { useUserConfigStore } from 'src/stores/UserConfig';
 import { newOnlineAsset } from 'src/utils/AssetUtils';
 import { onMounted, ref } from 'vue';
@@ -46,34 +47,56 @@ import { useRoute, useRouter } from 'vue-router';
 
 const userConfigStore = useUserConfigStore();
 const mainDataStore = useMainDataStore();
+const onlineDataStore = useOnlineDataStore();
 const route = useRoute();
 const router = useRouter();
-const { loading } = useQuasar();
+const refreshing = ref(false);
 
+//TODO getResourceById to getOptionResourceById
 const resource = mainDataStore.getResourceById(
   userConfigStore.currentGameId,
   route.params.id as string
 );
+if (resource == undefined) {
+  router.replace('/404');
+}
 const detail = ref(
-  undefined as { release: Release; discussion: Discussion } | undefined
+  onlineDataStore.getOptionResourceDetail(
+    userConfigStore.currentGameId,
+    resource?.releaseNodeId,
+    resource?.discussionNodeId
+  )
 );
 
-async function refresh(done: () => void) {
-  if (resource) {
-    myLogger.debug(`refresh mod detail ${resource.id}`);
-    detail.value = await getResourceDetail(resource);
-    mainDataStore.updateOnlineAssets(
-      userConfigStore.currentGameId,
-      resource.id,
-      detail.value.release.releaseAssets.nodes.map(newOnlineAsset)
-    );
-    if (loading.isActive) loading.hide();
-    done();
-  } else {
-    if (loading.isActive) loading.hide();
-    done();
-    router.replace('/404');
+async function refresh(done?: () => void) {
+  if (refreshing.value) {
+    myLogger.warn('Multiple refresh resource.');
+    if (done) done();
+    return;
   }
+  if (resource == undefined) {
+    router.replace('/404');
+    if (done) done();
+    return;
+  }
+  myLogger.debug(`Start refresh resource ${resource.id}`);
+  refreshing.value = true;
+  detail.value = await getResourceDetail(resource);
+  onlineDataStore.addRelease(
+    userConfigStore.currentGameId,
+    detail.value.release
+  );
+  onlineDataStore.addDiscussion(
+    userConfigStore.currentGameId,
+    detail.value.discussion
+  );
+  mainDataStore.updateOnlineAssets(
+    userConfigStore.currentGameId,
+    resource.id,
+    detail.value.release.releaseAssets.nodes.map(newOnlineAsset)
+  );
+  refreshing.value = false;
+  if (done) done();
 }
 
 async function addComment(markdown: string) {
@@ -87,9 +110,15 @@ async function addComment(markdown: string) {
 }
 
 onMounted(() => {
-  loading.show();
-  refresh(() => {
-    true;
-  });
+  if (
+    detail.value == undefined ||
+    onlineDataStore.needRefreshResource(
+      userConfigStore.currentGameId,
+      detail.value.release.id,
+      detail.value.discussion.id
+    )
+  ) {
+    refresh();
+  }
 });
 </script>

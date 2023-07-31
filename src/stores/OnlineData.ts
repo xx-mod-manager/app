@@ -30,6 +30,18 @@ export const useOnlineDataStore = defineStore(KEY_ONLINE_DATA, {
       return findArrayItemById(this.getOptionOnlineGameById(gameId)?.discussions, discussionId);
     },
 
+    getOptionResourceDetail(gameId: string, releaseId?: string, discussionId?: string): { release: Release; discussion: Discussion } | undefined {
+      if (releaseId == undefined || discussionId == undefined)
+        return undefined;
+      const release = this.getOptionReleaseById(gameId, releaseId);
+      const discussion = this.getOptionDiscussionById(gameId, discussionId);
+      if (release != undefined && discussion != undefined) {
+        return { release, discussion };
+      } else {
+        return undefined;
+      }
+    },
+
     getDiscussionById(gameId: string, discussionId: string): Discussion {
       const discussion = findArrayItemById(this.getOnlineGameById(gameId).discussions, discussionId);
       if (discussion == undefined) throw Error(`Miss discussion [${gameId}]/[${discussionId}]`);
@@ -62,6 +74,12 @@ export const useOnlineDataStore = defineStore(KEY_ONLINE_DATA, {
     needRefreshResourceManage(gameId: string): boolean {
       const onlineGame = this.getOnlineGameById(gameId);
       return onlineGame.resourceManageDate == undefined;
+    },
+
+    needRefreshResource(gameId: string, releaseId: string, discussionId: string): boolean {
+      const release = this.getOptionReleaseById(gameId, releaseId);
+      const discussion = this.getOptionDiscussionById(gameId, discussionId);
+      return release == undefined || discussion == undefined;
     },
 
     updateOnlineGames(onlineGames: Game[]) {
