@@ -18,10 +18,9 @@ import { computed } from 'vue';
 const userConfigStore = useUserConfigStore();
 const mainDataStore = useMainDataStore();
 
-const resources = computed(
-  () =>
-    mainDataStore
-      .getGameById(userConfigStore.currentGameId)
-      ?.resources.filter(existLocalResource) ?? []
+const resources = computed(() =>
+  mainDataStore
+    .getGameById(userConfigStore.currentGameId)
+    .resources.filter(existLocalResource)
 );
 </script>

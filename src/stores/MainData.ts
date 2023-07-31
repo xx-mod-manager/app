@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia';
 import { myLogger } from 'src/boot/logger';
 import { Asset, AssetStatus, Game, Resource } from 'src/class/Types';
-import { deleteArrayItem, deleteArrayItemByFieldId, deleteArrayItemById, deleteArrayItemsByFileId, findArrayItemByFieldId } from 'src/utils/ArrayUtils';
+import { deleteArrayItem, deleteArrayItemByFieldId, deleteArrayItemById, deleteArrayItemsByFileId, findArrayItemByFieldId, findArrayItemById } from 'src/utils/ArrayUtils';
 import { existLocalAsset, existOnlineAsset, newDownloadedAsset, newInstalledAsset, updateOnlineAsset } from 'src/utils/AssetUtils';
 import { existLocalGame, updateOnlineGame } from 'src/utils/GameUtils';
 import { replacer, reviver } from 'src/utils/JsonUtil';
@@ -20,12 +20,18 @@ export const useMainDataStore = defineStore(KEY_MAIN_DATA, {
       myLogger.debug('Save MainDataStore.');
     },
 
-    getGameById(id: string): Game | undefined {
-      return this.games.find((it) => it.id == id);
+    getOptionGameById(id: string): Game | undefined {
+      return findArrayItemById(this.games, id);
+    },
+
+    getGameById(id: string): Game {
+      const game = findArrayItemById(this.games, id);
+      if (game == undefined) throw Error(`Miss game [${id}]`);
+      return game;
     },
 
     getResourceById(gameId: string, resourceId: string): Resource | undefined {
-      return this.getGameById(gameId)?.resources.find((it) => it.id == resourceId);
+      return this.getOptionGameById(gameId)?.resources.find((it) => it.id == resourceId);
     },
 
     getOptionAssetById(gameId: string, resourceId: string, assetId: string): Asset | undefined {
@@ -55,7 +61,7 @@ export const useMainDataStore = defineStore(KEY_MAIN_DATA, {
     updateOnlineGames(onlineGames: Game[]) {
       const deletedGames: Game[] = [...this.games.filter(i => !existLocalGame(i))];
       onlineGames.forEach((onlineGame) => {
-        const oldGame = this.getGameById(onlineGame.id);
+        const oldGame = this.getOptionGameById(onlineGame.id);
         if (oldGame != undefined) {
           updateOnlineGame(oldGame, onlineGame);
           deleteArrayItemByFieldId(deletedGames, onlineGame);
@@ -69,7 +75,7 @@ export const useMainDataStore = defineStore(KEY_MAIN_DATA, {
     },
 
     updateOnlineResources(gameId: string, onlineResources: Resource[]) {
-      const oldResources = this.getGameById(gameId)?.resources;
+      const oldResources = this.getOptionGameById(gameId)?.resources;
       if (oldResources == undefined)
         throw Error(`gameId: [${gameId}] miss.`);
       const deletedResources: Resource[] = [...oldResources.filter(i => !existLocalResource(i))];
@@ -112,8 +118,6 @@ export const useMainDataStore = defineStore(KEY_MAIN_DATA, {
 
     updateInstalledAsset(gameId: string, installedAssets: Map<string, string[]>) {
       const oldResources = this.getGameById(gameId)?.resources;
-      if (oldResources == undefined)
-        throw Error(`GameId: [${gameId}] miss.`);
       myLogger.debug(`updateInstalledAsset start, resource count is ${installedAssets.size}`);
       installedAssets.forEach((assets, installedResourceId) => {
         assets.forEach((asset) => {
@@ -172,8 +176,6 @@ export const useMainDataStore = defineStore(KEY_MAIN_DATA, {
 
     updateDonwloadedAsset(gameId: string, downloadedAssets: Map<string, string[]>) {
       const oldResources = this.getGameById(gameId)?.resources;
-      if (oldResources == undefined)
-        throw Error(`GameId: [${gameId}] miss.`);
       myLogger.debug(`updateDonwloadedAsset start, resource count is ${downloadedAssets.size}`);
       downloadedAssets.forEach((assets, downloadedResourceId) => {
         assets.forEach((asset) => {

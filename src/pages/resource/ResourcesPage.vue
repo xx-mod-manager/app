@@ -34,8 +34,7 @@ const authDataStore = useAuthDataStore();
 const { loading, platform } = useQuasar();
 
 const resources = computed(
-  () =>
-    mainDataStore.getGameById(userConfigStore.currentGameId)?.resources ?? []
+  () => mainDataStore.getGameById(userConfigStore.currentGameId).resources
 );
 const searchText = ref('');
 const pullRefresh = ref(null as QPullToRefresh | null);
@@ -58,9 +57,7 @@ async function refresh(done: () => void) {
   const onlineGames = await requestGames();
   mainDataStore.updateOnlineGames(onlineGames);
   userConfigStore.updateOnlineGames(onlineGames);
-  //TODO default game process
   const game = mainDataStore.getGameById(userConfigStore.currentGameId);
-  if (game == undefined) throw Error('Current game miss');
   const onlineResources = await requestGameResources(game.dataRepo);
   mainDataStore.updateOnlineResources(
     userConfigStore.currentGameId,
