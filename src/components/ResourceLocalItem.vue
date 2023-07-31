@@ -129,7 +129,12 @@ async function installAsset(assetId: string) {
   } else if (oldStatus == AssetStatus.INTALLED) {
     myLogger.warn(`${props.resource.id}/${assetId} is already installed.`);
   } else {
+    //TODO process miss install path
+    if (userConfigStore.currentGameInstallPath == undefined) {
+      throw Error('miss install Path');
+    }
     await window.electronApi.installAsset(
+      userConfigStore.currentGameInstallPath,
       userConfigStore.currentGameId,
       props.resource.id,
       assetId
@@ -148,7 +153,15 @@ async function uninstallAsset(assetId: string) {
   if (oldStatus != AssetStatus.INTALLED) {
     throw Error(`${props.resource.id}/${assetId} is not install.`);
   }
-  await window.electronApi.uninstallAsset(props.resource.id, assetId);
+  //TODO process miss install path
+  if (userConfigStore.currentGameInstallPath == undefined) {
+    throw Error('miss install Path');
+  }
+  await window.electronApi.uninstallAsset(
+    userConfigStore.currentGameInstallPath,
+    props.resource.id,
+    assetId
+  );
   mainDataStore.updateAssetStatus(
     userConfigStore.currentGameId,
     props.resource.id,

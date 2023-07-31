@@ -9,7 +9,13 @@ const KEY_USER_CONFIG = 'userConfig';
 export const useUserConfigStore = defineStore(KEY_USER_CONFIG, {
   state: init,
 
-  getters: {},
+  getters: {
+    currentGameInstallPath: (stat) => {
+      const game = stat.games.find(i => i.id == stat.currentGameId);
+      if (game == undefined) throw Error(`Miss current game ${stat.currentGameId}.`);
+      return game.installPath;
+    }
+  },
 
   actions: {
     save() {

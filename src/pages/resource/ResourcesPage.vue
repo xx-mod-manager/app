@@ -67,9 +67,19 @@ async function refresh(done: () => void) {
     onlineResources
   );
   if (platform.is.electron) {
+    //TODO process miss install path
+    if (userConfigStore.currentGameInstallPath == undefined) {
+      throw Error('miss install Path');
+    }
+    await window.electronApi.syncInstallDownloadResource(
+      userConfigStore.currentGameInstallPath,
+      userConfigStore.currentGameId
+    );
     mainDataStore.updateInstalledAsset(
       userConfigStore.currentGameId,
-      await window.electronApi.initInstealledResources()
+      await window.electronApi.initInstealledResources(
+        userConfigStore.currentGameInstallPath
+      )
     );
     mainDataStore.updateDonwloadedAsset(
       userConfigStore.currentGameId,
