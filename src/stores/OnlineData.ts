@@ -4,6 +4,7 @@ import { Comment, Discussion, Game, Release } from 'src/class/Types';
 import { deleteArrayItemByFieldId, deleteArrayItemsByFileId, findArrayItemByFieldId, findArrayItemById } from 'src/utils/ArrayUtils';
 
 const KEY_ONLINE_DATA = 'onlineData';
+const REFRESH_TIME = 1000 * 60 * 10;
 
 export const useOnlineDataStore = defineStore(KEY_ONLINE_DATA, {
   state: init,
@@ -47,6 +48,22 @@ export const useOnlineDataStore = defineStore(KEY_ONLINE_DATA, {
       return reply;
     },
 
+    needRefreshGames(): boolean {
+      if (this.gamesDate == undefined) return true;
+      return this.gamesDate + REFRESH_TIME < Date.now();
+    },
+
+    needRefreshResources(gameId: string): boolean {
+      const onlineGame = this.getOnlineGameById(gameId);
+      if (onlineGame.resourcesDate == undefined) return true;
+      return onlineGame.resourcesDate + REFRESH_TIME < Date.now();
+    },
+
+    needRefreshResourceManage(gameId: string): boolean {
+      const onlineGame = this.getOnlineGameById(gameId);
+      return onlineGame.resourceManageDate == undefined;
+    },
+
     updateOnlineGames(onlineGames: Game[]) {
       this.gamesDate = Date.now();
       const deletedGames: OnlineGame[] = [...this.games];
@@ -59,6 +76,16 @@ export const useOnlineDataStore = defineStore(KEY_ONLINE_DATA, {
         }
       });
       deleteArrayItemsByFileId(this.games, deletedGames);
+    },
+
+    updateResources(gameId: string) {
+      const onlineGame = this.getOnlineGameById(gameId);
+      onlineGame.resourcesDate = Date.now();
+    },
+
+    updateResourceManage(gameId: string) {
+      const onlineGame = this.getOnlineGameById(gameId);
+      onlineGame.resourceManageDate = Date.now();
     },
 
     addRelease(gameId: string, onlineRelease: Release) {
