@@ -20,8 +20,7 @@
     <q-card-section>
       <div class="markdown-body" v-html="discussion.bodyHTML"></div>
 
-      <!-- github release viewerHasReacted not work -->
-      <!-- <ReactionGroupSpan :reactions="release.reactionGroups" /> -->
+      <ReactionGroupSpan :reactions="discussion.reactionGroups" />
     </q-card-section>
 
     <q-separator />
@@ -44,6 +43,7 @@ import AuthorSpan from './AuthorSpan.vue';
 import DateFormatSpan from './DateFormatSpan.vue';
 import ReleaseAssetItem from './ReleaseAssetItem.vue';
 import ResourceBadges from './ResourceBadges.vue';
+import ReactionGroupSpan from './ReactionGroupSpan.vue';
 
 defineProps<{
   discussion: Discussion;
