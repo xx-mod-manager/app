@@ -5,6 +5,7 @@ const URL_GITHUB_CREATE_TOKEN = 'http://localhost:9999/token/create';
 const URL_GITHUB_REFRESH_TOKEN = 'http://localhost:9999/token/refresh';
 const URL_GITHUB_DEVICE_CODE = 'http://localhost:9999/device/code';
 const URL_GITHUB_DEVICE_TOKEN = 'http://localhost:9999/device/token';
+export const URL_GITHUB_REQUEST_CODE = 'https://github.com/login/oauth/authorize?client_id=Iv1.e8fc82cc3e2a2f09';
 
 export async function getTokenInfo(code: string): Promise<GithubTokenInfo> {
   const response = await api.get(URL_GITHUB_CREATE_TOKEN, {

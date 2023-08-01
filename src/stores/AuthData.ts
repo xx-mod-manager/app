@@ -47,14 +47,17 @@ export const useAuthDataStore = defineStore(KEY_AUTH_DATA, {
       const current = Date.now();
       const accessTokenDate = current + githubTokenInfo.expires_in * 1000;
       const refreshTokenDate = current + githubTokenInfo.refresh_token_expires_in * 1000;
-      this.authInfo = {
-        accessToken: githubTokenInfo.access_token,
-        accessTokenDate,
-        refreshToken: githubTokenInfo.refresh_token,
-        refreshTokenDate
-      };
+      this.$patch({
+        authInfo: {
+          accessToken: githubTokenInfo.access_token,
+          accessTokenDate,
+          refreshToken: githubTokenInfo.refresh_token,
+          refreshTokenDate
+        }
+      });
       await this.refreshAuthor();
       localStorage.setItem(KEY_AUTH_DATA, JSON.stringify(this.$state));
+      myLogger.debug('this and this.stat', this, this.$state);
       myLogger.debug('Update AuthDataStore end.');
     },
 
@@ -87,6 +90,7 @@ export const useAuthDataStore = defineStore(KEY_AUTH_DATA, {
     },
 
     clear() {
+      myLogger.warn('Clear login info.');
       this.$state.authInfo = undefined;
       this.$state.user = undefined;
       localStorage.removeItem(KEY_AUTH_DATA);
@@ -119,7 +123,7 @@ function init(): AuthData {
     return localAuthData;
   } else {
     myLogger.debug('auth data miss from localStorage.');
-    return {};
+    return { authInfo: undefined, user: undefined };
   }
 }
 

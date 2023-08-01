@@ -39,6 +39,11 @@ async function refresh(done?: () => void) {
     if (done) done();
     return;
   }
+  if (window.electronApi == undefined) {
+    myLogger.error('No in electron.');
+    if (done) done();
+    return;
+  }
   myLogger.debug('Start refresh resource manage.');
   refreshing.value = true;
   //TODO process miss install path

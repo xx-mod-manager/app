@@ -35,7 +35,9 @@ const onlineDataStore = useOnlineDataStore();
 const refreshing = ref(false);
 
 const resources = computed(
-  () => mainDataStore.getGameById(userConfigStore.currentGameId).resources
+  () =>
+    mainDataStore.getOptionGameById(userConfigStore.currentGameId)?.resources ??
+    []
 );
 const searchText = ref('');
 

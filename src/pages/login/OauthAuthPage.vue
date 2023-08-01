@@ -23,8 +23,10 @@ const quasar = useQuasar();
 
 getTokenInfo(props.code as string)
   .then((token) => {
-    authDataStore.update(token);
-    router.push({ name: ROUTE_HOME });
+    authDataStore.update(token).then(() => {
+      myLogger.debug('route home');
+      router.push({ name: ROUTE_HOME });
+    });
   })
   .catch(() => {
     myLogger.debug('get token info fail, route to login.');

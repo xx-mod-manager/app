@@ -2,7 +2,7 @@ import { Game, GameConfig } from 'src/class/Types';
 
 export async function newOnlineGameConfig(onlineGame: Game): Promise<GameConfig> {
   let defaultInstallPath: string | undefined = undefined;
-  if (onlineGame.steamAppName != undefined && onlineGame.relativeRootInstallPath != undefined) {
+  if (onlineGame.steamAppName != undefined && onlineGame.relativeRootInstallPath != undefined && window.electronApi != undefined) {
     defaultInstallPath = await window.electronApi.getIntallPathBySteamAppWithRelativePath(onlineGame.steamAppName, onlineGame.relativeRootInstallPath);
   }
   return {
@@ -16,7 +16,9 @@ export async function updateOnlineGameConfig(oldGameConfig: GameConfig, onlineGa
   if (oldGameConfig.id != onlineGame.id)
     throw Error(`updateOnlineGameConfig game id different, [${oldGameConfig.id}] and [${onlineGame.id}].`);
   if (oldGameConfig.installPath == undefined && onlineGame.steamAppName != undefined && onlineGame.relativeRootInstallPath != undefined) {
-    oldGameConfig.installPath = await window.electronApi.getIntallPathBySteamAppWithRelativePath(onlineGame.steamAppName, onlineGame.relativeRootInstallPath);
+    if (window.electronApi != undefined) {
+      oldGameConfig.installPath = await window.electronApi.getIntallPathBySteamAppWithRelativePath(onlineGame.steamAppName, onlineGame.relativeRootInstallPath);
+    }
     oldGameConfig.lockRootWithInstallPath = true;
   }
 }

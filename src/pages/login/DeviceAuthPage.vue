@@ -42,7 +42,7 @@ const props = defineProps<{ deviceCodeInfo: GithubDeviceCodeInfo }>();
 const authDataStore = useAuthDataStore();
 const router = useRouter();
 const quasar = useQuasar();
-const interval = ref(props.deviceCodeInfo.interval + 5);
+const interval = ref(Number(props.deviceCodeInfo.interval) + 5);
 
 copyToClipboard(props.deviceCodeInfo.user_code).then(() =>
   quasar.notify({
@@ -64,8 +64,7 @@ function openGithub() {
 function requestCode(deviceCode: string) {
   getDeviceTokenInfo(deviceCode)
     .then((token) => {
-      authDataStore.update(token);
-      router.push({ name: ROUTE_HOME });
+      authDataStore.update(token).then(() => router.push({ name: ROUTE_HOME }));
     })
     .catch(() => {
       myLogger.debug('get device token info fail, route to login.');

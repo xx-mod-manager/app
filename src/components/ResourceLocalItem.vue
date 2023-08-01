@@ -96,7 +96,7 @@ async function deleteAsset(assetId: string) {
   } else if (asset.status == AssetStatus.NONE) {
     throw Error(`${props.resource.id}/${assetId} is not download or install.`);
   }
-  await window.electronApi.deleteAsset(
+  await window.electronApi?.deleteAsset(
     userConfigStore.currentGameId,
     props.resource.id,
     assetId
@@ -133,7 +133,7 @@ async function installAsset(assetId: string) {
     if (userConfigStore.currentGameInstallPath == undefined) {
       throw Error('miss install Path');
     }
-    await window.electronApi.installAsset(
+    await window.electronApi?.installAsset(
       userConfigStore.currentGameInstallPath,
       userConfigStore.currentGameId,
       props.resource.id,
@@ -157,7 +157,7 @@ async function uninstallAsset(assetId: string) {
   if (userConfigStore.currentGameInstallPath == undefined) {
     throw Error('miss install Path');
   }
-  await window.electronApi.uninstallAsset(
+  await window.electronApi?.uninstallAsset(
     userConfigStore.currentGameInstallPath,
     props.resource.id,
     assetId

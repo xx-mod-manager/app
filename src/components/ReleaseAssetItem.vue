@@ -32,7 +32,7 @@
 
 <script setup lang="ts">
 import { matDownload } from '@quasar/extras/material-icons';
-import { format, Platform } from 'quasar';
+import { format } from 'quasar';
 import { myLogger } from 'src/boot/logger';
 import { AssetStatus, ReleaseAsset } from 'src/class/Types';
 import { useMainDataStore } from 'src/stores/MainData';
@@ -65,7 +65,7 @@ function existLocal(assetNodeId: string) {
 }
 
 function download(url: string) {
-  if (Platform.is.electron) {
+  if (window.electronApi != undefined) {
     downloading.value = true;
     window.electronApi.downloadResource(
       url,

@@ -27,6 +27,7 @@
 
 <script setup lang="ts">
 import { useQuasar } from 'quasar';
+import { URL_GITHUB_REQUEST_CODE } from 'src/api/GithubAuthApi';
 import { myLogger } from 'src/boot/logger';
 
 defineEmits(['deviceAuth']);
@@ -42,9 +43,6 @@ myLogger.debug(
 
 function oauth() {
   quasar.loading.show({ message: '跳转Github授权页面...', delay: 400 });
-  window.open(
-    'https://github.com/login/oauth/authorize?client_id=Iv1.23bebc2931676eb7',
-    '_self'
-  );
+  window.open(URL_GITHUB_REQUEST_CODE, '_self');
 }
 </script>
