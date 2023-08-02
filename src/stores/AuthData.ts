@@ -47,14 +47,12 @@ export const useAuthDataStore = defineStore(KEY_AUTH_DATA, {
       const current = Date.now();
       const accessTokenDate = current + githubTokenInfo.expires_in * 1000;
       const refreshTokenDate = current + githubTokenInfo.refresh_token_expires_in * 1000;
-      this.$patch({
-        authInfo: {
-          accessToken: githubTokenInfo.access_token,
-          accessTokenDate,
-          refreshToken: githubTokenInfo.refresh_token,
-          refreshTokenDate
-        }
-      });
+      this.authInfo = {
+        accessToken: githubTokenInfo.access_token,
+        accessTokenDate,
+        refreshToken: githubTokenInfo.refresh_token,
+        refreshTokenDate
+      };
       await this.refreshAuthor();
       localStorage.setItem(KEY_AUTH_DATA, JSON.stringify(this.$state));
       myLogger.debug('this and this.stat', this, this.$state);

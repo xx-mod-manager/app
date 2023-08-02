@@ -167,6 +167,7 @@ interface OnlineData {
 
 function init(): OnlineData {
   return {
+    gamesDate: undefined,
     games: []
   };
 }
