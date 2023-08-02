@@ -14,4 +14,6 @@ contextBridge.exposeInMainWorld('electronApi', {
   installAsset: (installPath: string, gameId: string, resourceId: string, version: string) => ipcRenderer.invoke('installAsset', installPath, gameId, resourceId, version),
   uninstallAsset: (installPath: string, resourceId: string, version: string) => ipcRenderer.invoke('uninstallAsset', installPath, resourceId, version),
   getIntallPathBySteamAppWithRelativePath: (steamAppName: string, relativePath: string) => ipcRenderer.invoke('getIntallPathBySteamAppWithRelativePath', steamAppName, relativePath),
+  requestDeviceCode: () => ipcRenderer.invoke('requestDeviceCode'),
+  requestDeviceTokenInfo: (deviceCode: string) => ipcRenderer.invoke('requestDeviceTokenInfo', deviceCode),
 });

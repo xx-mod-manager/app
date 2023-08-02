@@ -29,7 +29,7 @@
 <script setup lang="ts">
 import { matPriorityHigh } from '@quasar/extras/material-icons';
 import { copyToClipboard, useQuasar } from 'quasar';
-import { getDeviceTokenInfo } from 'src/api/GithubAuthApi';
+import { requestDeviceTokenInfo } from 'src/api/GithubAuthApi';
 import { myLogger } from 'src/boot/logger';
 import { GithubDeviceCodeInfo } from 'src/class/GithubTokenInfo';
 import { ROUTE_HOME, ROUTE_LOGIN } from 'src/router';
@@ -62,7 +62,7 @@ function openGithub() {
 }
 
 function requestCode(deviceCode: string) {
-  getDeviceTokenInfo(deviceCode)
+  requestDeviceTokenInfo(deviceCode)
     .then((token) => {
       authDataStore.update(token).then(() => router.push({ name: ROUTE_HOME }));
     })

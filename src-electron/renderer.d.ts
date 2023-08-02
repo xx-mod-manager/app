@@ -1,4 +1,5 @@
 import { File } from 'electron-dl';
+import { GithubDeviceCodeInfo, GithubTokenInfo } from 'src/class/GithubTokenInfo';
 import { MyProgress } from 'src/class/Types';
 
 export interface IElectronAPI {
@@ -13,6 +14,8 @@ export interface IElectronAPI {
   installAsset: (installPath: string, gameId: string, resourceId: string, version: string) => Promise<void>,
   uninstallAsset: (installPath: string, resourceId: string, version: string) => Promise<void>,
   getIntallPathBySteamAppWithRelativePath: (steamAppName: string, relativePath: string) => Promise<string | undefined>,
+  requestDeviceCode: () => Promise<GithubDeviceCodeInfo>,
+  requestDeviceTokenInfo: (deviceCode: string) => Promise<GithubTokenInfo>,
 }
 
 declare global {
