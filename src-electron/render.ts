@@ -44,7 +44,7 @@ async function syncInstallDownloadResource(installPath: string, gameId: string) 
       myLogger.debug(`Need sync resource ${resourceName} to ${newResourceName}`);
       const downloadedAssetPath = pathJoin(resourcesPath, newResourceName);
       fsPromises.rename(installedAssetPath, downloadedAssetPath);
-      fsPromises.symlink(downloadedAssetPath, pathJoin(installPath, newResourceName));
+      fsPromises.symlink(downloadedAssetPath, pathJoin(installPath, newResourceName), 'dir');
     }
   }));
 }
@@ -105,7 +105,7 @@ async function installAsset(installPath: string, gameId: string, resourceId: str
   if (installPath == undefined) throw Error('Miss install path');
   const resourcesPath = pathJoin(getGameResourcesPath(gameId), resourceId + '-' + assetId);
   const installAssetPath = pathJoin(installPath, resourceId + '-' + assetId);
-  await fsPromises.symlink(resourcesPath, installAssetPath);
+  await fsPromises.symlink(resourcesPath, installAssetPath, 'dir');
 }
 
 async function uninstallAsset(installPath: string, resourceId: string, assetId: string) {

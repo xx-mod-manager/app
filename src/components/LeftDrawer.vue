@@ -1,6 +1,6 @@
 <template>
   <div>
-    <q-img height="10rem" src="/src/assets/material.png">
+    <q-img height="10rem" src="../assets/material.png">
       <div class="absolute-bottom bg-transparent">
         <q-avatar style="padding-left: 1rem">
           <q-img :src="authDataStore.user?.avatarUrl" />
