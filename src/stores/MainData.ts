@@ -281,7 +281,15 @@ function init(): MainData {
   } else {
     myLogger.debug('New MainDataStore.');
     return {
-      games: []
+      games: [{
+        id: 'csti',
+        name: 'Card Survival: Tropical Island',
+        dataRepo: 'HeYaoDaDa/GrcData-csti',
+        steamAppName: 'Card Survival Tropical Island',
+        relativeRootInstallPath: './BepInEx/plugins',
+        autoMkRelativeRootInstallPath: false,
+        resources: []
+      }]
     };
   }
 }

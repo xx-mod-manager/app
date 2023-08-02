@@ -42,6 +42,20 @@ export const useUserConfigStore = defineStore(KEY_USER_CONFIG, {
       }
     },
 
+    async updaetLocalGames(localGames: Game[]) {
+      await Promise.all(localGames.map(async localGame => {
+        const oldGame = this.getOptionGameById(localGame.id);
+        if (oldGame == undefined) {
+          myLogger.debug(`Add local game config ${localGame.id}`);
+          this.games.push(await newOnlineGameConfig(localGame));
+        } else {
+          myLogger.debug(`Update local game config ${localGame.id}`);
+          await updateOnlineGameConfig(oldGame, localGame);
+        }
+      }));
+      this.save();
+    },
+
     async updateOnlineGames(onlineGames: Game[]) {
       await Promise.all(onlineGames.map(async onlineGame => {
         const oldGame = this.getOptionGameById(onlineGame.id);

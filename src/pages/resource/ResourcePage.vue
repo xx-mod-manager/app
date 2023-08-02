@@ -40,7 +40,7 @@ import ReplyBox from 'src/components/ReplyBox.vue';
 import ResourceCard from 'src/components/ResourceCard.vue';
 import { ROUTE_404 } from 'src/router';
 import { useMainDataStore } from 'src/stores/MainData';
-import { useOnlineDataStore } from 'src/stores/OnlineData';
+import { useTempDataStore } from 'src/stores/OnlineData';
 import { useUserConfigStore } from 'src/stores/UserConfig';
 import { newOnlineAsset } from 'src/utils/AssetUtils';
 import { computed, onMounted, ref } from 'vue';
@@ -48,14 +48,14 @@ import { onBeforeRouteUpdate, useRoute } from 'vue-router';
 
 const userConfigStore = useUserConfigStore();
 const mainDataStore = useMainDataStore();
-const onlineDataStore = useOnlineDataStore();
+const tempDataStore = useTempDataStore();
 const route = useRoute();
 const refreshing = ref(false);
 const resourceid = route.params.id as string;
 const currentGameId = computed(() => userConfigStore.currentGameId);
 const resource = mainDataStore.getResourceById(currentGameId.value, resourceid);
 const detail = computed(() => {
-  return onlineDataStore.getOptionResourceDetail(
+  return tempDataStore.getOptionResourceDetail(
     currentGameId.value,
     resource.releaseNodeId,
     resource.discussionNodeId
@@ -71,7 +71,7 @@ async function refresh(done?: () => void) {
   myLogger.debug(`Start refresh resource ${resourceid}`);
   refreshing.value = true;
   const newResourceDetail = await getResourceDetail(resource);
-  onlineDataStore.updateResourceDetail(
+  tempDataStore.updateResourceDetail(
     currentGameId.value,
     await getResourceDetail(resource)
   );
@@ -97,7 +97,7 @@ async function addComment(markdown: string) {
 onMounted(() => {
   if (
     detail.value == undefined ||
-    onlineDataStore.needRefreshResource(
+    tempDataStore.needRefreshResource(
       currentGameId.value,
       detail.value.release.id,
       detail.value.discussion.id

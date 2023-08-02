@@ -1,33 +1,33 @@
 import { defineStore } from 'pinia';
 import { ApiComment } from 'src/class/GraphqlClass';
 import { Comment, Discussion, Game, OnlineResourceDetail, Release } from 'src/class/Types';
-import { deleteArrayItemByFieldId, deleteArrayItemsByFileId, findArrayItemByFieldId, findArrayItemById } from 'src/utils/ArrayUtils';
+import { deleteArrayItemByFieldId, findArrayItemByFieldId, findArrayItemById } from 'src/utils/ArrayUtils';
 
-const KEY_ONLINE_DATA = 'onlineData';
+const KEY_TEMP_DATA = 'tempData';
 const REFRESH_TIME = 1000 * 60 * 10;
 
-export const useOnlineDataStore = defineStore(KEY_ONLINE_DATA, {
+export const useTempDataStore = defineStore(KEY_TEMP_DATA, {
   state: init,
 
   getters: {},
 
   actions: {
-    getOptionOnlineGameById(id: string): OnlineGame | undefined {
+    getOptionTempGameById(id: string): TempGame | undefined {
       return findArrayItemById(this.games, id);
     },
 
-    getOnlineGameById(id: string): OnlineGame {
-      const game = this.getOptionOnlineGameById(id);
+    getTempGameById(id: string): TempGame {
+      const game = this.getOptionTempGameById(id);
       if (game == undefined) throw Error(`Miss game [${id}]`);
       return game;
     },
 
     getOptionReleaseById(gameId: string, releaseId: string): Release | undefined {
-      return findArrayItemById(this.getOptionOnlineGameById(gameId)?.releases, releaseId);
+      return findArrayItemById(this.getOptionTempGameById(gameId)?.releases, releaseId);
     },
 
     getOptionDiscussionById(gameId: string, discussionId: string): Discussion | undefined {
-      return findArrayItemById(this.getOptionOnlineGameById(gameId)?.discussions, discussionId);
+      return findArrayItemById(this.getOptionTempGameById(gameId)?.discussions, discussionId);
     },
 
     getOptionResourceDetail(gameId: string, releaseId: string, discussionId: string): { release: Release; discussion: Discussion } | undefined {
@@ -41,7 +41,7 @@ export const useOnlineDataStore = defineStore(KEY_ONLINE_DATA, {
     },
 
     getDiscussionById(gameId: string, discussionId: string): Discussion {
-      const discussion = findArrayItemById(this.getOnlineGameById(gameId).discussions, discussionId);
+      const discussion = findArrayItemById(this.getTempGameById(gameId).discussions, discussionId);
       if (discussion == undefined) throw Error(`Miss discussion [${gameId}]/[${discussionId}]`);
       return discussion;
     },
@@ -59,53 +59,58 @@ export const useOnlineDataStore = defineStore(KEY_ONLINE_DATA, {
     },
 
     needRefreshGames(): boolean {
+      if (!this.online) return false;
       if (this.gamesDate == undefined) return true;
       return this.gamesDate + REFRESH_TIME < Date.now();
     },
 
     needRefreshResources(gameId: string): boolean {
-      const onlineGame = this.getOnlineGameById(gameId);
+      if (!this.online) return false;
+      const onlineGame = this.getTempGameById(gameId);
       if (onlineGame.resourcesDate == undefined) return true;
       return onlineGame.resourcesDate + REFRESH_TIME < Date.now();
     },
 
     needRefreshResourceManage(gameId: string): boolean {
-      const onlineGame = this.getOnlineGameById(gameId);
+      const onlineGame = this.getTempGameById(gameId);
       return onlineGame.resourceManageDate == undefined;
     },
 
     needRefreshResource(gameId: string, releaseId: string, discussionId: string): boolean {
+      if (!this.online) return false;
       const release = this.getOptionReleaseById(gameId, releaseId);
       const discussion = this.getOptionDiscussionById(gameId, discussionId);
       return release == undefined || discussion == undefined;
     },
 
-    updateOnlineGames(onlineGames: Game[]) {
+    initLocalGames(localGames: Game[]) {
+      localGames.forEach((onlineGame) => {
+        this.games.push({ id: onlineGame.id, releases: [], discussions: [] });
+      });
+    },
+
+    updateTempGames(onlineGames: Game[]) {
       this.gamesDate = Date.now();
-      const deletedGames: OnlineGame[] = [...this.games];
-      onlineGames.forEach((onlineGame) => {
-        const oldOnlineGame = this.getOptionOnlineGameById(onlineGame.id);
-        if (oldOnlineGame != undefined) {
-          deleteArrayItemByFieldId(deletedGames, oldOnlineGame);
-        } else {
+      for (const onlineGame of onlineGames) {
+        const oldOnlineGame = this.getOptionTempGameById(onlineGame.id);
+        if (oldOnlineGame === undefined) {
           this.games.push({ id: onlineGame.id, releases: [], discussions: [] });
         }
-      });
-      deleteArrayItemsByFileId(this.games, deletedGames);
+      };
     },
 
     updateResources(gameId: string) {
-      const onlineGame = this.getOnlineGameById(gameId);
+      const onlineGame = this.getTempGameById(gameId);
       onlineGame.resourcesDate = Date.now();
     },
 
     updateResourceManage(gameId: string) {
-      const onlineGame = this.getOnlineGameById(gameId);
+      const onlineGame = this.getTempGameById(gameId);
       onlineGame.resourceManageDate = Date.now();
     },
 
     updateResourceDetail(gameId: string, newResourceDetail: OnlineResourceDetail) {
-      const game = this.getOnlineGameById(gameId);
+      const game = this.getTempGameById(gameId);
       const oldRelease = findArrayItemByFieldId(game.releases, newResourceDetail.release);
       const oldDiscussion = findArrayItemByFieldId(game.discussions, newResourceDetail.discussion);
       if (oldRelease !== undefined) deleteArrayItemByFieldId(game.releases, oldRelease);
@@ -142,7 +147,7 @@ export const useOnlineDataStore = defineStore(KEY_ONLINE_DATA, {
   },
 });
 
-interface OnlineGame {
+interface TempGame {
   id: string
   resourcesDate?: number
   resourceManageDate?: number
@@ -150,13 +155,15 @@ interface OnlineGame {
   discussions: Discussion[]
 }
 
-interface OnlineData {
+interface TempData {
+  online: boolean
   gamesDate?: number
-  games: OnlineGame[]
+  games: TempGame[]
 }
 
-function init(): OnlineData {
+function init(): TempData {
   return {
+    online: true,
     gamesDate: undefined,
     games: []
   };

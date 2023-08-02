@@ -36,19 +36,19 @@ import {
   loadDiscussionComment,
 } from 'src/api/GraphqlApi';
 import { Discussion } from 'src/class/Types';
-import { useOnlineDataStore } from 'src/stores/OnlineData';
+import { useTempDataStore } from 'src/stores/OnlineData';
 import { useUserConfigStore } from 'src/stores/UserConfig';
 import { Ref, ref } from 'vue';
 import CommentCard from './CommentCard.vue';
 
 const props = defineProps<{ discussion: Discussion }>();
-const onlineDataStore = useOnlineDataStore();
+const tempDataStore = useTempDataStore();
 const userConfigStore = useUserConfigStore();
 const discussion: Ref<Discussion> = ref(props.discussion);
 
 async function deleteComment(id: string) {
   const { totalCount } = await deleteDiscussionComment(id);
-  onlineDataStore.deleteComment(
+  tempDataStore.deleteComment(
     userConfigStore.currentGameId,
     props.discussion.id,
     id,

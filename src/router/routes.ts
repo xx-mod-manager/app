@@ -13,7 +13,11 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/',
     name: ROUTE_HOME,
-    redirect: 'resource',
+    redirect: () => {
+      if (window.electronApi === undefined)
+        return { name: ROUTE_RESOURCES };
+      else return { name: ROUTE_RESOURCE_MANAGE };
+    },
     component: () => import('layouts/MainLayout.vue'),
     meta: { requiresAuth: true },
     children: [
@@ -29,7 +33,7 @@ const routes: RouteRecordRaw[] = [
           return true;
         }
       },
-      { path: 'resource-manage', name: ROUTE_RESOURCE_MANAGE, component: () => import('pages/resource/ResourceManagePage.vue') }
+      { path: 'resource-manage', name: ROUTE_RESOURCE_MANAGE, component: () => import('pages/resource/ResourceManagePage.vue'), meta: { requiresAuth: false } }
     ],
   },
   {

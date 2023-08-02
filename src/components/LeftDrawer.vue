@@ -20,7 +20,7 @@
           <q-icon :name="matDownload" />
         </q-item-section>
 
-        <q-item-section> 首页 </q-item-section>
+        <q-item-section> 资源 </q-item-section>
       </q-item>
 
       <q-item

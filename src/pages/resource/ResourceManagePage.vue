@@ -17,14 +17,14 @@ import { matRefresh } from '@quasar/extras/material-icons';
 import { myLogger } from 'src/boot/logger';
 import ResourceLocalItem from 'src/components/ResourceLocalItem.vue';
 import { useMainDataStore } from 'src/stores/MainData';
-import { useOnlineDataStore } from 'src/stores/OnlineData';
+import { useTempDataStore } from 'src/stores/OnlineData';
 import { useUserConfigStore } from 'src/stores/UserConfig';
 import { existLocalResource } from 'src/utils/ResourceUtils';
 import { computed, onMounted, ref } from 'vue';
 
 const userConfigStore = useUserConfigStore();
 const mainDataStore = useMainDataStore();
-const onlineDataStore = useOnlineDataStore();
+const tempDataStore = useTempDataStore();
 const refreshing = ref(false);
 
 const resources = computed(() =>
@@ -66,15 +66,13 @@ async function refresh(done?: () => void) {
       userConfigStore.currentGameId
     )
   );
-  onlineDataStore.updateResourceManage(userConfigStore.currentGameId);
+  tempDataStore.updateResourceManage(userConfigStore.currentGameId);
   refreshing.value = false;
   if (done) done();
 }
 
 onMounted(() => {
-  if (
-    onlineDataStore.needRefreshResourceManage(userConfigStore.currentGameId)
-  ) {
+  if (tempDataStore.needRefreshResourceManage(userConfigStore.currentGameId)) {
     refresh();
   }
 });
