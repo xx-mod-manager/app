@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia';
 import { ApiComment } from 'src/class/GraphqlClass';
-import { Comment, Discussion, Game, Release } from 'src/class/Types';
+import { Comment, Discussion, Game, OnlineResourceDetail, Release } from 'src/class/Types';
 import { deleteArrayItemByFieldId, deleteArrayItemsByFileId, findArrayItemByFieldId, findArrayItemById } from 'src/utils/ArrayUtils';
 
 const KEY_ONLINE_DATA = 'onlineData';
@@ -30,9 +30,7 @@ export const useOnlineDataStore = defineStore(KEY_ONLINE_DATA, {
       return findArrayItemById(this.getOptionOnlineGameById(gameId)?.discussions, discussionId);
     },
 
-    getOptionResourceDetail(gameId: string, releaseId?: string, discussionId?: string): { release: Release; discussion: Discussion } | undefined {
-      if (releaseId == undefined || discussionId == undefined)
-        return undefined;
+    getOptionResourceDetail(gameId: string, releaseId: string, discussionId: string): { release: Release; discussion: Discussion } | undefined {
       const release = this.getOptionReleaseById(gameId, releaseId);
       const discussion = this.getOptionDiscussionById(gameId, discussionId);
       if (release != undefined && discussion != undefined) {
@@ -106,22 +104,14 @@ export const useOnlineDataStore = defineStore(KEY_ONLINE_DATA, {
       onlineGame.resourceManageDate = Date.now();
     },
 
-    addRelease(gameId: string, onlineRelease: Release) {
+    updateResourceDetail(gameId: string, newResourceDetail: OnlineResourceDetail) {
       const game = this.getOnlineGameById(gameId);
-      const oldRelease = findArrayItemByFieldId(game.releases, onlineRelease);
-      if (oldRelease != undefined) {
-        deleteArrayItemByFieldId(game.releases, oldRelease);
-      }
-      game.releases.push(onlineRelease);
-    },
-
-    addDiscussion(gameId: string, onlineDiscussion: Discussion) {
-      const game = this.getOnlineGameById(gameId);
-      const oldRelease = findArrayItemByFieldId(game.discussions, onlineDiscussion);
-      if (oldRelease != undefined) {
-        deleteArrayItemByFieldId(game.releases, oldRelease);
-      }
-      game.discussions.push(onlineDiscussion);
+      const oldRelease = findArrayItemByFieldId(game.releases, newResourceDetail.release);
+      const oldDiscussion = findArrayItemByFieldId(game.discussions, newResourceDetail.discussion);
+      if (oldRelease !== undefined) deleteArrayItemByFieldId(game.releases, oldRelease);
+      if (oldDiscussion !== undefined) deleteArrayItemByFieldId(game.releases, oldDiscussion);
+      game.releases.push(newResourceDetail.release);
+      game.discussions.push(newResourceDetail.discussion);
     },
 
     deleteComment(gameId: string, discussionId: string, commentId: string, commentSize: number) {

@@ -3,6 +3,7 @@ import { myLogger } from 'src/boot/logger';
 import { Asset, AssetStatus, Game, Resource } from 'src/class/Types';
 import { deleteArrayItem, deleteArrayItemByFieldId, deleteArrayItemById, deleteArrayItemsByFileId, findArrayItemByFieldId, findArrayItemById } from 'src/utils/ArrayUtils';
 import { existLocalAsset, existOnlineAsset, newDownloadedAsset, newInstalledAsset, updateOnlineAsset } from 'src/utils/AssetUtils';
+import { notNull } from 'src/utils/CommentUtils';
 import { existLocalGame, updateOnlineGame } from 'src/utils/GameUtils';
 import { replacer, reviver } from 'src/utils/JsonUtil';
 import { existLocalResource, newLocalResource, updateOnlineResource } from 'src/utils/ResourceUtils';
@@ -30,12 +31,16 @@ export const useMainDataStore = defineStore(KEY_MAIN_DATA, {
       return game;
     },
 
-    getResourceById(gameId: string, resourceId: string): Resource | undefined {
+    getOptionResourceById(gameId: string, resourceId: string): Resource | undefined {
       return this.getOptionGameById(gameId)?.resources.find((it) => it.id == resourceId);
     },
 
+    getResourceById(gameId: string, resourceId: string): Resource {
+      return notNull(this.getOptionGameById(gameId)?.resources.find((it) => it.id == resourceId));
+    },
+
     getOptionAssetById(gameId: string, resourceId: string, assetId: string): Asset | undefined {
-      return this.getResourceById(gameId, resourceId)?.assets.find(i => i.id == assetId);
+      return this.getOptionResourceById(gameId, resourceId)?.assets.find(i => i.id == assetId);
     },
 
     getAssetById(gameId: string, resourceId: string, assetId: string): Asset {
@@ -45,13 +50,13 @@ export const useMainDataStore = defineStore(KEY_MAIN_DATA, {
     },
 
     getAssetByNodeId(gameId: string, resourceId: string, assetNodeId: string): Asset {
-      const asset = this.getResourceById(gameId, resourceId)?.assets.find(i => i.nodeId == assetNodeId);
+      const asset = this.getOptionResourceById(gameId, resourceId)?.assets.find(i => i.nodeId == assetNodeId);
       if (asset == undefined) throw Error(`Miss ${gameId}/${resourceId}/(NodeId)${assetNodeId}`);
       return asset;
     },
 
     deleteAssetById(gameId: string, resourceId: string, assetId: string) {
-      const assets = this.getResourceById(gameId, resourceId)?.assets;
+      const assets = this.getOptionResourceById(gameId, resourceId)?.assets;
       if (assets == undefined) return false;
       deleteArrayItemById(assets, assetId);
       this.save();
@@ -95,7 +100,7 @@ export const useMainDataStore = defineStore(KEY_MAIN_DATA, {
     },
 
     updateOnlineAssets(gameId: string, resourceId: string, onlineAssets: Asset[]) {
-      const oldAssets = this.getResourceById(gameId, resourceId)?.assets;
+      const oldAssets = this.getOptionResourceById(gameId, resourceId)?.assets;
       if (oldAssets == undefined)
         throw Error(`Resource: [${gameId}]/[${resourceId}] miss.`);
       const deletedAssets = oldAssets.filter(i => !existLocalAsset(i));
@@ -239,7 +244,7 @@ export const useMainDataStore = defineStore(KEY_MAIN_DATA, {
     },
 
     updateAssetStatus(gameId: string, resourceId: string, assetId: string, newStatus: AssetStatus) {
-      const resource = this.getResourceById(gameId, resourceId);
+      const resource = this.getOptionResourceById(gameId, resourceId);
       if (resource == undefined) {
         myLogger.warn(`resource: ${resourceId} miss.`);
         return;

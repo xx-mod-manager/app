@@ -8,12 +8,13 @@ import { useAuthDataStore } from 'src/stores/AuthData';
 const GRAPHQL_URL = 'https://api.github.com/graphql';
 
 async function sendGraphql(query: string) {
+  myLogger.debug(`Graphql query is \n${query}`);
   query += getFragment(query);
   const authData = useAuthDataStore();
   const response = await api.post(GRAPHQL_URL, { query },
     { headers: { Authorization: authData.token } }
   );
-  myLogger.debug(response.data);
+  myLogger.debug('Graphql result is', response.data);
   return response.data.data;
 }
 

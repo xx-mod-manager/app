@@ -4,7 +4,7 @@
       class="fit row wrap justify-start items-start content-start"
       style="padding: 0.3rem"
     >
-      <template v-if="resource && detail">
+      <template v-if="detail">
         <ResourceCard
           class="col-12"
           :discussion="detail.discussion"
@@ -38,35 +38,29 @@ import { myLogger } from 'src/boot/logger';
 import DiscussionPart from 'src/components/DiscussionPart.vue';
 import ReplyBox from 'src/components/ReplyBox.vue';
 import ResourceCard from 'src/components/ResourceCard.vue';
+import { ROUTE_404 } from 'src/router';
 import { useMainDataStore } from 'src/stores/MainData';
 import { useOnlineDataStore } from 'src/stores/OnlineData';
 import { useUserConfigStore } from 'src/stores/UserConfig';
 import { newOnlineAsset } from 'src/utils/AssetUtils';
-import { onMounted, ref } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
+import { computed, onMounted, ref } from 'vue';
+import { onBeforeRouteUpdate, useRoute } from 'vue-router';
 
 const userConfigStore = useUserConfigStore();
 const mainDataStore = useMainDataStore();
 const onlineDataStore = useOnlineDataStore();
 const route = useRoute();
-const router = useRouter();
 const refreshing = ref(false);
-
-//TODO getResourceById to getOptionResourceById
-const resource = mainDataStore.getResourceById(
-  userConfigStore.currentGameId,
-  route.params.id as string
-);
-if (resource == undefined) {
-  router.replace('/404');
-}
-const detail = ref(
-  onlineDataStore.getOptionResourceDetail(
-    userConfigStore.currentGameId,
-    resource?.releaseNodeId,
-    resource?.discussionNodeId
-  )
-);
+const resourceid = route.params.id as string;
+const currentGameId = computed(() => userConfigStore.currentGameId);
+const resource = mainDataStore.getResourceById(currentGameId.value, resourceid);
+const detail = computed(() => {
+  return onlineDataStore.getOptionResourceDetail(
+    currentGameId.value,
+    resource.releaseNodeId,
+    resource.discussionNodeId
+  );
+});
 
 async function refresh(done?: () => void) {
   if (refreshing.value) {
@@ -74,26 +68,17 @@ async function refresh(done?: () => void) {
     if (done) done();
     return;
   }
-  if (resource == undefined) {
-    router.replace('/404');
-    if (done) done();
-    return;
-  }
-  myLogger.debug(`Start refresh resource ${resource.id}`);
+  myLogger.debug(`Start refresh resource ${resourceid}`);
   refreshing.value = true;
-  detail.value = await getResourceDetail(resource);
-  onlineDataStore.addRelease(
-    userConfigStore.currentGameId,
-    detail.value.release
-  );
-  onlineDataStore.addDiscussion(
-    userConfigStore.currentGameId,
-    detail.value.discussion
+  const newResourceDetail = await getResourceDetail(resource);
+  onlineDataStore.updateResourceDetail(
+    currentGameId.value,
+    await getResourceDetail(resource)
   );
   mainDataStore.updateOnlineAssets(
-    userConfigStore.currentGameId,
-    resource.id,
-    detail.value.release.releaseAssets.nodes.map(newOnlineAsset)
+    currentGameId.value,
+    resourceid,
+    newResourceDetail.release.releaseAssets.nodes.map(newOnlineAsset)
   );
   refreshing.value = false;
   if (done) done();
@@ -113,12 +98,24 @@ onMounted(() => {
   if (
     detail.value == undefined ||
     onlineDataStore.needRefreshResource(
-      userConfigStore.currentGameId,
+      currentGameId.value,
       detail.value.release.id,
       detail.value.discussion.id
     )
   ) {
     refresh();
   }
+});
+
+onBeforeRouteUpdate((to) => {
+  const resourceid = to.params.id as string;
+  const resource = useMainDataStore().getOptionResourceById(
+    useUserConfigStore().currentGameId,
+    resourceid
+  );
+  if (resource === undefined) {
+    return { name: ROUTE_404 };
+  }
+  return true;
 });
 </script>

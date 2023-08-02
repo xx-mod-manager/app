@@ -1,3 +1,5 @@
+import { useMainDataStore } from 'src/stores/MainData';
+import { useUserConfigStore } from 'src/stores/UserConfig';
 import { RouteRecordRaw } from 'vue-router';
 
 export const ROUTE_HOME = 'home';
@@ -16,7 +18,17 @@ const routes: RouteRecordRaw[] = [
     meta: { requiresAuth: true },
     children: [
       { path: 'resource', name: ROUTE_RESOURCES, component: () => import('pages/resource/ResourcesPage.vue') },
-      { path: 'resource/:id', name: ROUTE_RESOURCE, component: () => import('pages/resource/ResourcePage.vue') },
+      {
+        path: 'resource/:id', name: ROUTE_RESOURCE, component: () => import('pages/resource/ResourcePage.vue'),
+        beforeEnter: (to) => {
+          const resourceid = to.params.id as string;
+          const resource = useMainDataStore().getOptionResourceById(useUserConfigStore().currentGameId, resourceid);
+          if (resource === undefined) {
+            return { name: ROUTE_404 };
+          }
+          return true;
+        }
+      },
       { path: 'resource-manage', name: ROUTE_RESOURCE_MANAGE, component: () => import('pages/resource/ResourceManagePage.vue') }
     ],
   },

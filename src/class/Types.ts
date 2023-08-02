@@ -218,3 +218,8 @@ export interface GameConfig {
   installPath?: string
   lockRootWithInstallPath: boolean
 }
+
+export interface OnlineResourceDetail {
+  release: Release
+  discussion: Discussion
+}
