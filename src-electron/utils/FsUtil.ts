@@ -30,7 +30,6 @@ function getDefaultSteamAppsPath(): string | undefined {
   if (process.platform == 'win32') {
     const win32 = 'C:\\Program Files (x86)\\Steam';
     const win64 = 'C:\\Program Files\\Steam';
-    //Logic issue, win32 & win64 all exits
     if (existsSync(win32)) steamPath = win32;
     else if (existsSync(win64)) steamPath = win64;
   } else if (process.platform == 'linux') {
