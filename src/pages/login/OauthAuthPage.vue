@@ -13,15 +13,17 @@ import { getTokenInfo } from 'src/api/GithubAuthApi';
 import { myLogger } from 'src/boot/logger';
 import { ROUTE_HOME, ROUTE_LOGIN } from 'src/router';
 import { useAuthDataStore } from 'src/stores/AuthData';
+import { toRefs } from 'vue';
 import { useRouter } from 'vue-router';
 
 const props = defineProps<{ code: string }>();
+const { code } = toRefs(props);
 
 const authDataStore = useAuthDataStore();
 const router = useRouter();
 const quasar = useQuasar();
 
-getTokenInfo(props.code as string)
+getTokenInfo(code.value as string)
   .then((token) => {
     authDataStore.update(token).then(() => {
       myLogger.debug('route home');

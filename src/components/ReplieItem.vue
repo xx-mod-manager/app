@@ -25,7 +25,7 @@
 import 'github-markdown-css';
 import { updateDiscussionReply } from 'src/api/GraphqlApi';
 import { Comment } from 'src/class/Types';
-import { ref } from 'vue';
+import { ref, toRefs } from 'vue';
 import AuthorSpan from './AuthorSpan.vue';
 import CommentMenu from './CommentMenu.vue';
 import DateFormatSpan from './DateFormatSpan.vue';
@@ -34,11 +34,11 @@ import UpdateReplyBox from './UpdateReplyBox.vue';
 
 defineEmits(['delete']);
 const props = defineProps<{ replie: Comment }>();
-const replie = ref(props.replie);
+const { replie } = toRefs(props);
 const showEditInput = ref(false);
 
 async function updateReply(markdown: string) {
-  const newReply = await updateDiscussionReply(markdown, props.replie.id);
+  const newReply = await updateDiscussionReply(markdown, replie.value.id);
   replie.value.body = newReply.body;
   replie.value.bodyHTML = newReply.bodyHTML;
   replie.value.updatedAt = newReply.updatedAt;

@@ -38,19 +38,19 @@ import {
 import { Discussion } from 'src/class/Types';
 import { useTempDataStore } from 'src/stores/TempData';
 import { useUserConfigStore } from 'src/stores/UserConfig';
-import { Ref, ref } from 'vue';
+import { toRefs } from 'vue';
 import CommentCard from './CommentCard.vue';
 
 const props = defineProps<{ discussion: Discussion }>();
+const { discussion } = toRefs(props);
 const tempDataStore = useTempDataStore();
 const userConfigStore = useUserConfigStore();
-const discussion: Ref<Discussion> = ref(props.discussion);
 
 async function deleteComment(id: string) {
   const { totalCount } = await deleteDiscussionComment(id);
   tempDataStore.deleteComment(
     userConfigStore.currentGameId,
-    props.discussion.id,
+    discussion.value.id,
     id,
     totalCount
   );

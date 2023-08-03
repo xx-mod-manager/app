@@ -61,7 +61,7 @@ import {
   updateDiscussionComment,
 } from 'src/api/GraphqlApi';
 import { Comment } from 'src/class/Types';
-import { ref } from 'vue';
+import { ref, toRefs } from 'vue';
 import AuthorSpan from './AuthorSpan.vue';
 import CommentMenu from './CommentMenu.vue';
 import DateFormatSpan from './DateFormatSpan.vue';
@@ -72,19 +72,19 @@ import UpdateReplyBox from './UpdateReplyBox.vue';
 
 defineEmits(['delete']);
 const props = defineProps<{ comment: Comment; discussionId: string }>();
-const comment = ref(props.comment);
+const { comment, discussionId } = toRefs(props);
 const showEditInput = ref(false);
 
 async function addReply(markdown: string) {
   await addDiscussionReply(
     markdown,
-    props.discussionId,
-    props.comment.id,
+    discussionId.value,
+    comment.value.id,
     comment.value.replies
   );
 }
 async function updateComment(markdown: string) {
-  const newComment = await updateDiscussionComment(markdown, props.comment.id);
+  const newComment = await updateDiscussionComment(markdown, comment.value.id);
   comment.value.body = newComment.body;
   comment.value.bodyHTML = newComment.bodyHTML;
   comment.value.updatedAt = newComment.updatedAt;

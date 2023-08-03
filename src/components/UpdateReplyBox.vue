@@ -41,14 +41,15 @@
 <script setup lang="ts">
 import 'github-markdown-css';
 import { QInput } from 'quasar';
-import { ref } from 'vue';
+import { ref, toRefs } from 'vue';
 import Markdown from 'vue3-markdown-it';
 
 const props = defineProps<{ oldValue: string }>();
+const { oldValue } = toRefs(props);
 const emit = defineEmits(['submit', 'cancel']);
 
 const tab = ref('write');
-const markdown = ref(props.oldValue);
+const markdown = oldValue;
 
 function buttonClick() {
   if (markdown.value.trim().length > 0) {

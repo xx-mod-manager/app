@@ -34,17 +34,18 @@ import { myLogger } from 'src/boot/logger';
 import { GithubDeviceCodeInfo } from 'src/class/GithubTokenInfo';
 import { ROUTE_HOME, ROUTE_LOGIN } from 'src/router';
 import { useAuthDataStore } from 'src/stores/AuthData';
-import { ref } from 'vue';
+import { ref, toRefs } from 'vue';
 import { useRouter } from 'vue-router';
 
 const props = defineProps<{ deviceCodeInfo: GithubDeviceCodeInfo }>();
+const { deviceCodeInfo } = toRefs(props);
 
 const authDataStore = useAuthDataStore();
 const router = useRouter();
 const quasar = useQuasar();
-const interval = ref(Number(props.deviceCodeInfo.interval) + 5);
+const interval = ref(Number(deviceCodeInfo.value.interval) + 5);
 
-copyToClipboard(props.deviceCodeInfo.user_code).then(() =>
+copyToClipboard(deviceCodeInfo.value.user_code).then(() =>
   quasar.notify({
     message: '已复制验证码',
   })
@@ -58,7 +59,7 @@ const intervalId = setInterval(() => {
 }, 1000);
 
 function openGithub() {
-  window.open(props.deviceCodeInfo.verification_uri, '_blank');
+  window.open(deviceCodeInfo.value.verification_uri, '_blank');
 }
 
 function requestCode(deviceCode: string) {

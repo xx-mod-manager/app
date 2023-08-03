@@ -67,19 +67,20 @@ import { ROUTE_RESOURCE } from 'src/router';
 import { useMainDataStore } from 'src/stores/MainData';
 import { useUserConfigStore } from 'src/stores/UserConfig';
 import { existLocalAsset, existOnlineAsset } from 'src/utils/AssetUtils';
-import { computed, ref } from 'vue';
+import { computed, ref, toRefs } from 'vue';
 //TODO download btn
 const userConfigStore = useUserConfigStore();
 const mainDataStore = useMainDataStore();
 const props = defineProps<{
   resource: Resource;
 }>();
+const { resource } = toRefs(props);
 const expand = ref(false);
 const assets = computed(() => {
-  return props.resource.assets.filter(existLocalAsset);
+  return resource.value.assets.filter(existLocalAsset);
 });
 const installed = computed(() => {
-  for (const asset of props.resource.assets) {
+  for (const asset of resource.value.assets) {
     if (asset.status == AssetStatus.INTALLED) return true;
   }
   return false;
@@ -102,37 +103,37 @@ async function selectGameInstallPath() {
 async function deleteAsset(assetId: string) {
   const asset = mainDataStore.getAssetById(
     userConfigStore.currentGameId,
-    props.resource.id,
+    resource.value.id,
     assetId
   );
   if (asset.status == AssetStatus.INTALLED) {
     uninstallAsset(assetId);
   } else if (asset.status == AssetStatus.NONE) {
-    throw Error(`${props.resource.id}/${assetId} is not download or install.`);
+    throw Error(`${resource.value.id}/${assetId} is not download or install.`);
   }
   await window.electronApi?.deleteAsset(
     userConfigStore.currentGameId,
-    props.resource.id,
+    resource.value.id,
     assetId
   );
   if (existOnlineAsset(asset)) {
     mainDataStore.updateAssetStatus(
       userConfigStore.currentGameId,
-      props.resource.id,
+      resource.value.id,
       assetId,
       AssetStatus.NONE
     );
   } else {
     mainDataStore.deleteAssetById(
       userConfigStore.currentGameId,
-      props.resource.id,
+      resource.value.id,
       assetId
     );
   }
 }
 
 async function deleteResource() {
-  for (const asset of props.resource.assets)
+  for (const asset of resource.value.assets)
     if (asset.status != AssetStatus.NONE) deleteAsset(asset.id);
 }
 
@@ -141,21 +142,21 @@ async function installAsset(assetId: string) {
     selectGameInstallPath();
     return;
   }
-  const oldStatus = props.resource.assets.find((i) => i.id == assetId)?.status;
+  const oldStatus = resource.value.assets.find((i) => i.id == assetId)?.status;
   if (oldStatus == AssetStatus.NONE) {
-    throw Error(`${props.resource.id}/${assetId} is not download.`);
+    throw Error(`${resource.value.id}/${assetId} is not download.`);
   } else if (oldStatus == AssetStatus.INTALLED) {
-    myLogger.warn(`${props.resource.id}/${assetId} is already installed.`);
+    myLogger.warn(`${resource.value.id}/${assetId} is already installed.`);
   } else {
     await window.electronApi?.installAsset(
       userConfigStore.currentGameInstallPath,
       userConfigStore.currentGameId,
-      props.resource.id,
+      resource.value.id,
       assetId
     );
     mainDataStore.updateAssetStatus(
       userConfigStore.currentGameId,
-      props.resource.id,
+      resource.value.id,
       assetId,
       AssetStatus.INTALLED
     );
@@ -167,18 +168,18 @@ async function uninstallAsset(assetId: string) {
     selectGameInstallPath();
     return;
   }
-  const oldStatus = props.resource.assets.find((i) => i.id == assetId)?.status;
+  const oldStatus = resource.value.assets.find((i) => i.id == assetId)?.status;
   if (oldStatus != AssetStatus.INTALLED) {
-    throw Error(`${props.resource.id}/${assetId} is not install.`);
+    throw Error(`${resource.value.id}/${assetId} is not install.`);
   }
   await window.electronApi?.uninstallAsset(
     userConfigStore.currentGameInstallPath,
-    props.resource.id,
+    resource.value.id,
     assetId
   );
   mainDataStore.updateAssetStatus(
     userConfigStore.currentGameId,
-    props.resource.id,
+    resource.value.id,
     assetId,
     AssetStatus.DOWNLOADED
   );
@@ -189,7 +190,7 @@ async function uninstallResource() {
     selectGameInstallPath();
     return;
   }
-  for (const i of props.resource.assets)
+  for (const i of resource.value.assets)
     if (i.status == AssetStatus.INTALLED) uninstallAsset(i.id);
 }
 </script>

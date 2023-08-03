@@ -44,9 +44,10 @@ import {
 } from '@quasar/extras/material-icons-outlined';
 import { addReaction, removeReaction } from 'src/api/GraphqlApi';
 import { ReactionGroup } from 'src/class/Types';
-import { ref } from 'vue';
+import { ref, toRefs } from 'vue';
 
 const props = defineProps<{ reactions: ReactionGroup[] }>();
+const { reactions } = toRefs(props);
 const processing = ref(false);
 
 function showIcon(reaction: ReactionGroup): string {
@@ -78,7 +79,7 @@ async function clickReaction(reaction: ReactionGroup) {
 
   processing.value = false;
   newReactionGroups.forEach((reactionGroup) => {
-    const oldReactionGroup = props.reactions.find(
+    const oldReactionGroup = reactions.value.find(
       (it) => it.content == reactionGroup.content
     );
     if (oldReactionGroup) {

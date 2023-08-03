@@ -28,6 +28,7 @@
 <script setup lang="ts">
 import { Resource } from 'src/class/Types';
 import { ROUTE_RESOURCE } from 'src/router';
+import { toRefs } from 'vue';
 import { useRouter } from 'vue-router';
 import DateFormatSpan from './DateFormatSpan.vue';
 import ResourceBadges from './ResourceBadges.vue';
@@ -36,8 +37,9 @@ const router = useRouter();
 const props = defineProps<{
   resource: Resource;
 }>();
+const { resource } = toRefs(props);
 
 function clickResource() {
-  router.push({ name: ROUTE_RESOURCE, params: { id: props.resource.id } });
+  router.push({ name: ROUTE_RESOURCE, params: { id: resource.value.id } });
 }
 </script>

@@ -57,16 +57,17 @@
 <script setup lang="ts">
 import 'github-markdown-css';
 import { QInput } from 'quasar';
-import { ref } from 'vue';
+import { ref, toRefs } from 'vue';
 import Markdown from 'vue3-markdown-it';
 
 const props = defineProps<{ submitBtnLabel: string; defaultOpen?: boolean }>();
+const { defaultOpen } = toRefs(props);
 const emit = defineEmits(['submit']);
 
 const tab = ref('write');
 const markdown = ref('');
 const inputValue = ref('');
-const showInput = ref(!props.defaultOpen);
+const showInput = ref(!defaultOpen.value);
 const writeInput = ref(null as QInput | null);
 
 function buttonClick() {
