@@ -16,6 +16,7 @@ export interface IElectronAPI {
   getIntallPathBySteamAppWithRelativePath: (steamAppName: string, relativePath: string) => Promise<string | undefined>,
   requestDeviceCode: () => Promise<GithubDeviceCodeInfo>,
   requestDeviceTokenInfo: (deviceCode: string) => Promise<GithubTokenInfo>,
+  selectDirectory: (title: string) => Promise<Electron.OpenDialogReturnValue>,
 }
 
 declare global {

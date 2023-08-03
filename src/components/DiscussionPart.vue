@@ -36,7 +36,7 @@ import {
   loadDiscussionComment,
 } from 'src/api/GraphqlApi';
 import { Discussion } from 'src/class/Types';
-import { useTempDataStore } from 'src/stores/OnlineData';
+import { useTempDataStore } from 'src/stores/TempData';
 import { useUserConfigStore } from 'src/stores/UserConfig';
 import { Ref, ref } from 'vue';
 import CommentCard from './CommentCard.vue';

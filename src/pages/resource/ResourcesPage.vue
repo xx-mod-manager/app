@@ -25,7 +25,7 @@ import { requestGameResources } from 'src/api/MetaDataApi';
 import { myLogger } from 'src/boot/logger';
 import ResourceOnlineItem from 'src/components/ResourceOnlineItem.vue';
 import { useMainDataStore } from 'src/stores/MainData';
-import { useTempDataStore } from 'src/stores/OnlineData';
+import { useTempDataStore } from 'src/stores/TempData';
 import { useUserConfigStore } from 'src/stores/UserConfig';
 import { computed, onMounted, ref } from 'vue';
 

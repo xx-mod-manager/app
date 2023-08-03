@@ -16,4 +16,5 @@ contextBridge.exposeInMainWorld('electronApi', {
   getIntallPathBySteamAppWithRelativePath: (steamAppName: string, relativePath: string) => ipcRenderer.invoke('getIntallPathBySteamAppWithRelativePath', steamAppName, relativePath),
   requestDeviceCode: () => ipcRenderer.invoke('requestDeviceCode'),
   requestDeviceTokenInfo: (deviceCode: string) => ipcRenderer.invoke('requestDeviceTokenInfo', deviceCode),
+  selectDirectory: (title: string) => ipcRenderer.invoke('selectDirectory', title),
 });

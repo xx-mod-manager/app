@@ -40,7 +40,7 @@ import ReplyBox from 'src/components/ReplyBox.vue';
 import ResourceCard from 'src/components/ResourceCard.vue';
 import { ROUTE_404 } from 'src/router';
 import { useMainDataStore } from 'src/stores/MainData';
-import { useTempDataStore } from 'src/stores/OnlineData';
+import { useTempDataStore } from 'src/stores/TempData';
 import { useUserConfigStore } from 'src/stores/UserConfig';
 import { newOnlineAsset } from 'src/utils/AssetUtils';
 import { computed, onMounted, ref } from 'vue';

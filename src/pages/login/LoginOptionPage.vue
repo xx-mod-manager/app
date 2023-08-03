@@ -23,12 +23,26 @@
     no-caps
     @click="$emit('deviceAuth')"
   />
+
+  <q-space />
+
+  <q-btn
+    v-if="quasar.platform.is.electron"
+    class="q-mt-xl"
+    color="white"
+    text-color="blue"
+    unelevated
+    label="进入离线模式"
+    no-caps
+    :to="{ name: ROUTE_HOME }"
+  />
 </template>
 
 <script setup lang="ts">
 import { useQuasar } from 'quasar';
 import { URL_GITHUB_REQUEST_CODE } from 'src/api/GithubAuthApi';
 import { myLogger } from 'src/boot/logger';
+import { ROUTE_HOME } from 'src/router';
 
 defineEmits(['deviceAuth']);
 

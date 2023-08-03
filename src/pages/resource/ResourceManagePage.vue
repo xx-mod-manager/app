@@ -17,7 +17,7 @@ import { matRefresh } from '@quasar/extras/material-icons';
 import { myLogger } from 'src/boot/logger';
 import ResourceLocalItem from 'src/components/ResourceLocalItem.vue';
 import { useMainDataStore } from 'src/stores/MainData';
-import { useTempDataStore } from 'src/stores/OnlineData';
+import { useTempDataStore } from 'src/stores/TempData';
 import { useUserConfigStore } from 'src/stores/UserConfig';
 import { existLocalResource } from 'src/utils/ResourceUtils';
 import { computed, onMounted, ref } from 'vue';
@@ -46,20 +46,24 @@ async function refresh(done?: () => void) {
   }
   myLogger.debug('Start refresh resource manage.');
   refreshing.value = true;
-  //TODO process miss install path
-  if (userConfigStore.currentGameInstallPath == undefined) {
-    throw Error('miss install Path');
+  if (userConfigStore.currentGameInstallPath !== undefined) {
+    myLogger.debug('Start syncInstallDownloadResource.');
+    await window.electronApi.syncInstallDownloadResource(
+      userConfigStore.currentGameInstallPath,
+      userConfigStore.currentGameId
+    );
+    myLogger.debug('Start updateInstalledAsset.');
+    mainDataStore.updateInstalledAsset(
+      userConfigStore.currentGameId,
+      await window.electronApi.initInstealledResources(
+        userConfigStore.currentGameInstallPath
+      )
+    );
+  } else {
+    myLogger.warn(
+      'Install path is undefined, miss syncInstallDownloadResource and updateInstalledAsset.'
+    );
   }
-  await window.electronApi.syncInstallDownloadResource(
-    userConfigStore.currentGameInstallPath,
-    userConfigStore.currentGameId
-  );
-  mainDataStore.updateInstalledAsset(
-    userConfigStore.currentGameId,
-    await window.electronApi.initInstealledResources(
-      userConfigStore.currentGameInstallPath
-    )
-  );
   mainDataStore.updateDonwloadedAsset(
     userConfigStore.currentGameId,
     await window.electronApi.initDownloadedResources(

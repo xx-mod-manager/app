@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { BrowserWindow, DownloadItem, app, ipcMain } from 'electron';
+import { BrowserWindow, DownloadItem, app, dialog, ipcMain } from 'electron';
 import { File, Progress, download } from 'electron-dl';
 import { existsSync, promises as fsPromises } from 'fs';
 import { join as pathJoin } from 'path';
@@ -146,6 +146,10 @@ async function requestDeviceTokenInfo(code: string): Promise<GithubTokenInfo> {
   };
 }
 
+async function selectDirectory(title: string): Promise<Electron.OpenDialogReturnValue> {
+  return await dialog.showOpenDialog({ title, properties: ['openDirectory'] });
+}
+
 export default function init() {
   ipcMain.on('downloadResource', (_, url: string, gameId: string, resourceId: string, assetId: string) => downloadResource(url, gameId, resourceId, assetId));
   ipcMain.handle('syncInstallDownloadResource', (_, installPath: string, gameId: string) => syncInstallDownloadResource(installPath, gameId));
@@ -157,4 +161,5 @@ export default function init() {
   ipcMain.handle('getIntallPathBySteamAppWithRelativePath', (_, steamAppName: string, relativePath: string) => getIntallPathBySteamAppWithRelativePath(steamAppName, relativePath));
   ipcMain.handle('requestDeviceCode', requestDeviceCode);
   ipcMain.handle('requestDeviceTokenInfo', (_, deviceCode: string) => requestDeviceTokenInfo(deviceCode));
+  ipcMain.handle('selectDirectory', (_, title: string) => selectDirectory(title));
 }

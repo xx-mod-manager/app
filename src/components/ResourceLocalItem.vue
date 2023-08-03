@@ -85,6 +85,20 @@ const installed = computed(() => {
   return false;
 });
 
+async function selectGameInstallPath() {
+  myLogger.warn('Game install path is null, open selecter.');
+  if (window.electronApi !== undefined) {
+    const result = await window.electronApi.selectDirectory(
+      '请选择mod安装路径'
+    );
+    if (result.filePaths.length > 0) {
+      userConfigStore.updateCurrentGameInstallPath(result.filePaths[0]);
+    }
+  } else {
+    throw Error('Not in Electron');
+  }
+}
+
 async function deleteAsset(assetId: string) {
   const asset = mainDataStore.getAssetById(
     userConfigStore.currentGameId,
@@ -123,16 +137,16 @@ async function deleteResource() {
 }
 
 async function installAsset(assetId: string) {
+  if (userConfigStore.currentGameInstallPath == undefined) {
+    selectGameInstallPath();
+    return;
+  }
   const oldStatus = props.resource.assets.find((i) => i.id == assetId)?.status;
   if (oldStatus == AssetStatus.NONE) {
     throw Error(`${props.resource.id}/${assetId} is not download.`);
   } else if (oldStatus == AssetStatus.INTALLED) {
     myLogger.warn(`${props.resource.id}/${assetId} is already installed.`);
   } else {
-    //TODO process miss install path
-    if (userConfigStore.currentGameInstallPath == undefined) {
-      throw Error('miss install Path');
-    }
     await window.electronApi?.installAsset(
       userConfigStore.currentGameInstallPath,
       userConfigStore.currentGameId,
@@ -149,13 +163,13 @@ async function installAsset(assetId: string) {
 }
 
 async function uninstallAsset(assetId: string) {
+  if (userConfigStore.currentGameInstallPath == undefined) {
+    selectGameInstallPath();
+    return;
+  }
   const oldStatus = props.resource.assets.find((i) => i.id == assetId)?.status;
   if (oldStatus != AssetStatus.INTALLED) {
     throw Error(`${props.resource.id}/${assetId} is not install.`);
-  }
-  //TODO process miss install path
-  if (userConfigStore.currentGameInstallPath == undefined) {
-    throw Error('miss install Path');
   }
   await window.electronApi?.uninstallAsset(
     userConfigStore.currentGameInstallPath,
@@ -171,6 +185,10 @@ async function uninstallAsset(assetId: string) {
 }
 
 async function uninstallResource() {
+  if (userConfigStore.currentGameInstallPath == undefined) {
+    selectGameInstallPath();
+    return;
+  }
   for (const i of props.resource.assets)
     if (i.status == AssetStatus.INTALLED) uninstallAsset(i.id);
 }

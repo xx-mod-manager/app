@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia';
 import { myLogger } from 'src/boot/logger';
 import { Game, GameConfig } from 'src/class/Types';
+import { findArrayItemById } from 'src/utils/ArrayUtils';
 import { newOnlineGameConfig, updateOnlineGameConfig } from 'src/utils/GameConfig';
 import { replacer, reviver } from 'src/utils/JsonUtil';
 
@@ -11,7 +12,7 @@ export const useUserConfigStore = defineStore(KEY_USER_CONFIG, {
 
   getters: {
     currentGameInstallPath: (stat) => {
-      const game = stat.games.find(i => i.id == stat.currentGameId);
+      const game = findArrayItemById(stat.games, stat.currentGameId);
       if (game == undefined) throw Error(`Miss current game ${stat.currentGameId}.`);
       return game.installPath;
     }
@@ -40,6 +41,13 @@ export const useUserConfigStore = defineStore(KEY_USER_CONFIG, {
         myLogger.debug(`Update current game, [${this.currentGameId}]=>[${newGameId}].`);
         this.save();
       }
+    },
+
+    updateCurrentGameInstallPath(newInstallPath: string) {
+      myLogger.debug(`Update current game install path [${this.currentGameInstallPath}]=>[${newInstallPath}]`);
+      const currentGame = this.getGameById(this.currentGameId);
+      currentGame.installPath = newInstallPath;
+      this.save();
     },
 
     async updaetLocalGames(localGames: Game[]) {

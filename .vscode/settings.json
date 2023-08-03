@@ -4,6 +4,7 @@
   "editor.formatOnSave": true,
   "editor.defaultFormatter": "esbenp.prettier-vscode",
   "editor.codeActionsOnSave": [
+    "source.organizeImports",
     "source.fixAll.eslint"
   ],
   "eslint.validate": [
