@@ -12,7 +12,7 @@
           @click="leftDrawerOpen = !leftDrawerOpen"
         />
 
-        <q-toolbar-title> Github Resource Community </q-toolbar-title>
+        <q-toolbar-title> XX Mod Manager </q-toolbar-title>
       </q-toolbar>
     </q-header>
 

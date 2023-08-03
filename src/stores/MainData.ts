@@ -243,6 +243,25 @@ export const useMainDataStore = defineStore(KEY_MAIN_DATA, {
       this.save();
     },
 
+    addLocalAsset(gameId: string, resourceId: string, assetId: string) {
+      const oldResources = this.getGameById(gameId)?.resources;
+      myLogger.debug(`Add new local asset [${resourceId}]:[${assetId}]`);
+      let resource = oldResources.find(i => i.id == resourceId);
+      if (resource == undefined) {
+        resource = newLocalResource(resourceId);
+        oldResources.push(resource);
+      }
+      const asset = resource.assets.find(i => i.id == assetId);
+      if (asset != undefined) {
+        if (asset.status == AssetStatus.NONE) {
+          asset.status = AssetStatus.DOWNLOADED;
+        }
+      } else {
+        resource.assets.push(newDownloadedAsset(assetId));
+      }
+      this.save();
+    },
+
     updateAssetStatus(gameId: string, resourceId: string, assetId: string, newStatus: AssetStatus) {
       const resource = this.getOptionResourceById(gameId, resourceId);
       if (resource == undefined) {

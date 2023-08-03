@@ -1,12 +1,12 @@
 import { ApiReleaseAsset } from 'src/class/GraphqlClass';
 import { Asset, AssetStatus, ReleaseAsset } from 'src/class/Types';
-import { parseVersion } from './StringUtils';
+import { parseResourceAndVersion } from './StringUtils';
 
 
 export function newOnlineAsset(apiReleaseAsset: ApiReleaseAsset): Asset {
-  const version = parseVersion(apiReleaseAsset.name);
+  const assetId = parseResourceAndVersion(apiReleaseAsset.name).assetId;
   const asset: Asset = {
-    id: version,
+    id: assetId,
     status: AssetStatus.NONE,
     downloadUrl: apiReleaseAsset.downloadUrl,
     nodeId: apiReleaseAsset.id

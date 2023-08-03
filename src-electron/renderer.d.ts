@@ -17,6 +17,8 @@ export interface IElectronAPI {
   requestDeviceCode: () => Promise<GithubDeviceCodeInfo>,
   requestDeviceTokenInfo: (deviceCode: string) => Promise<GithubTokenInfo>,
   selectDirectory: (title: string) => Promise<Electron.OpenDialogReturnValue>,
+  selectDirectoryAddAsset: (gameId: string, title: string) => Promise<{ resource: string; assetId: string; } | undefined>,
+  selectZipFileAddAsset: (gameId: string, title: string) => Promise<{ resource: string; assetId: string; } | undefined>,
 }
 
 declare global {

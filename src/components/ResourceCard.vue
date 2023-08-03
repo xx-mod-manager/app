@@ -41,9 +41,9 @@ import { Discussion, ReleaseAsset, Resource } from 'src/class/Types';
 import { filterReleaseAsset } from 'src/utils/AssetUtils';
 import AuthorSpan from './AuthorSpan.vue';
 import DateFormatSpan from './DateFormatSpan.vue';
+import ReactionGroupSpan from './ReactionGroupSpan.vue';
 import ReleaseAssetItem from './ReleaseAssetItem.vue';
 import ResourceBadges from './ResourceBadges.vue';
-import ReactionGroupSpan from './ReactionGroupSpan.vue';
 
 defineProps<{
   discussion: Discussion;

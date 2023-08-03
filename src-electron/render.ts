@@ -2,12 +2,12 @@ import axios from 'axios';
 import { BrowserWindow, DownloadItem, app, dialog, ipcMain } from 'electron';
 import { File, Progress, download } from 'electron-dl';
 import { existsSync, promises as fsPromises } from 'fs';
-import { join as pathJoin } from 'path';
+import { basename, join as pathJoin } from 'path';
 import { CLIENT_ID } from 'src/Constants';
 import { myLogger } from 'src/boot/logger';
 import { GithubDeviceCodeInfo, GithubTokenInfo } from 'src/class/GithubTokenInfo';
 import { notNull } from 'src/utils/CommentUtils';
-import { parseAssetDir } from 'src/utils/StringUtils';
+import { parseResourceAndVersion } from 'src/utils/StringUtils';
 import { getDefaultSteamAppPath, getGameResourcesPath, initResourcesDir } from './utils/FsUtil';
 import { unzipAsset } from './utils/ZipUtil';
 
@@ -39,8 +39,8 @@ async function syncInstallDownloadResource(installPath: string, gameId: string) 
     const installedAssetPath = pathJoin(installPath, resourceName);
     const installedAssetStat = await fsPromises.stat(installedAssetPath);
     if (installedAssetStat.isDirectory() && !installedAssetStat.isSymbolicLink()) {
-      const { assetId, version } = parseAssetDir(resourceName);
-      const newResourceName = assetId + '-' + version;
+      const { resource, assetId } = parseResourceAndVersion(resourceName);
+      const newResourceName = resource + '-' + assetId;
       myLogger.debug(`Need sync resource ${resourceName} to ${newResourceName}`);
       const downloadedAssetPath = pathJoin(resourcesPath, newResourceName);
       fsPromises.rename(installedAssetPath, downloadedAssetPath);
@@ -59,14 +59,14 @@ async function initDownloadedResources(gameId: string): Promise<Map<string, stri
     const assetFilePath = pathJoin(resourcesPath, assetFile);
     const assetFileStat = await fsPromises.stat(assetFilePath);
     if (assetFileStat.isDirectory()) {
-      const { assetId, version } = parseAssetDir(assetFile);
-      myLogger.debug(`Downloaded resource: ${assetId}/${version}`);
-      let versions = result.get(assetId);
+      const { resource, assetId } = parseResourceAndVersion(assetFile);
+      myLogger.debug(`Downloaded resource: ${resource}/${assetId}`);
+      let versions = result.get(resource);
       if (versions == undefined) {
         versions = [];
-        result.set(assetId, versions);
+        result.set(resource, versions);
       }
-      versions.push(version);
+      versions.push(assetId);
     }
   });
   await Promise.all(promises);
@@ -82,14 +82,14 @@ async function initInstealledResources(installPath: string): Promise<Map<string,
     const assetFilePath = pathJoin(installPath, assetFile);
     const assetFileStat = await fsPromises.stat(assetFilePath);
     if (assetFileStat.isDirectory()) {
-      const { assetId, version } = parseAssetDir(assetFile);
-      myLogger.debug(`Installed resource: ${assetId}/${version}`);
-      let versions = result.get(assetId);
+      const { resource, assetId } = parseResourceAndVersion(assetFile);
+      myLogger.debug(`Installed resource: ${resource}/${assetId}`);
+      let versions = result.get(resource);
       if (versions == undefined) {
         versions = [];
-        result.set(assetId, versions);
+        result.set(resource, versions);
       }
-      versions.push(version);
+      versions.push(assetId);
     }
   });
   await Promise.all(promises);
@@ -98,7 +98,7 @@ async function initInstealledResources(installPath: string): Promise<Map<string,
 
 async function deleteAsset(gameId: string, resourceId: string, assetId: string) {
   const resourcesPath = pathJoin(getGameResourcesPath(gameId), resourceId + '-' + assetId);
-  await fsPromises.rmdir(resourcesPath, { recursive: true });
+  await fsPromises.rm(resourcesPath, { recursive: true });
 }
 
 async function installAsset(installPath: string, gameId: string, resourceId: string, assetId: string) {
@@ -111,7 +111,7 @@ async function installAsset(installPath: string, gameId: string, resourceId: str
 async function uninstallAsset(installPath: string, resourceId: string, assetId: string) {
   if (installPath == undefined) throw Error('Miss install path');
   const assetPath = pathJoin(installPath, resourceId + '-' + assetId);
-  await fsPromises.rmdir(assetPath, { recursive: true });
+  await fsPromises.rm(assetPath, { recursive: true });
 }
 
 function getIntallPathBySteamAppWithRelativePath(steamAppName: string, relativePath: string) {
@@ -150,6 +150,37 @@ async function selectDirectory(title: string): Promise<Electron.OpenDialogReturn
   return await dialog.showOpenDialog({ title, properties: ['openDirectory'] });
 }
 
+async function selectDirectoryAddAsset(gameId: string, title: string): Promise<{ resource: string; assetId: string; } | undefined> {
+  const result = await dialog.showOpenDialog({ title, properties: ['openDirectory'] });
+  if (result.filePaths.length > 0) {
+    const dirPath = result.filePaths[0];
+    const name = basename(dirPath);
+    const assetInfo = parseResourceAndVersion(name);
+    await fsPromises.cp(dirPath, pathJoin(getGameResourcesPath(gameId), assetInfo.resource + '-' + assetInfo.assetId), { recursive: true, force: true });
+    // await copyDir(dirPath, pathJoin(getGameResourcesPath(gameId), assetInfo.resource + '-' + assetInfo.assetId));
+    return assetInfo;
+  } else {
+    return undefined;
+  }
+}
+
+async function selectZipFileAddAsset(gameId: string, title: string): Promise<{ resource: string; assetId: string; } | undefined> {
+  const result = await dialog.showOpenDialog({
+    title, properties: ['openFile'], filters: [
+      { name: 'Zip', extensions: ['zip'] }
+    ]
+  });
+  if (result.filePaths.length > 0) {
+    const zipPath = result.filePaths[0];
+    const name = basename(zipPath);
+    const assetInfo = parseResourceAndVersion(name);
+    unzipAsset(zipPath, getGameResourcesPath(gameId), assetInfo.resource, assetInfo.assetId);
+    return assetInfo;
+  } else {
+    return undefined;
+  }
+}
+
 export default function init() {
   ipcMain.on('downloadResource', (_, url: string, gameId: string, resourceId: string, assetId: string) => downloadResource(url, gameId, resourceId, assetId));
   ipcMain.handle('syncInstallDownloadResource', (_, installPath: string, gameId: string) => syncInstallDownloadResource(installPath, gameId));
@@ -162,4 +193,6 @@ export default function init() {
   ipcMain.handle('requestDeviceCode', requestDeviceCode);
   ipcMain.handle('requestDeviceTokenInfo', (_, deviceCode: string) => requestDeviceTokenInfo(deviceCode));
   ipcMain.handle('selectDirectory', (_, title: string) => selectDirectory(title));
+  ipcMain.handle('selectDirectoryAddAsset', (_, gameId: string, title: string) => selectDirectoryAddAsset(gameId, title));
+  ipcMain.handle('selectZipFileAddAsset', (_, gameId: string, title: string) => selectZipFileAddAsset(gameId, title));
 }

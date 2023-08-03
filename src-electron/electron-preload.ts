@@ -17,4 +17,6 @@ contextBridge.exposeInMainWorld('electronApi', {
   requestDeviceCode: () => ipcRenderer.invoke('requestDeviceCode'),
   requestDeviceTokenInfo: (deviceCode: string) => ipcRenderer.invoke('requestDeviceTokenInfo', deviceCode),
   selectDirectory: (title: string) => ipcRenderer.invoke('selectDirectory', title),
+  selectDirectoryAddAsset: (gameId: string, title: string) => ipcRenderer.invoke('selectDirectoryAddAsset', gameId, title),
+  selectZipFileAddAsset: (gameId: string, title: string) => ipcRenderer.invoke('selectZipFileAddAsset', gameId, title),
 });

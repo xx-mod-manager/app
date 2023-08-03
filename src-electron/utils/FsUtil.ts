@@ -54,3 +54,19 @@ export function getDefaultSteamAppPath(steamAppName: string): string | undefined
   if (existsSync(appPath)) return appPath;
   return undefined;
 }
+
+export async function copyDir(src: string, dest: string) {
+  const entries = await fsPromises.readdir(src, { withFileTypes: true });
+  if (existsSync(dest))
+    await fsPromises.rm(dest, { recursive: true, force: true });
+  await fsPromises.mkdir(dest);
+  for (const entry of entries) {
+    const srcPath = pathJoin(src, entry.name);
+    const destPath = pathJoin(dest, entry.name);
+    if (entry.isDirectory()) {
+      await copyDir(srcPath, destPath);
+    } else {
+      await fsPromises.copyFile(srcPath, destPath);
+    }
+  }
+}
