@@ -2,7 +2,7 @@ import axios from 'axios';
 import { BrowserWindow, DownloadItem, app, dialog, ipcMain } from 'electron';
 import { File, Progress, download } from 'electron-dl';
 import { existsSync, promises as fsPromises } from 'fs';
-import { basename, join as pathJoin } from 'path';
+import { basename, extname, join as pathJoin } from 'path';
 import { CLIENT_ID } from 'src/Constants';
 import { myLogger } from 'src/boot/logger';
 import { GithubDeviceCodeInfo, GithubTokenInfo } from 'src/class/GithubTokenInfo';
@@ -150,18 +150,28 @@ async function selectDirectory(title: string): Promise<Electron.OpenDialogReturn
   return await dialog.showOpenDialog({ title, properties: ['openDirectory'] });
 }
 
+async function addAssetByDir(gameId: string, dirPath: string): Promise<{ resource: string; assetId: string; }> {
+  const name = basename(dirPath);
+  const assetInfo = parseResourceAndVersion(name);
+  await fsPromises.cp(dirPath, pathJoin(getGameResourcesPath(gameId), assetInfo.resource + '-' + assetInfo.assetId), { recursive: true, force: true });
+  return assetInfo;
+}
+
 async function selectDirectoryAddAsset(gameId: string, title: string): Promise<{ resource: string; assetId: string; } | undefined> {
   const result = await dialog.showOpenDialog({ title, properties: ['openDirectory'] });
   if (result.filePaths.length > 0) {
     const dirPath = result.filePaths[0];
-    const name = basename(dirPath);
-    const assetInfo = parseResourceAndVersion(name);
-    await fsPromises.cp(dirPath, pathJoin(getGameResourcesPath(gameId), assetInfo.resource + '-' + assetInfo.assetId), { recursive: true, force: true });
-    // await copyDir(dirPath, pathJoin(getGameResourcesPath(gameId), assetInfo.resource + '-' + assetInfo.assetId));
-    return assetInfo;
+    return await addAssetByDir(gameId, dirPath);
   } else {
     return undefined;
   }
+}
+
+async function addAssetByZipFile(gameId: string, zipPath: string): Promise<{ resource: string; assetId: string; }> {
+  const name = basename(zipPath);
+  const assetInfo = parseResourceAndVersion(name);
+  unzipAsset(zipPath, getGameResourcesPath(gameId), assetInfo.resource, assetInfo.assetId);
+  return assetInfo;
 }
 
 async function selectZipFileAddAsset(gameId: string, title: string): Promise<{ resource: string; assetId: string; } | undefined> {
@@ -172,13 +182,35 @@ async function selectZipFileAddAsset(gameId: string, title: string): Promise<{ r
   });
   if (result.filePaths.length > 0) {
     const zipPath = result.filePaths[0];
-    const name = basename(zipPath);
-    const assetInfo = parseResourceAndVersion(name);
-    unzipAsset(zipPath, getGameResourcesPath(gameId), assetInfo.resource, assetInfo.assetId);
-    return assetInfo;
+    return await addAssetByZipFile(gameId, zipPath);
   } else {
     return undefined;
   }
+}
+
+async function addAssetByPaths(gameId: string, paths: string[]): Promise<{ resource: string; assetId: string; }[]> {
+  const result = await Promise.all(paths.map(async path => {
+    if (existsSync(path)) {
+      const stat = await fsPromises.stat(path);
+      if (stat.isFile()) {
+        const ext = extname(path).toLowerCase();
+        if ('.zip' === ext) {
+          return await addAssetByZipFile(gameId, path);
+        } else {
+          myLogger.warn(`${path} extname ${ext} not is .zip`);
+        }
+      } else if (stat.isDirectory()) {
+        return await addAssetByDir(gameId, path);
+      } else {
+        myLogger.warn(`${path} not is file or directory.`);
+      }
+    } else {
+      myLogger.warn(`${path} not exist.`);
+    }
+  }));
+  const notNullResult: { resource: string; assetId: string; }[] = [];
+  result.forEach(i => { if (i !== undefined) notNullResult.push(i); });
+  return notNullResult;
 }
 
 export default function init() {
@@ -195,4 +227,5 @@ export default function init() {
   ipcMain.handle('selectDirectory', (_, title: string) => selectDirectory(title));
   ipcMain.handle('selectDirectoryAddAsset', (_, gameId: string, title: string) => selectDirectoryAddAsset(gameId, title));
   ipcMain.handle('selectZipFileAddAsset', (_, gameId: string, title: string) => selectZipFileAddAsset(gameId, title));
+  ipcMain.handle('addAssetByPaths', (_, gameId: string, paths: string[]) => addAssetByPaths(gameId, paths));
 }

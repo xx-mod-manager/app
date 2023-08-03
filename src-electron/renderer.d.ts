@@ -19,6 +19,7 @@ export interface IElectronAPI {
   selectDirectory: (title: string) => Promise<Electron.OpenDialogReturnValue>,
   selectDirectoryAddAsset: (gameId: string, title: string) => Promise<{ resource: string; assetId: string; } | undefined>,
   selectZipFileAddAsset: (gameId: string, title: string) => Promise<{ resource: string; assetId: string; } | undefined>,
+  addAssetByPaths: (gameId: string, paths: string[]) => Promise<{ resource: string; assetId: string; }[]>,
 }
 
 declare global {

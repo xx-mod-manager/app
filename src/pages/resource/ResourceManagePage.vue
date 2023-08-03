@@ -1,6 +1,12 @@
 <template>
   <q-pull-to-refresh :icon="matRefresh" @refresh="refresh">
-    <q-page style="padding: 0.5rem">
+    <q-page
+      style="padding: 0.5rem"
+      @drop.stop.prevent="dropEvent"
+      @dragenter.stop.prevent
+      @dragleave.stop.prevent
+      @dragover.stop.prevent
+    >
       <ResourceLocalItem
         v-for="resource in resources"
         :key="resource.id"
@@ -111,6 +117,27 @@ async function addLocalAssetByZip() {
     }
   } else {
     throw Error('Not in Electron');
+  }
+}
+
+async function dropEvent(event: DragEvent) {
+  if (window.electronApi === undefined) throw Error('Not in Electron.');
+  if (event.dataTransfer === null) return;
+  const paths: string[] = [];
+  for (let index = 0; index < event.dataTransfer.files.length; index++) {
+    paths.push(event.dataTransfer.files[index].path);
+  }
+  myLogger.debug(`Trigger dropEvent ${paths.join('\n\t')}`);
+  const assets = await window.electronApi.addAssetByPaths(
+    userConfigStore.currentGameId,
+    paths
+  );
+  for (const asset of assets) {
+    mainDataStore.addLocalAsset(
+      userConfigStore.currentGameId,
+      asset.resource,
+      asset.assetId
+    );
   }
 }
 
