@@ -5,6 +5,7 @@ import {
   createWebHashHistory,
   createWebHistory,
 } from 'vue-router';
+import registerGlobalGuards from './guards';
 import routes from './routes';
 
 /*
@@ -30,7 +31,10 @@ export default route(function (/* { store, ssrContext } */) {
     history: createHistory(process.env.VUE_ROUTER_BASE),
   });
 
+  registerGlobalGuards(Router);
+
   return Router;
 });
 
-export { ROUTE_HOME, ROUTE_RESOURCES, ROUTE_RESOURCE, ROUTE_RESOURCE_MANAGE, ROUTE_LOGIN, ROUTE_404 } from './routes';
+export { ROUTE_404, ROUTE_HOME, ROUTE_LOGIN, ROUTE_RESOURCE, ROUTE_RESOURCES, ROUTE_RESOURCE_MANAGE } from './routes';
+
