@@ -155,12 +155,12 @@ async function refresh(done?: () => void) {
   myLogger.debug('Start refresh resource manage.');
   refreshing.value = true;
   if (userConfigStore.currentGameInstallPath !== undefined) {
-    myLogger.debug('Start syncInstallDownloadResource.');
+    myLogger.debug('Start sync install download resources.');
     await window.electronApi.syncInstallDownloadResource(
       userConfigStore.currentGameInstallPath,
       userConfigStore.currentGameId
     );
-    myLogger.debug('Start updateInstalledAsset.');
+    myLogger.debug('Start update installed asset.');
     mainDataStore.updateInstalledAsset(
       userConfigStore.currentGameId,
       await window.electronApi.initInstealledResources(
@@ -168,8 +168,8 @@ async function refresh(done?: () => void) {
       )
     );
   } else {
-    myLogger.warn(
-      'Install path is undefined, miss syncInstallDownloadResource and updateInstalledAsset.'
+    myLogger.info(
+      'Install path is undefined, skip sync install download resources and update installed asset.'
     );
   }
   mainDataStore.updateDonwloadedAsset(

@@ -2,7 +2,7 @@ import { api } from 'boot/axios';
 import { myLogger } from 'src/boot/logger';
 import 'src/class/GraphqlClass';
 import { ApiAuthor, ApiComment, ApiDiscussion, ApiReactionGroup, ApiRelease, GraphArray, arrayPackage, getFragment } from 'src/class/GraphqlClass';
-import { Resource, Author, Comment, Discussion, PageArray, ReactionGroup, Release } from 'src/class/Types';
+import { Author, Comment, Discussion, PageArray, ReactionGroup, Release, Resource } from 'src/class/Types';
 import { useAuthDataStore } from 'src/stores/AuthData';
 
 const GRAPHQL_URL = 'https://api.github.com/graphql';
@@ -142,7 +142,7 @@ mutation {
       discussion {
         comments(
           first: 10
-          after: "${endCursor}"
+          ${endCursor != undefined ? `after: "${endCursor}"` : ''}
         ) {
           totalCount
           ${arrayPackage(`
