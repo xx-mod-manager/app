@@ -8,3 +8,9 @@ declare module 'quasar/dist/types/feature-flag' {
     store: true;
   }
 }
+
+declare module 'pinia' {
+  export interface DefineStoreOptionsBase<S, Store> {
+    persistence?: boolean
+  }
+}
