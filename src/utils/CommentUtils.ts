@@ -1,4 +1,4 @@
-export function notNull<T>(value: T | undefined | null): T {
-  if (value === undefined || value === null) throw Error('Not null value is null.');
+export function notNull<T>(value: T | undefined | null, field?: string): T {
+  if (value == undefined) throw Error(field != undefined ? `${field} value is null.` : 'Not null value is null.');
   return value;
 }

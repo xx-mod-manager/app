@@ -94,8 +94,8 @@ export function registerGlobalGuards(router: Router) {
 export function existResourceGuard(to: RouteLocationNormalized) {
   const resourceid = to.params.id as string;
   const { getOptionResourceById } = useMainDataStore();
-  const { currentGameId } = useUserConfigStore();
-  const resource = getOptionResourceById(currentGameId, resourceid);
+  const userConfigStore = useUserConfigStore();
+  const resource = getOptionResourceById(userConfigStore.currentGameId, resourceid);
   if (resource === undefined) {
     myLogger.error(`Resource: [${resourceid}] not exits.`);
     return { name: ROUTE_404 };
