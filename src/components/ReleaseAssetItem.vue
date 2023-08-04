@@ -80,16 +80,19 @@ function download(url: string) {
       if (oldAssetFullId !== assetFullId) return;
       myLogger.debug(`Start download ${oldAssetFullId}.`);
     });
-    window.electronApi.onDownloadProgress((assetFullId, progress) => {
-      if (oldAssetFullId !== assetFullId) return;
-      myLogger.debug(`${oldAssetFullId} percentage: ${progress.percent}`);
-      percentage.value = progress.percent * 100;
-    });
+    const removeProgress = window.electronApi.onDownloadProgress(
+      (assetFullId, progress) => {
+        if (oldAssetFullId !== assetFullId) return;
+        myLogger.debug(`${oldAssetFullId} percentage: ${progress.percent}`);
+        percentage.value = progress.percent * 100;
+      }
+    );
     window.electronApi.onDownloadCompleted((assetFullId, file) => {
       if (oldAssetFullId !== assetFullId) return;
       myLogger.debug(
         `Complete download:[${file.filename}] path:[${file.path}] url:[${file.url}].`
       );
+      removeProgress();
       mainDataStore.updateAssetStatus(
         userConfigStore.currentGameId,
         resourceId.value,

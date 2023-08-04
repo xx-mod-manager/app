@@ -3,11 +3,13 @@ import { LogEvent, LoggerHook, StringifyAndParseObjectsHook, createLogger } from
 
 const ElectronLogHook: LoggerHook = {
   async run(event: LogEvent) {
-    if (process !== undefined && process.type === 'browser') {
-      const { BrowserWindow } = await import('electron');
-      const win = BrowserWindow.getFocusedWindow();
-      win?.webContents.send('onElectronLog', event);
-    }
+    try {
+      if (process != undefined && process.type === 'browser') {
+        const { BrowserWindow } = await import('electron');
+        const win = BrowserWindow.getFocusedWindow();
+        win?.webContents.send('onElectronLog', event);
+      }
+    } catch (_) { }
   }
 };
 

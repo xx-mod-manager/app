@@ -8,7 +8,7 @@ export interface IElectronAPI {
 
   downloadAndUnzipAsset: (url: string, gameId: string, resourceId: string, assetId: string) => void,
   onDownloadStarted: (callback: (assetFullId: string) => void) => void,
-  onDownloadProgress: (callback: (assetFullId: string, progress: Progress) => void) => void,
+  onDownloadProgress: (callback: (assetFullId: string, progress: Progress) => void) => () => void,
   onDownloadCompleted: (callback: (assetFullId: string, file: File) => void) => void,
 
   formatInstallAndDownloadDir: (installPath: string, gameId: string) => Promise<Map<string, string[]>>,

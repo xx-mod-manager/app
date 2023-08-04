@@ -250,12 +250,12 @@ export const useMainDataStore = defineStore(KEY_MAIN_DATA, () => {
 
   function updateAssetStatus(gameId: string, resourceId: string, assetId: string, newStatus: AssetStatus) {
     const oldAsset = getAssetById(gameId, resourceId, assetId);
-    if (oldAsset.status == newStatus) {
+    if (oldAsset.status === newStatus) {
       myLogger.warn(`resource: ${resourceId} asset: ${assetId}, status:${oldAsset.status} miss update.`);
       return;
     }
+    myLogger.debug(`Game: [${gameId}] resource: [${resourceId}] asset: [${assetId}], [${oldAsset.status}] => [${newStatus}]`);
     oldAsset.status = newStatus;
-    myLogger.debug(`Game: [${gameId}] resource: [${resourceId}] asset: [${assetId}], [${oldAsset.status}] => $[{newStatus}]`);
   }
 
   return {
