@@ -51,7 +51,7 @@ const { releaseAsset, resourceId } = toRefs(props);
 const userConfigStore = useUserConfigStore();
 const mainDataStore = useMainDataStore();
 const { humanStorageSize } = format;
-const assetId = parseResourceAndVersion(releaseAsset.value.name).assetId;
+const { assetId } = parseResourceAndVersion(releaseAsset.value.name);
 const downloading = ref(false);
 const percentage = ref(0);
 
@@ -68,24 +68,28 @@ function existLocalAssetByNodeId(assetNodeId: string) {
 function download(url: string) {
   if (window.electronApi != undefined) {
     downloading.value = true;
-    window.electronApi.downloadResource(
+    window.electronApi.downloadAndUnzipAsset(
       url,
       userConfigStore.currentGameId,
       resourceId.value,
       assetId
     );
-    window.electronApi.onDownloadStarted((url) =>
-      myLogger.debug(`start download ${url}.`)
-    );
-    window.electronApi.onDownloadProgress((progress) => {
-      myLogger.debug(`url:${progress.url}.\npercentage: ${progress.percent}`);
+    const oldAssetFullId =
+      userConfigStore.currentGameId + '-' + resourceId.value + '-' + assetId;
+    window.electronApi.onDownloadStarted((assetFullId) => {
+      if (oldAssetFullId !== assetFullId) return;
+      myLogger.debug(`Start download ${oldAssetFullId}.`);
+    });
+    window.electronApi.onDownloadProgress((assetFullId, progress) => {
+      if (oldAssetFullId !== assetFullId) return;
+      myLogger.debug(`${oldAssetFullId} percentage: ${progress.percent}`);
       percentage.value = progress.percent * 100;
     });
-    window.electronApi.onDownloadCompleted((file) => {
+    window.electronApi.onDownloadCompleted((assetFullId, file) => {
+      if (oldAssetFullId !== assetFullId) return;
       myLogger.debug(
-        `complete download ${file.filename}.\npath: ${file.path}.\nurl:${file.url}.`
+        `Complete download:[${file.filename}] path:[${file.path}] url:[${file.url}].`
       );
-      const assetId = parseResourceAndVersion(file.filename).assetId;
       mainDataStore.updateAssetStatus(
         userConfigStore.currentGameId,
         resourceId.value,

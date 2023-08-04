@@ -1,25 +1,31 @@
 import { contextBridge, ipcRenderer } from 'electron';
-import { File } from 'electron-dl';
-import { MyProgress } from 'src/class/Types';
+import { File, Progress } from 'electron-dl';
 import { LogEvent } from 'vue-logger-plugin';
 
 contextBridge.exposeInMainWorld('electronApi', {
   onElectronLog: (callback: (logEvent: LogEvent) => void) => ipcRenderer.on('onElectronLog', (_, logEvent) => callback(logEvent)),
-  downloadResource: (url: string, gameId: string, resourceId: string, version: string) => ipcRenderer.send('downloadResource', url, gameId, resourceId, version),
-  onDownloadStarted: (callback: (url: string) => void) => ipcRenderer.on('onDownloadStarted', (_, url) => callback(url)),
-  onDownloadProgress: (callback: (progress: MyProgress) => void) => ipcRenderer.on('onDownloadProgress', (_, progress) => callback(progress)),
-  onDownloadCompleted: (callback: (file: File) => void) => ipcRenderer.on('onDownloadCompleted', (_, file) => callback(file)),
-  syncInstallDownloadResource: (installPath: string, gameId: string) => ipcRenderer.invoke('syncInstallDownloadResource', installPath, gameId),
-  initDownloadedResources: (gameId: string) => ipcRenderer.invoke('initDownloadedResources', gameId),
-  initInstealledResources: (installPath: string) => ipcRenderer.invoke('initInstealledResources', installPath),
-  deleteAsset: (gameId: string, resourceId: string, version: string) => ipcRenderer.invoke('deleteAsset', gameId, resourceId, version),
-  installAsset: (installPath: string, gameId: string, resourceId: string, version: string) => ipcRenderer.invoke('installAsset', installPath, gameId, resourceId, version),
-  uninstallAsset: (installPath: string, resourceId: string, version: string) => ipcRenderer.invoke('uninstallAsset', installPath, resourceId, version),
-  getIntallPathBySteamAppWithRelativePath: (steamAppName: string, relativePath: string) => ipcRenderer.invoke('getIntallPathBySteamAppWithRelativePath', steamAppName, relativePath),
-  requestDeviceCode: () => ipcRenderer.invoke('requestDeviceCode'),
-  requestDeviceTokenInfo: (deviceCode: string) => ipcRenderer.invoke('requestDeviceTokenInfo', deviceCode),
+
+
+  downloadAndUnzipAsset: (url: string, gameId: string, resourceId: string, assetId: string) => ipcRenderer.send('downloadAndUnzipAsset', url, gameId, resourceId, assetId),
+  onDownloadStarted: (callback: (assetFullId: string) => void) => ipcRenderer.on('onDownloadStarted', (_, url) => callback(url)),
+  onDownloadProgress: (callback: (assetFullId: string, progress: Progress) => void) => ipcRenderer.on('onDownloadProgress', (_, assetFullId, progress) => callback(assetFullId, progress)),
+  onDownloadCompleted: (callback: (assetFullId: string, file: File) => void) => ipcRenderer.on('onDownloadCompleted', (_, assetFullId, file) => callback(assetFullId, file)),
+
+  formatInstallAndDownloadDir: (installPath: string, gameId: string) => ipcRenderer.invoke('formatInstallAndDownloadDir', installPath, gameId),
+  getDownloadedAssets: (gameId: string) => ipcRenderer.invoke('getDownloadedAssets', gameId),
+  getInstealledAssets: (installPath: string) => ipcRenderer.invoke('getInstealledAssets', installPath),
+  deleteAsset: (gameId: string, resourceId: string, assetId: string) => ipcRenderer.invoke('deleteAsset', gameId, resourceId, assetId),
+  installAsset: (installPath: string, gameId: string, resourceId: string, assetId: string) => ipcRenderer.invoke('installAsset', installPath, gameId, resourceId, assetId),
+  uninstallAsset: (installPath: string, resourceId: string, assetId: string) => ipcRenderer.invoke('uninstallAsset', installPath, resourceId, assetId),
   selectDirectory: (title: string) => ipcRenderer.invoke('selectDirectory', title),
   selectDirectoryAddAsset: (gameId: string, title: string) => ipcRenderer.invoke('selectDirectoryAddAsset', gameId, title),
   selectZipFileAddAsset: (gameId: string, title: string) => ipcRenderer.invoke('selectZipFileAddAsset', gameId, title),
-  addAssetByPaths: (gameId: string, paths: string[]) => ipcRenderer.invoke('addAssetByPaths', gameId, paths),
+  addAssetsByPaths: (gameId: string, paths: string[]) => ipcRenderer.invoke('addAssetsByPaths', gameId, paths),
+
+
+  requestDeviceCode: () => ipcRenderer.invoke('requestDeviceCode'),
+  requestDeviceTokenInfo: (deviceCode: string) => ipcRenderer.invoke('requestDeviceTokenInfo', deviceCode),
+
+
+  getIntallPathBySteamAppWithRelativePath: (steamAppName: string, relativePath: string) => ipcRenderer.invoke('getIntallPathBySteamAppWithRelativePath', steamAppName, relativePath),
 });

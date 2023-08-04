@@ -185,13 +185,6 @@ export interface Resource {
   assets: Asset[];
 }
 
-export interface MyProgress {
-  url: string;
-  percent: number;
-  transferredBytes: number;
-  totalBytes: number;
-}
-
 export interface ApiGame {
   id: string
   name: string

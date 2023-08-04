@@ -41,7 +41,7 @@ const props = defineProps<{ deviceCodeInfo: GithubDeviceCodeInfo }>();
 const { deviceCodeInfo } = toRefs(props);
 const { update: updateAuthData } = useAuthDataStore();
 const { push: routerPush } = useRouter();
-const { notify } = useQuasar();
+const { notify, loading } = useQuasar();
 const interval = ref(Number(deviceCodeInfo.value.interval) + 5);
 
 copyToClipboard(deviceCodeInfo.value.user_code).then(() =>
@@ -62,6 +62,7 @@ function openGithub() {
 }
 
 async function requestDeviceFlowToken(deviceCode: string) {
+  loading.show({ message: '获取Token中', delay: 400 });
   try {
     const token = await requestDeviceTokenInfo(deviceCode);
     await updateAuthData(token);
@@ -74,6 +75,8 @@ async function requestDeviceFlowToken(deviceCode: string) {
       icon: matPriorityHigh,
     });
     routerPush({ name: ROUTE_LOGIN });
+  } finally {
+    loading.hide();
   }
 }
 </script>

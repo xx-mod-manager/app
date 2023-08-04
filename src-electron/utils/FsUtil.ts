@@ -9,18 +9,17 @@ export function getGameResourcesPath(gameId: string): string {
   return pathJoin(app.getPath('userData'), PATH_RESOURCE, gameId);
 }
 
-export async function initResourcesDir(resourcesPath: string) {
-  myLogger.debug(`initResourcesDir: ${resourcesPath}.`);
+export async function checkResourcesDir(resourcesPath: string) {
   if (existsSync(resourcesPath)) {
     const assetsStat = await fsPromises.stat(resourcesPath);
     if (!assetsStat.isDirectory()) {
-      await fsPromises.unlink(resourcesPath);
+      await fsPromises.rm(resourcesPath, { force: true });
       await fsPromises.mkdir(resourcesPath);
-      myLogger.warn('Resources dir not directory, Recreate.');
+      myLogger.warn(`Resources dir [${resourcesPath}] is not directory, Recreate.`);
     }
   } else {
     await fsPromises.mkdir(resourcesPath, { recursive: true });
-    myLogger.debug('Create resources dir.');
+    myLogger.debug(`Create resources dir [${resourcesPath}].`);
   }
 }
 
@@ -47,10 +46,18 @@ function getDefaultSteamAppsPath(): string | undefined {
   return undefined;
 }
 
-export function getDefaultSteamAppPath(steamAppName: string): string | undefined {
+function getDefaultSteamAppPath(steamAppName: string): string | undefined {
   const appsPath = getDefaultSteamAppsPath();
   if (appsPath == undefined) return undefined;
   const appPath = pathJoin(appsPath, steamAppName);
   if (existsSync(appPath)) return appPath;
   return undefined;
+}
+
+export function getIntallPathBySteamAppWithRelativePath(steamAppName: string, relativePath: string) {
+  const appPath = getDefaultSteamAppPath(steamAppName);
+  if (appPath == undefined) return undefined;
+  const installPath = pathJoin(appPath, relativePath);
+  if (existsSync(installPath)) return installPath;
+  else return undefined;
 }

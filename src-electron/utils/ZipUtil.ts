@@ -32,5 +32,4 @@ export function unzipAsset(zipPath: string, resourcesPath: string, resourceId: s
       zip.extractEntryTo(entry.entryName, targetPath, false, true);
     }
   }
-
 }

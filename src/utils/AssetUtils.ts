@@ -4,7 +4,7 @@ import { parseResourceAndVersion } from './StringUtils';
 
 
 export function newOnlineAsset(apiReleaseAsset: ApiReleaseAsset): Asset {
-  const assetId = parseResourceAndVersion(apiReleaseAsset.name).assetId;
+  const { assetId } = parseResourceAndVersion(apiReleaseAsset.name);
   const asset: Asset = {
     id: assetId,
     status: AssetStatus.NONE,

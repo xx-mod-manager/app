@@ -128,7 +128,7 @@ async function dropEvent(event: DragEvent) {
     paths.push(event.dataTransfer.files[index].path);
   }
   myLogger.debug(`Trigger dropEvent ${paths.join('\n\t')}`);
-  const assets = await window.electronApi.addAssetByPaths(
+  const assets = await window.electronApi.addAssetsByPaths(
     userConfigStore.currentGameId,
     paths
   );
@@ -156,14 +156,14 @@ async function refresh(done?: () => void) {
   refreshing.value = true;
   if (userConfigStore.currentGameInstallPath !== undefined) {
     myLogger.debug('Start sync install download resources.');
-    await window.electronApi.syncInstallDownloadResource(
+    await window.electronApi.formatInstallAndDownloadDir(
       userConfigStore.currentGameInstallPath,
       userConfigStore.currentGameId
     );
     myLogger.debug('Start update installed asset.');
     mainDataStore.updateInstalledAsset(
       userConfigStore.currentGameId,
-      await window.electronApi.initInstealledResources(
+      await window.electronApi.getInstealledAssets(
         userConfigStore.currentGameInstallPath
       )
     );
@@ -174,9 +174,7 @@ async function refresh(done?: () => void) {
   }
   mainDataStore.updateDonwloadedAsset(
     userConfigStore.currentGameId,
-    await window.electronApi.initDownloadedResources(
-      userConfigStore.currentGameId
-    )
+    await window.electronApi.getDownloadedAssets(userConfigStore.currentGameId)
   );
   tempDataStore.updateResourceManage(userConfigStore.currentGameId);
   refreshing.value = false;

@@ -56,7 +56,7 @@ tempDataStore.initLocalGames(mainDataStore.games);
 
 if (!navigator.onLine) {
   tempDataStore.online = false;
-  myLogger.warn('To offline status.');
+  myLogger.info('To offline status.');
 }
 
 async function refresh() {
@@ -69,8 +69,8 @@ async function refresh() {
       tempDataStore.updateTempGames(onlineGames);
       await userConfigStore.updateOnlineGames(onlineGames);
     } else {
-      myLogger.warn(
-        `Skip refresh games, online: [${tempDataStore.online}], isLogin: [${authDataStore.isLogin}]`
+      myLogger.info(
+        `Skip refresh games, online:[${tempDataStore.online}], isLogin:[${authDataStore.isLogin}]`
       );
     }
   } catch (error) {
