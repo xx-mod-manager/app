@@ -1,4 +1,4 @@
-import { app, BrowserWindow, nativeTheme, shell } from 'electron';
+import { app, BrowserWindow, nativeTheme, session, shell } from 'electron';
 import electronDl from 'electron-dl';
 import os from 'os';
 import path from 'path';
@@ -57,7 +57,7 @@ function createWindow() {
   });
 }
 
-app.whenReady().then(init).then(createWindow);
+app.whenReady().then(installDevTools).then(init).then(createWindow);
 
 app.on('window-all-closed', () => {
   if (platform !== 'darwin') {
@@ -70,3 +70,14 @@ app.on('activate', () => {
     createWindow();
   }
 });
+
+async function installDevTools() {
+  const DEV_TOOLS_PATH = '/home/jiawei/.config/google-chrome/Default/Extensions/nhdogjmejiglipccpnnnanhbledajbpd/6.5.0_0';
+  if (process.env.DEBUGGING) {
+    try {
+      await session.defaultSession.loadExtension(DEV_TOOLS_PATH);
+    } catch (e) {
+      console.error('Vue Devtools failed to install:', e);
+    }
+  }
+}
