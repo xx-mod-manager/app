@@ -63,7 +63,7 @@ export function registerGlobalGuards(router: Router) {
                 expires_in: 0,
                 refresh_token_expires_in: 0,
               });
-              authDataStore.update(newToken);
+              await authDataStore.update(newToken);
             }
           } catch (e) {
             myLogger.error('Refresh token fail.', e);

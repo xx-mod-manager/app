@@ -22,7 +22,7 @@
     :label="interval > 0 ? `请等待 ${interval} 秒` : '我已输入验证码'"
     :disable="interval > 0"
     no-caps
-    @click="requestCode(deviceCodeInfo.device_code)"
+    @click="requestDeviceFlowToken(deviceCodeInfo.device_code)"
   />
 </template>
 
@@ -39,14 +39,13 @@ import { useRouter } from 'vue-router';
 
 const props = defineProps<{ deviceCodeInfo: GithubDeviceCodeInfo }>();
 const { deviceCodeInfo } = toRefs(props);
-
-const authDataStore = useAuthDataStore();
-const router = useRouter();
-const quasar = useQuasar();
+const { update: updateAuthData } = useAuthDataStore();
+const { push: routerPush } = useRouter();
+const { notify } = useQuasar();
 const interval = ref(Number(deviceCodeInfo.value.interval) + 5);
 
 copyToClipboard(deviceCodeInfo.value.user_code).then(() =>
-  quasar.notify({
+  notify({
     message: '已复制验证码',
   })
 );
@@ -62,19 +61,19 @@ function openGithub() {
   window.open(deviceCodeInfo.value.verification_uri, '_blank');
 }
 
-function requestCode(deviceCode: string) {
-  requestDeviceTokenInfo(deviceCode)
-    .then((token) => {
-      authDataStore.update(token).then(() => router.push({ name: ROUTE_HOME }));
-    })
-    .catch(() => {
-      myLogger.debug('get device token info fail, route to login.');
-      quasar.notify({
-        type: 'warning',
-        message: '获取 Github Device Token失败!',
-        icon: matPriorityHigh,
-      });
-      router.push({ name: ROUTE_LOGIN });
+async function requestDeviceFlowToken(deviceCode: string) {
+  try {
+    const token = await requestDeviceTokenInfo(deviceCode);
+    await updateAuthData(token);
+    routerPush({ name: ROUTE_HOME });
+  } catch (error) {
+    myLogger.error('Request device token info fail.', error);
+    notify({
+      type: 'warning',
+      message: '获取Github设备Token失败!',
+      icon: matPriorityHigh,
     });
+    routerPush({ name: ROUTE_LOGIN });
+  }
 }
 </script>

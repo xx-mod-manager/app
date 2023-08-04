@@ -27,7 +27,7 @@
   <q-space />
 
   <q-btn
-    v-if="quasar.platform.is.electron"
+    v-if="platform.is.electron"
     class="q-mt-xl"
     color="white"
     text-color="blue"
@@ -41,22 +41,16 @@
 <script setup lang="ts">
 import { useQuasar } from 'quasar';
 import { URL_GITHUB_REQUEST_CODE } from 'src/api/GithubAuthApi';
-import { myLogger } from 'src/boot/logger';
 import { ROUTE_HOME } from 'src/router';
 
 defineEmits(['deviceAuth']);
 
-const quasar = useQuasar();
+const { loading, platform } = useQuasar();
 
-const availableOauth = !(
-  quasar.platform.is.electron || quasar.platform.is.capacitor
-);
-myLogger.debug(
-  `availableOauth: ${availableOauth}, electron: ${quasar.platform.is.electron}, capacitor: ${quasar.platform.is.capacitor}`
-);
+const availableOauth = !(platform.is.electron || platform.is.capacitor);
 
 function oauth() {
-  quasar.loading.show({ message: '跳转Github授权页面...', delay: 400 });
+  loading.show({ message: '跳转Github授权页面...', delay: 400 });
   window.open(URL_GITHUB_REQUEST_CODE, '_self');
 }
 </script>

@@ -3,7 +3,7 @@
 
   <q-space />
 
-  <q-spinner color="white" size="10rem" :thickness="10" />
+  <q-spinner color="white" size="7rem" :thickness="10" />
 </template>
 
 <script setup lang="ts">
@@ -18,25 +18,23 @@ import { useRouter } from 'vue-router';
 
 const props = defineProps<{ code: string }>();
 const { code } = toRefs(props);
+const { update: updateAuthData } = useAuthDataStore();
+const { push: routerPush } = useRouter();
+const { notify } = useQuasar();
 
-const authDataStore = useAuthDataStore();
-const router = useRouter();
-const quasar = useQuasar();
-
-getTokenInfo(code.value as string)
+getTokenInfo(code.value)
   .then((token) => {
-    authDataStore.update(token).then(() => {
-      myLogger.debug('route home');
-      router.push({ name: ROUTE_HOME });
+    updateAuthData(token).then(() => {
+      routerPush({ name: ROUTE_HOME });
     });
   })
-  .catch(() => {
-    myLogger.debug('get token info fail, route to login.');
-    quasar.notify({
+  .catch((error) => {
+    myLogger.error('Get token info fail.', error);
+    notify({
       type: 'warning',
-      message: '获取 Github Token失败!',
+      message: '获取Github Token失败!',
       icon: matPriorityHigh,
     });
-    router.push({ name: ROUTE_LOGIN });
+    routerPush({ name: ROUTE_LOGIN });
   });
 </script>

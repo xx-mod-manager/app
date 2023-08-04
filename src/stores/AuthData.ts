@@ -1,10 +1,8 @@
 import { defineStore } from 'pinia';
+import { getCurrentAuthor } from 'src/api/GraphqlApi';
 import { myLogger } from 'src/boot/logger';
 import { GithubTokenInfo } from 'src/class/GithubTokenInfo';
-import { Loading } from 'quasar';
-import { refreshTokenInfo } from 'src/api/GithubAuthApi';
 import { Author } from 'src/class/Types';
-import { getCurrentAuthor } from 'src/api/GraphqlApi';
 
 const KEY_AUTH_DATA = 'AuthData';
 
@@ -37,13 +35,11 @@ export const useAuthDataStore = defineStore(KEY_AUTH_DATA, {
     },
 
     token: (stata) => `bearer ${stata.authInfo?.accessToken}`,
-
-    refresh_token: (stata) => stata.authInfo?.refreshTokenDate,
   },
 
   actions: {
     async update(githubTokenInfo: GithubTokenInfo) {
-      myLogger.debug('Update AuthDataStore start.');
+      myLogger.debug('Update auth data token.');
       const current = Date.now();
       const accessTokenDate = current + githubTokenInfo.expires_in * 1000;
       const refreshTokenDate = current + githubTokenInfo.refresh_token_expires_in * 1000;
@@ -55,40 +51,17 @@ export const useAuthDataStore = defineStore(KEY_AUTH_DATA, {
       };
       await this.refreshAuthor();
       localStorage.setItem(KEY_AUTH_DATA, JSON.stringify(this.$state));
-      myLogger.debug('this and this.stat', this, this.$state);
-      myLogger.debug('Update AuthDataStore end.');
     },
 
     async refreshAuthor() {
+      myLogger.debug('Refresh auth data author.');
       const newAuthor = await getCurrentAuthor();
       this.user = newAuthor;
-      myLogger.debug(`new author name is ${newAuthor.login}.`);
-    },
-
-    async refreshToken() {
-      myLogger.debug('refreshToken start.');
-      if ((!this.activeToken) && this.activeRefreshToken) {
-        Loading.show({ message: '刷新Github Token中...', delay: 400 });
-        try {
-          if (this.authInfo) {
-            const newToken = await refreshTokenInfo({
-              access_token: this.authInfo.accessToken,
-              refresh_token: this.authInfo.refreshToken,
-              expires_in: 0,
-              refresh_token_expires_in: 0
-            });
-            this.update(newToken);
-          }
-        } finally {
-          Loading.hide();
-        }
-      } else {
-        myLogger.debug('not need refresh token');
-      }
+      myLogger.debug(`New author login: [${newAuthor.login}].`);
     },
 
     clear() {
-      myLogger.warn('Clear login info.');
+      myLogger.info('Clear login info.');
       this.$state.authInfo = undefined;
       this.$state.user = undefined;
       localStorage.removeItem(KEY_AUTH_DATA);
@@ -96,10 +69,9 @@ export const useAuthDataStore = defineStore(KEY_AUTH_DATA, {
   },
 });
 
-function init(): AuthData {
+function init(): State {
   if (import.meta.env.VITE_GITHUB_TOKEN) {
-    // Dev test
-    myLogger.warn('use persion access token...');
+    myLogger.info('Use Dev persion access token.');
     const expiryDate = new Date(2999, 1).getTime();
     return {
       authInfo: {
@@ -116,16 +88,16 @@ function init(): AuthData {
   }
   const localAuthDataJson = localStorage.getItem(KEY_AUTH_DATA);
   if (localAuthDataJson) {
-    const localAuthData = JSON.parse(localAuthDataJson) as AuthData;
-    myLogger.debug('resume auth data from localStorage.');
+    const localAuthData = JSON.parse(localAuthDataJson) as State;
+    myLogger.debug('Resume auth data from localStorage.');
     return localAuthData;
   } else {
-    myLogger.debug('auth data miss from localStorage.');
+    myLogger.debug('New auth data.');
     return { authInfo: undefined, user: undefined };
   }
 }
 
-interface AuthData {
+interface State {
   authInfo?: AuthInfo
   user?: Author
 }
