@@ -1,3 +1,4 @@
+import { myLogger } from 'src/boot/logger';
 import { useMainDataStore } from 'src/stores/MainData';
 import { useUserConfigStore } from 'src/stores/UserConfig';
 import { RouteRecordRaw } from 'vue-router';
@@ -19,7 +20,7 @@ const routes: RouteRecordRaw[] = [
       else return { name: ROUTE_RESOURCE_MANAGE };
     },
     component: () => import('layouts/MainLayout.vue'),
-    meta: { requiresAuth: true },
+    meta: { requireLogin: true },
     children: [
       { path: 'resource', name: ROUTE_RESOURCES, component: () => import('pages/resource/ResourcesPage.vue') },
       {
@@ -28,18 +29,19 @@ const routes: RouteRecordRaw[] = [
           const resourceid = to.params.id as string;
           const resource = useMainDataStore().getOptionResourceById(useUserConfigStore().currentGameId, resourceid);
           if (resource === undefined) {
+            myLogger.error(`Resource: [${resourceid}] not exits.`);
             return { name: ROUTE_404 };
           }
           return true;
         }
       },
-      { path: 'resource-manage', name: ROUTE_RESOURCE_MANAGE, component: () => import('pages/resource/ResourceManagePage.vue'), meta: { requiresAuth: false } }
+      { path: 'resource-manage', name: ROUTE_RESOURCE_MANAGE, component: () => import('pages/resource/ResourceManagePage.vue'), meta: { requireLogin: false } }
     ],
   },
   {
     path: '/login',
     name: ROUTE_LOGIN,
-    meta: { requiresNotAuth: true },
+    meta: { requireNotLogin: true },
     component: () => import('layouts/LoginLayout.vue'),
   },
   {

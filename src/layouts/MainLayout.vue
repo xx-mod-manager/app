@@ -83,8 +83,7 @@ async function refresh() {
 }
 
 onMounted(() => {
-  if (tempDataStore.needRefreshGames()) {
-    refresh();
-  }
+  if (tempDataStore.needRefreshGames()) refresh();
+  else initEnd.value = true;
 });
 </script>

@@ -7,7 +7,7 @@ import { matPriorityHigh } from '@quasar/extras/material-icons';
 import { useQuasar } from 'quasar';
 import { useRouter } from 'vue-router';
 import { myLogger } from './boot/logger';
-import { ROUTE_LOGIN } from './router';
+import { ROUTE_HOME, ROUTE_LOGIN } from './router';
 import { useAuthDataStore } from './stores/AuthData';
 
 const router = useRouter();
@@ -42,15 +42,15 @@ if (window.electronApi !== undefined) {
 }
 
 router.beforeResolve((to) => {
-  if (to.meta.requiresAuth) {
+  if (to.meta.requireLogin) {
     if (!authDataStore.isLogin) {
-      myLogger.debug('beforeResolve not auth, route to login');
-      return { name: 'login' };
+      myLogger.info(`Route ${to.name?.toString()} require login.`);
+      return { name: ROUTE_LOGIN };
     }
-  } else if (to.meta.requiresNotAuth) {
+  } else if (to.meta.requireNotLogin) {
     if (authDataStore.isLogin) {
-      myLogger.debug('beforeResolve alread auth, route to home');
-      return { name: 'home' };
+      myLogger.info(`Route ${to.name?.toString()} require not login.`);
+      return { name: ROUTE_HOME };
     }
   }
 });

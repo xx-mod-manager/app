@@ -114,6 +114,7 @@ onBeforeRouteUpdate((to) => {
     resourceid
   );
   if (resource === undefined) {
+    myLogger.error(`Resource: [${resourceid}] not exits.`);
     return { name: ROUTE_404 };
   }
   return true;
