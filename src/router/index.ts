@@ -5,8 +5,7 @@ import {
   createWebHashHistory,
   createWebHistory,
 } from 'vue-router';
-import registerGlobalGuards from './guards';
-import routes from './routes';
+import routes, { registerGlobalGuards } from './routes';
 
 /*
  * If not building with SSR mode, you can

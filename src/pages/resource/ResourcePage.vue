@@ -38,7 +38,7 @@ import { myLogger } from 'src/boot/logger';
 import DiscussionPart from 'src/components/DiscussionPart.vue';
 import ReplyBox from 'src/components/ReplyBox.vue';
 import ResourceCard from 'src/components/ResourceCard.vue';
-import { ROUTE_404 } from 'src/router';
+import { existResourceGuard } from 'src/router/routes';
 import { useMainDataStore } from 'src/stores/MainData';
 import { useTempDataStore } from 'src/stores/TempData';
 import { useUserConfigStore } from 'src/stores/UserConfig';
@@ -107,16 +107,5 @@ onMounted(() => {
   }
 });
 
-onBeforeRouteUpdate((to) => {
-  const resourceid = to.params.id as string;
-  const resource = useMainDataStore().getOptionResourceById(
-    useUserConfigStore().currentGameId,
-    resourceid
-  );
-  if (resource === undefined) {
-    myLogger.error(`Resource: [${resourceid}] not exits.`);
-    return { name: ROUTE_404 };
-  }
-  return true;
-});
+onBeforeRouteUpdate(existResourceGuard);
 </script>

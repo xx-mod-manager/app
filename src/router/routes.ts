@@ -1,7 +1,11 @@
+import { matPriorityHigh } from '@quasar/extras/material-icons';
+import { Loading, Notify } from 'quasar';
+import { refreshTokenInfo } from 'src/api/GithubAuthApi';
 import { myLogger } from 'src/boot/logger';
+import { useAuthDataStore } from 'src/stores/AuthData';
 import { useMainDataStore } from 'src/stores/MainData';
 import { useUserConfigStore } from 'src/stores/UserConfig';
-import { RouteRecordRaw } from 'vue-router';
+import { RouteLocationNormalized, RouteRecordRaw, Router } from 'vue-router';
 
 export const ROUTE_HOME = 'home';
 export const ROUTE_RESOURCES = 'resources';
@@ -25,15 +29,7 @@ const routes: RouteRecordRaw[] = [
       { path: 'resource', name: ROUTE_RESOURCES, component: () => import('pages/resource/ResourcesPage.vue') },
       {
         path: 'resource/:id', name: ROUTE_RESOURCE, component: () => import('pages/resource/ResourcePage.vue'),
-        beforeEnter: (to) => {
-          const resourceid = to.params.id as string;
-          const resource = useMainDataStore().getOptionResourceById(useUserConfigStore().currentGameId, resourceid);
-          if (resource === undefined) {
-            myLogger.error(`Resource: [${resourceid}] not exits.`);
-            return { name: ROUTE_404 };
-          }
-          return true;
-        }
+        beforeEnter: existResourceGuard
       },
       { path: 'resource-manage', name: ROUTE_RESOURCE_MANAGE, component: () => import('pages/resource/ResourceManagePage.vue'), meta: { requireLogin: false } }
     ],
@@ -50,5 +46,61 @@ const routes: RouteRecordRaw[] = [
     component: () => import('layouts/ErrorNotFoundLayout.vue'),
   },
 ];
+
+export function registerGlobalGuards(router: Router) {
+  router.beforeEach(async (to) => {
+    const authDataStore = useAuthDataStore();
+    if (to.meta.requireLogin) {
+      if (!authDataStore.activeToken) {
+        if (authDataStore.activeRefreshToken) {
+          myLogger.debug('Refresh token.');
+          Loading.show({ message: '刷新Github Token中...', delay: 400 });
+          try {
+            if (authDataStore.authInfo) {
+              const newToken = await refreshTokenInfo({
+                access_token: authDataStore.authInfo.accessToken,
+                refresh_token: authDataStore.authInfo.refreshToken,
+                expires_in: 0,
+                refresh_token_expires_in: 0,
+              });
+              authDataStore.update(newToken);
+            }
+          } catch (e) {
+            myLogger.error('Refresh token fail.', e);
+            Notify.create({
+              type: 'warning',
+              message: '刷新Github Token失败!',
+              icon: matPriorityHigh,
+            });
+            authDataStore.clear();
+            return { name: ROUTE_LOGIN };
+          } finally {
+            Loading.hide();
+          }
+        } else {
+          myLogger.info(`Route ${to.name?.toString()} require login.`);
+          return { name: ROUTE_LOGIN };
+        }
+      }
+    } else if (to.meta.requireNotLogin) {
+      if (authDataStore.isLogin) {
+        myLogger.info(`Route ${to.name?.toString()} require not login.`);
+        return { name: ROUTE_HOME };
+      }
+    }
+  });
+}
+
+export function existResourceGuard(to: RouteLocationNormalized) {
+  const resourceid = to.params.id as string;
+  const { getOptionResourceById } = useMainDataStore();
+  const { currentGameId } = useUserConfigStore();
+  const resource = getOptionResourceById(currentGameId, resourceid);
+  if (resource === undefined) {
+    myLogger.error(`Resource: [${resourceid}] not exits.`);
+    return { name: ROUTE_404 };
+  }
+  return true;
+}
 
 export default routes;
