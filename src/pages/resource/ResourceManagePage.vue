@@ -90,7 +90,7 @@ async function addLocalAssetByDirectory() {
       '选择Mod文件夹'
     );
     if (result !== undefined) {
-      mainDataStore.addLocalAsset(
+      mainDataStore.addDownloadAsset(
         userConfigStore.currentGameId,
         result.resource,
         result.assetId
@@ -109,7 +109,7 @@ async function addLocalAssetByZip() {
       '选择Mod压缩包'
     );
     if (result !== undefined) {
-      mainDataStore.addLocalAsset(
+      mainDataStore.addDownloadAsset(
         userConfigStore.currentGameId,
         result.resource,
         result.assetId
@@ -133,7 +133,7 @@ async function dropEvent(event: DragEvent) {
     paths
   );
   for (const asset of assets) {
-    mainDataStore.addLocalAsset(
+    mainDataStore.addDownloadAsset(
       userConfigStore.currentGameId,
       asset.resource,
       asset.assetId

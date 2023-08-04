@@ -5,7 +5,7 @@
       :loading="downloading"
       :percentage="percentage"
       :label="releaseAsset.name"
-      :disable="existLocal(releaseAsset.id)"
+      :disable="existLocalAssetByNodeId(releaseAsset.id)"
       no-caps
       @click="download(releaseAsset.downloadUrl)"
     >
@@ -55,7 +55,7 @@ const assetId = parseResourceAndVersion(releaseAsset.value.name).assetId;
 const downloading = ref(false);
 const percentage = ref(0);
 
-function existLocal(assetNodeId: string) {
+function existLocalAssetByNodeId(assetNodeId: string) {
   return existLocalAsset(
     mainDataStore.getAssetByNodeId(
       userConfigStore.currentGameId,
