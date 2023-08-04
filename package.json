@@ -1,8 +1,8 @@
 {
-  "name": "github-resource-community",
+  "name": "xx-mod-manager",
   "version": "0.0.1",
-  "description": "Based on github resource community.",
-  "productName": "github resource community",
+  "description": "Based on github's mod manager.",
+  "productName": "xx mod manager",
   "author": "zhangwei.webber@gmail.com",
   "private": true,
   "scripts": {

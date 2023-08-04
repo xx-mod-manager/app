@@ -1,6 +1,6 @@
-# github resource community (github-resource-community)
+# xx mod manager (xx-mod-manager)
 
-Based on github resource community.
+Based on github's mod manager.
 
 ## Install the dependencies
 ```bash

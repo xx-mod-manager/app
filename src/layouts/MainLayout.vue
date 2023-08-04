@@ -13,6 +13,8 @@
         />
 
         <q-toolbar-title> XX Mod Manager </q-toolbar-title>
+
+        <div>v{{ version }}</div>
       </q-toolbar>
     </q-header>
 
@@ -42,6 +44,7 @@ import { useMainDataStore } from 'src/stores/MainData';
 import { useTempDataStore } from 'src/stores/TempData';
 import { useUserConfigStore } from 'src/stores/UserConfig';
 import { onMounted, ref } from 'vue';
+import { version } from '../../package.json';
 
 const quasar = useQuasar();
 const userConfigStore = useUserConfigStore();
