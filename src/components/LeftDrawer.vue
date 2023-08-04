@@ -10,7 +10,9 @@
           {{ authDataStore.user?.login }}
         </div>
 
-        <q-btn flat label="退出" @click="logout" />
+        <q-btn v-if="authDataStore.isLogin" flat label="退出" @click="logout" />
+
+        <q-btn v-else flat label="登录" @click="login" />
       </div>
     </q-img>
 
@@ -55,6 +57,10 @@ const quasar = useQuasar();
 
 function logout() {
   authDataStore.clear();
+  router.push({ name: ROUTE_LOGIN });
+}
+
+function login() {
   router.push({ name: ROUTE_LOGIN });
 }
 </script>
