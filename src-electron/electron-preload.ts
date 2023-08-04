@@ -1,8 +1,10 @@
 import { contextBridge, ipcRenderer } from 'electron';
 import { File } from 'electron-dl';
 import { MyProgress } from 'src/class/Types';
+import { LogEvent } from 'vue-logger-plugin';
 
 contextBridge.exposeInMainWorld('electronApi', {
+  onElectronLog: (callback: (logEvent: LogEvent) => void) => ipcRenderer.on('onElectronLog', (_, logEvent) => callback(logEvent)),
   downloadResource: (url: string, gameId: string, resourceId: string, version: string) => ipcRenderer.send('downloadResource', url, gameId, resourceId, version),
   onDownloadStarted: (callback: (url: string) => void) => ipcRenderer.on('onDownloadStarted', (_, url) => callback(url)),
   onDownloadProgress: (callback: (progress: MyProgress) => void) => ipcRenderer.on('onDownloadProgress', (_, progress) => callback(progress)),

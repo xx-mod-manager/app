@@ -1,8 +1,10 @@
 import { File } from 'electron-dl';
 import { GithubDeviceCodeInfo, GithubTokenInfo } from 'src/class/GithubTokenInfo';
 import { MyProgress } from 'src/class/Types';
+import { LogEvent } from 'vue-logger-plugin';
 
 export interface IElectronAPI {
+  onElectronLog: (callback: (logEvent: LogEvent) => void) => void,
   downloadResource: (url: string, gameId: string, resourceId: string, version: string) => void,
   onDownloadStarted: (callback: (url: string) => void) => void,
   onDownloadProgress: (callback: (progress: MyProgress) => void) => void,
