@@ -76,7 +76,6 @@ import { ROUTE_RESOURCE_IMPORT } from 'src/router/routes';
 import { useMainDataStore } from 'src/stores/MainData';
 import { useTempDataStore } from 'src/stores/TempData';
 import { useUserConfigStore } from 'src/stores/UserConfig';
-import { existLocalResource } from 'src/utils/ResourceUtils';
 import { computed, onMounted, ref } from 'vue';
 
 const userConfigStore = useUserConfigStore();
@@ -86,9 +85,9 @@ const refreshing = ref(false);
 const fabVisibility = ref(false);
 
 const resources = computed(() =>
-  mainDataStore
-    .getGameById(userConfigStore.currentGameId)
-    .resources.filter(existLocalResource)
+  Array.from(
+    mainDataStore.getGameById(userConfigStore.currentGameId).resources.values()
+  ).filter((it) => it.isLocal())
 );
 
 async function addLocalAssetByDirectory() {

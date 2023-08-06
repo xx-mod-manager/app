@@ -156,35 +156,6 @@ export interface ApiResource {
   discussionNodeId: string
 }
 
-export enum AssetStatus {
-  NONE, DOWNLOADED, INTALLED
-}
-
-export interface Asset {
-  id: string;
-  status: AssetStatus;
-  nodeId?: string;
-  downloadUrl?: string;
-}
-
-export interface Resource {
-  id: string;
-  name: string;
-  description: string;
-  cover?: string;
-  author: string;
-  category: string;
-  tags: string[];
-  repo: string;
-  created: number;
-  updated: number;
-  downloadCount: number;
-  releaseNodeId: string;
-  discussionNodeId: string;
-  existOnline: boolean;
-  assets: Asset[];
-}
-
 export interface ApiGame {
   id: string
   name: string
@@ -193,17 +164,6 @@ export interface ApiGame {
   relativeRootInstallPath?: string
   autoMkRelativeRootInstallPath?: boolean
   icon?: string
-}
-
-export interface Game {
-  id: string
-  name: string
-  dataRepo: string
-  steamAppName?: string
-  relativeRootInstallPath?: string
-  autoMkRelativeRootInstallPath?: boolean
-  icon?: string
-  resources: Resource[]
 }
 
 export interface OnlineResourceDetail {

@@ -67,3 +67,12 @@ export function findArrayIndexByFieldId<T extends { id: unknown }>(array: T[], i
 export function findArrayIndexById<T extends { id: Z }, Z>(array: T[], id: Z): number {
   return array.findIndex(i => i.id == id);
 }
+
+export function clearArray(array: unknown[]) {
+  array.splice(0, array.length);
+}
+
+export function replaceArray<T>(array: T[], newArray: T[]) {
+  clearArray(array);
+  array.push(...newArray);
+}

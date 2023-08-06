@@ -27,7 +27,9 @@
 
     <q-card-section>
       <ReleaseAssetItem
-        v-for="assetFile in filterReleaseAsset(releaseAssets)"
+        v-for="assetFile in releaseAssets.filter(
+          (it) => it.contentType == 'application/zip'
+        )"
         :key="assetFile.id"
         :resource-id="resource.id"
         :release-asset="assetFile"
@@ -37,8 +39,8 @@
 </template>
 <script setup lang="ts">
 import 'github-markdown-css';
-import { Discussion, ReleaseAsset, Resource } from 'src/class/Types';
-import { filterReleaseAsset } from 'src/utils/AssetUtils';
+import { Resource } from 'src/class/Resource';
+import { Discussion, ReleaseAsset } from 'src/class/Types';
 import AuthorSpan from './AuthorSpan.vue';
 import DateFormatSpan from './DateFormatSpan.vue';
 import ReactionGroupSpan from './ReactionGroupSpan.vue';

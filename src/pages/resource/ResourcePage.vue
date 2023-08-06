@@ -42,7 +42,6 @@ import { existResourceGuard } from 'src/router/routes';
 import { useMainDataStore } from 'src/stores/MainData';
 import { useTempDataStore } from 'src/stores/TempData';
 import { useUserConfigStore } from 'src/stores/UserConfig';
-import { newOnlineAsset } from 'src/utils/AssetUtils';
 import { computed, onMounted, ref } from 'vue';
 import { onBeforeRouteUpdate, useRoute } from 'vue-router';
 
@@ -55,11 +54,13 @@ const resourceid = route.params.id as string;
 const currentGameId = computed(() => userConfigStore.currentGameId);
 const resource = mainDataStore.getResourceById(currentGameId.value, resourceid);
 const detail = computed(() => {
-  return tempDataStore.getOptionResourceDetail(
-    currentGameId.value,
-    resource.releaseNodeId,
-    resource.discussionNodeId
-  );
+  return resource.releaseNodeId != null && resource.discussionNodeId != null
+    ? tempDataStore.getOptionResourceDetail(
+        currentGameId.value,
+        resource.releaseNodeId,
+        resource.discussionNodeId
+      )
+    : undefined;
 });
 
 async function refresh(done?: () => void) {
@@ -75,10 +76,8 @@ async function refresh(done?: () => void) {
     currentGameId.value,
     await getResourceDetail(resource)
   );
-  mainDataStore.updateOnlineAssets(
-    currentGameId.value,
-    resourceid,
-    newResourceDetail.release.releaseAssets.nodes.map(newOnlineAsset)
+  resource.updateApiReleaseAssets(
+    newResourceDetail.release.releaseAssets.nodes
   );
   refreshing.value = false;
   if (done) done();

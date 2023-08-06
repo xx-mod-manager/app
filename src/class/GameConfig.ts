@@ -1,5 +1,4 @@
 import { notNull } from 'src/utils/CommentUtils';
-import { Game } from './Types';
 
 export class GameConfig {
   readonly id: string;
@@ -18,7 +17,7 @@ export class GameConfig {
     }
   }
 
-  static async newByGame(game: Game): Promise<GameConfig> {
+  static async newByGame(game: { id: string, steamAppName?: string, relativeRootInstallPath?: string }): Promise<GameConfig> {
     const gameConfig = new GameConfig({ id: game.id });
     gameConfig.updateInstallPath(game);
     return gameConfig;

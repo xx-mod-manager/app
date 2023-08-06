@@ -16,7 +16,7 @@
 
 <script setup lang="ts">
 import { matDownload } from '@quasar/extras/material-icons';
-import { Resource } from 'src/class/Types';
+import { Resource } from 'src/class/Resource';
 
 defineProps<{ resource: Resource }>();
 </script>

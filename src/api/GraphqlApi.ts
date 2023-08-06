@@ -2,7 +2,8 @@ import { api } from 'boot/axios';
 import { myLogger } from 'src/boot/logger';
 import 'src/class/GraphqlClass';
 import { ApiAuthor, ApiComment, ApiDiscussion, ApiReactionGroup, ApiRelease, GraphArray, arrayPackage, getFragment } from 'src/class/GraphqlClass';
-import { Author, Comment, Discussion, PageArray, ReactionGroup, Release, Resource } from 'src/class/Types';
+import { Resource } from 'src/class/Resource';
+import { Author, Comment, Discussion, PageArray, ReactionGroup, Release } from 'src/class/Types';
 import { useAuthDataStore } from 'src/stores/AuthData';
 
 const GRAPHQL_URL = 'https://api.github.com/graphql';
@@ -18,7 +19,7 @@ async function sendGraphql(query: string) {
   return response.data.data;
 }
 
-function joinQuery(arg: string[]): string {
+function joinQuery(arg: (string | undefined)[]): string {
   return `["${arg.join('\",\"')}"]`;
 }
 

@@ -20,13 +20,18 @@
 
         <br />
 
-        <span>更新于: <DateFormatSpan :date="resource.updated" /></span>
+        <span
+          >更新于:
+          <DateFormatSpan
+            v-if="resource.updated != null"
+            :date="resource.updated"
+        /></span>
       </div>
     </q-card-section>
   </q-card>
 </template>
 <script setup lang="ts">
-import { Resource } from 'src/class/Types';
+import { Resource } from 'src/class/Resource';
 import { ROUTE_RESOURCE } from 'src/router';
 import { toRefs } from 'vue';
 import { useRouter } from 'vue-router';

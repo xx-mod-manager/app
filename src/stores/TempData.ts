@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia';
+import { Game } from 'src/class/Game';
 import { ApiComment } from 'src/class/GraphqlClass';
-import { Comment, Discussion, Game, OnlineResourceDetail, Release } from 'src/class/Types';
+import { ApiGame, Comment, Discussion, OnlineResourceDetail, Release } from 'src/class/Types';
 import { deleteArrayItemByFieldId, findArrayItemByFieldId, findArrayItemById } from 'src/utils/ArrayUtils';
 import { ref } from 'vue';
 
@@ -89,9 +90,9 @@ export const useTempDataStore = defineStore(KEY_TEMP_DATA, () => {
     });
   }
 
-  function updateTempGames(onlineGames: Game[]) {
+  function updateApiGames(apiGames: ApiGame[]) {
     gamesDate.value = Date.now();
-    for (const onlineGame of onlineGames) {
+    for (const onlineGame of apiGames) {
       const oldOnlineGame = getOptionTempGameById(onlineGame.id);
       if (oldOnlineGame === undefined) {
         games.value.push({ id: onlineGame.id, releases: [], discussions: [] });
@@ -162,7 +163,7 @@ export const useTempDataStore = defineStore(KEY_TEMP_DATA, () => {
     needRefreshResourceManage,
     needRefreshResource,
     initLocalGames,
-    updateTempGames,
+    updateApiGames,
     updateResources,
     updateResourceManage,
     updateResourceDetail,

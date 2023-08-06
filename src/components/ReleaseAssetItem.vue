@@ -34,10 +34,10 @@
 import { matDownload } from '@quasar/extras/material-icons';
 import { format } from 'quasar';
 import { myLogger } from 'src/boot/logger';
-import { AssetStatus, ReleaseAsset } from 'src/class/Types';
+import { AssetStatus } from 'src/class/Asset';
+import { ReleaseAsset } from 'src/class/Types';
 import { useMainDataStore } from 'src/stores/MainData';
 import { useUserConfigStore } from 'src/stores/UserConfig';
-import { existLocalAsset } from 'src/utils/AssetUtils';
 import { parseResourceAndVersion } from 'src/utils/StringUtils';
 import { ref, toRefs } from 'vue';
 import DateFormatSpan from './DateFormatSpan.vue';
@@ -56,13 +56,13 @@ const downloading = ref(false);
 const percentage = ref(0);
 
 function existLocalAssetByNodeId(assetNodeId: string) {
-  return existLocalAsset(
-    mainDataStore.getAssetByNodeId(
+  return mainDataStore
+    .getAssetByNodeId(
       userConfigStore.currentGameId,
       resourceId.value,
       assetNodeId
     )
-  );
+    .isLocal();
 }
 
 function download(url: string) {

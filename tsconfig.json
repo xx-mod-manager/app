@@ -2,6 +2,12 @@
   "extends": "@quasar/app-vite/tsconfig-preset",
   "compilerOptions": {
     "strict": true,
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "strictFunctionTypes": true,
+    "strictPropertyInitialization": true,
+    "noImplicitThis": true,
+    "alwaysStrict": true,
     "baseUrl": "./",
     "lib": [
       "DOM",

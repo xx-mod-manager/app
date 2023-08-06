@@ -3,7 +3,7 @@
     <q-card-section class="row">
       <div>
         <router-link
-          v-if="resource.existOnline"
+          v-if="resource.isOnline()"
           :to="{ name: ROUTE_RESOURCE, params: { id: resource.id } }"
         >
           <span class="text-h6 ellipsis-3-lines">{{ resource.name }}</span>
@@ -62,11 +62,11 @@
 <script setup lang="ts">
 import { matExpandLess, matExpandMore } from '@quasar/extras/material-icons';
 import { myLogger } from 'src/boot/logger';
-import { AssetStatus, Resource } from 'src/class/Types';
+import { AssetStatus } from 'src/class/Asset';
+import { Resource } from 'src/class/Resource';
 import { ROUTE_RESOURCE } from 'src/router';
 import { useMainDataStore } from 'src/stores/MainData';
 import { useUserConfigStore } from 'src/stores/UserConfig';
-import { existLocalAsset, existOnlineAsset } from 'src/utils/AssetUtils';
 import { computed, ref, toRefs } from 'vue';
 //TODO download btn
 const userConfigStore = useUserConfigStore();
@@ -77,10 +77,10 @@ const props = defineProps<{
 const { resource } = toRefs(props);
 const expand = ref(false);
 const assets = computed(() => {
-  return resource.value.assets.filter(existLocalAsset);
+  return Array.from(resource.value.assets.values()).filter((i) => i.isLocal());
 });
 const installed = computed(() => {
-  for (const asset of resource.value.assets) {
+  for (const asset of resource.value.assets.values()) {
     if (asset.status == AssetStatus.INTALLED) return true;
   }
   return false;
@@ -116,7 +116,7 @@ async function deleteAsset(assetId: string) {
     resource.value.id,
     assetId
   );
-  if (existOnlineAsset(asset)) {
+  if (asset.isOnline()) {
     mainDataStore.updateAssetStatus(
       userConfigStore.currentGameId,
       resource.value.id,
@@ -133,7 +133,7 @@ async function deleteAsset(assetId: string) {
 }
 
 async function deleteResource() {
-  for (const asset of resource.value.assets)
+  for (const asset of resource.value.assets.values())
     if (asset.status != AssetStatus.NONE) deleteAsset(asset.id);
 }
 
@@ -142,7 +142,7 @@ async function installAsset(assetId: string) {
     selectGameInstallPath();
     return;
   }
-  const oldStatus = resource.value.assets.find((i) => i.id == assetId)?.status;
+  const oldStatus = resource.value.assets.get(assetId)?.status;
   if (oldStatus == AssetStatus.NONE) {
     throw Error(`${resource.value.id}/${assetId} is not download.`);
   } else if (oldStatus == AssetStatus.INTALLED) {
@@ -168,7 +168,7 @@ async function uninstallAsset(assetId: string) {
     selectGameInstallPath();
     return;
   }
-  const oldStatus = resource.value.assets.find((i) => i.id == assetId)?.status;
+  const oldStatus = resource.value.assets.get(assetId)?.status;
   if (oldStatus != AssetStatus.INTALLED) {
     throw Error(`${resource.value.id}/${assetId} is not install.`);
   }
@@ -190,7 +190,7 @@ async function uninstallResource() {
     selectGameInstallPath();
     return;
   }
-  for (const i of resource.value.assets)
+  for (const i of resource.value.assets.values())
     if (i.status == AssetStatus.INTALLED) uninstallAsset(i.id);
 }
 </script>

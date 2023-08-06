@@ -1,13 +1,13 @@
 import { defineStore } from 'pinia';
 import { myLogger } from 'src/boot/logger';
-import { Asset, AssetStatus, Game, Resource } from 'src/class/Types';
+import { Asset, AssetStatus } from 'src/class/Asset';
+import { Game } from 'src/class/Game';
+import { Resource } from 'src/class/Resource';
+import { ApiGame } from 'src/class/Types';
 import { ImpResource } from 'src/class/imp';
-import { deleteArrayItem, deleteArrayItemByFieldId, deleteArrayItemById, deleteArrayItemsByFileId, findArrayItemByFieldId, findArrayItemById } from 'src/utils/ArrayUtils';
-import { existLocalAsset, existOnlineAsset, newDownloadedAsset, newInstalledAsset, updateOnlineAsset } from 'src/utils/AssetUtils';
+import { deleteArrayItem, deleteArrayItemByFieldId } from 'src/utils/ArrayUtils';
 import { notNull } from 'src/utils/CommentUtils';
-import { existLocalGame, updateOnlineGame } from 'src/utils/GameUtils';
 import { reviver } from 'src/utils/JsonUtil';
-import { existLocalResource, newLocalResource, updateOnlineResource } from 'src/utils/ResourceUtils';
 import { ref } from 'vue';
 
 const KEY_MAIN_DATA = 'mainData';
@@ -17,23 +17,23 @@ export const useMainDataStore = defineStore(KEY_MAIN_DATA, () => {
   const games = ref(initState.games);
 
   function getOptionGameById(gameId: string): Game | undefined {
-    return findArrayItemById(games.value, gameId);
+    return games.value.get(gameId);
   }
 
   function getGameById(gameId: string): Game {
-    return notNull(findArrayItemById(games.value, gameId), `Game: [${gameId}]`);
+    return notNull(getOptionGameById(gameId), `Game: [${gameId}]`);
   }
 
   function getOptionResourceById(gameId: string, resourceId: string): Resource | undefined {
-    return getOptionGameById(gameId)?.resources.find((it) => it.id == resourceId);
+    return getOptionGameById(gameId)?.resources.get(resourceId);
   }
 
   function getResourceById(gameId: string, resourceId: string): Resource {
-    return notNull(getOptionGameById(gameId)?.resources.find((it) => it.id == resourceId), `Game: [${gameId}], Resource: [${resourceId}]`);
+    return notNull(getOptionGameById(gameId)?.resources.get(resourceId), `Game: [${gameId}], Resource: [${resourceId}]`);
   }
 
   function getOptionAssetById(gameId: string, resourceId: string, assetId: string): Asset | undefined {
-    return getOptionResourceById(gameId, resourceId)?.assets.find(i => i.id == assetId);
+    return getOptionResourceById(gameId, resourceId)?.assets.get(assetId);
   }
 
   function getAssetById(gameId: string, resourceId: string, assetId: string): Asset {
@@ -43,7 +43,7 @@ export const useMainDataStore = defineStore(KEY_MAIN_DATA, () => {
   }
 
   function getAssetByNodeId(gameId: string, resourceId: string, assetNodeId: string): Asset {
-    const asset = getOptionResourceById(gameId, resourceId)?.assets.find(i => i.nodeId == assetNodeId);
+    const asset = Array.from(getOptionResourceById(gameId, resourceId)?.assets.values() ?? []).find(i => i.nodeId == assetNodeId);
     if (asset == undefined) throw Error(`Miss ${gameId}/${resourceId}/(NodeId)${assetNodeId}`);
     return asset;
   }
@@ -51,64 +51,32 @@ export const useMainDataStore = defineStore(KEY_MAIN_DATA, () => {
   function deleteAssetById(gameId: string, resourceId: string, assetId: string) {
     const assets = getOptionResourceById(gameId, resourceId)?.assets;
     if (assets == undefined) return false;
-    deleteArrayItemById(assets, assetId);
+    assets.delete(assetId);
     return true;
   }
 
-  function updateOnlineGames(onlineGames: Game[]) {
-    myLogger.debug(`Update online games: ${onlineGames.map(i => i.id).toString()}`);
-    const deletedGames: Game[] = [...games.value.filter(i => !existLocalGame(i))];
-    onlineGames.forEach((onlineGame) => {
-      const oldGame = getOptionGameById(onlineGame.id);
+  function updateApiGames(apiGames: ApiGame[]) {
+    const deletedGames: Game[] = Array.from(games.value.values()).filter(i => !i.isLocal());
+
+    games.value.forEach((it) => it.clearApiGameData());
+
+    apiGames.forEach((apiGame) => {
+      const oldGame = getOptionGameById(apiGame.id);
       if (oldGame != undefined) {
-        updateOnlineGame(oldGame, onlineGame);
-        deleteArrayItemByFieldId(deletedGames, onlineGame);
+        myLogger.debug(`Update game [${oldGame.id}]`);
+        oldGame.updateApiGame(apiGame);
+        deleteArrayItemByFieldId(deletedGames, apiGame);
       } else {
-        games.value.push(onlineGame);
-        myLogger.debug(`Add new online game [${onlineGame.id}]`);
+        myLogger.debug(`Add game [${apiGame.id}]`);
+        const newGame = new Game(apiGame);
+        games.value.set(newGame.id, newGame);
       }
     });
-    myLogger.debug(`Delete games: ${deletedGames.map(i => i.id).toString()}`);
-    deleteArrayItemsByFileId(games.value, deletedGames);
-  }
 
-  function updateOnlineResources(gameId: string, onlineResources: Resource[]) {
-    myLogger.debug(`Update game:[${gameId}] online resources: ${onlineResources.map(i => i.id).toString()}`);
-    const oldResources = getGameById(gameId).resources;
-    const deletedResources: Resource[] = [...oldResources.filter(i => !existLocalResource(i))];
-    oldResources.forEach((it) => it.existOnline = false);
-    onlineResources.forEach((onlineResource) => {
-      const oldResource = findArrayItemByFieldId(oldResources, onlineResource);
-      if (oldResource) {
-        updateOnlineResource(oldResource, onlineResource);
-        deleteArrayItemByFieldId(deletedResources, onlineResource);
-      } else {
-        oldResources.push(onlineResource);
-        myLogger.debug(`Add new online resource [${onlineResource.id}]`);
-      }
-    });
-    myLogger.debug(`Delete game:[${gameId}] online resources: ${deletedResources.map(i => i.id).toString()}`);
-    deleteArrayItemsByFileId(oldResources, deletedResources);
-  }
-
-  function updateOnlineAssets(gameId: string, resourceId: string, onlineAssets: Asset[]) {
-    myLogger.debug(`Update game:[${gameId}] resource:[${resourceId}] online assets: ${onlineAssets.map(i => i.id).toString()}`);
-    const oldAssets = getResourceById(gameId, resourceId).assets;
-    const deletedAssets = oldAssets.filter(i => !existLocalAsset(i));
-    oldAssets.forEach((it) => it.downloadUrl = undefined);
-    onlineAssets.forEach((onlineAsset) => {
-      const oldAsset = findArrayItemByFieldId(oldAssets, onlineAsset);
-      if (oldAsset) {
-        myLogger.debug(`Update online asset [${onlineAsset.id}]`);
-        updateOnlineAsset(oldAsset, onlineAsset);
-        deleteArrayItemByFieldId(deletedAssets, onlineAsset);
-      } else {
-        oldAssets.push(onlineAsset);
-        myLogger.debug(`Add new online asset [${onlineAsset.id}]`);
-      }
-    });
-    myLogger.debug(`Delete game:[${gameId}] resource:[${resourceId}] online assets: ${onlineAssets.map(i => i.id).toString()}`);
-    deleteArrayItemsByFileId(oldAssets, deletedAssets);
+    for (const deletedGame of deletedGames) {
+      myLogger.debug(`Delete game [${deletedGame.id}]`);
+      games.value.delete(deletedGame.id);
+    }
   }
 
   function updateInstalledAsset(gameId: string, installedAssets: Map<string, string[]>) {
@@ -133,13 +101,13 @@ export const useMainDataStore = defineStore(KEY_MAIN_DATA, () => {
       });
     });
     installedAssets.forEach((assetIds, resourceId) => {
-      let resource = oldResources.find(i => i.id == resourceId);
+      let resource = oldResources.get(resourceId);
       if (resource == undefined) {
-        resource = newLocalResource(resourceId);
-        oldResources.push(resource);
+        resource = Resource.newById(resourceId);
+        oldResources.set(resource.id, resource);
       }
       for (const assetId of assetIds) {
-        const asset = resource.assets.find(i => i.id == assetId);
+        const asset = resource.assets.get(assetId);
         if (asset != undefined) {
           if (asset.status == AssetStatus.NONE || asset.status == AssetStatus.DOWNLOADED) {
             asset.status = AssetStatus.INTALLED;
@@ -150,17 +118,18 @@ export const useMainDataStore = defineStore(KEY_MAIN_DATA, () => {
               deleteArrayItem(uninstalledVersions, assetId);
           }
         } else {
-          resource.assets.push(newInstalledAsset(assetId));
+          const newAsset = new Asset({ id: assetId, status: AssetStatus.INTALLED });
+          resource.assets.set(newAsset.id, newAsset);
           myLogger.debug(`Add new install asset [${resource.id}][${assetId}]`);
         }
       }
     });
     uninstalledAssets.forEach((assetIds, resourceId) => {
-      const resource = oldResources.find(i => i.id == resourceId);
+      const resource = oldResources.get(resourceId);
       if (resource != undefined) {
         assetIds.forEach((assetId) => {
           myLogger.debug(`Uninstall asset [${resourceId}]/[${assetId}]`);
-          const asset = resource.assets.find(i => i.id == assetId);
+          const asset = resource.assets.get(assetId);
           if (asset)
             asset.status = AssetStatus.DOWNLOADED;
         });
@@ -190,13 +159,13 @@ export const useMainDataStore = defineStore(KEY_MAIN_DATA, () => {
       });
     });
     downloadedAssets.forEach((assetIds, resourceId) => {
-      let resource = oldResources.find(i => i.id == resourceId);
+      let resource = oldResources.get(resourceId);
       if (resource == undefined) {
-        resource = newLocalResource(resourceId);
-        oldResources.push(resource);
+        resource = Resource.newById(resourceId);
+        oldResources.set(resource.id, resource);
       }
       for (const assetId of assetIds) {
-        const asset = resource.assets.find(i => i.id == assetId);
+        const asset = resource.assets.get(assetId);
         if (asset != undefined) {
           if (asset.status == AssetStatus.NONE) {
             asset.status = AssetStatus.DOWNLOADED;
@@ -207,23 +176,24 @@ export const useMainDataStore = defineStore(KEY_MAIN_DATA, () => {
               deleteArrayItem(deletedVersions, assetId);
           }
         } else {
-          resource.assets.push(newDownloadedAsset(assetId));
+          const newAsset = new Asset({ id: assetId, status: AssetStatus.DOWNLOADED });
+          resource.assets.set(newAsset.id, newAsset);
           myLogger.debug(`Add new download asset [${resource.id}][${assetId}]`);
         }
       }
     });
     deletedAssets.forEach((assetIds, resourceId) => {
-      const resource = oldResources.find(i => i.id == resourceId);
+      const resource = oldResources.get(resourceId);
       if (resource != undefined) {
         assetIds.forEach((assetId) => {
-          const asset = resource.assets.find(i => i.id == assetId);
+          const asset = resource.assets.get(assetId);
           if (asset) {
-            if (existOnlineAsset(asset)) {
+            if (asset.isOnline()) {
               myLogger.debug(`Update none status asset [${resourceId}]/[${assetId}]`);
               asset.status = AssetStatus.NONE;
             } else {
               myLogger.debug(`Delete asset [${resourceId}]/[${assetId}]`);
-              deleteArrayItemByFieldId(resource.assets, asset);
+              resource.assets.delete(asset.id);
             }
           }
         });
@@ -234,18 +204,19 @@ export const useMainDataStore = defineStore(KEY_MAIN_DATA, () => {
   function addDownloadAsset(gameId: string, resourceId: string, assetId: string) {
     const oldResources = getGameById(gameId)?.resources;
     myLogger.debug(`Add new local asset [${resourceId}]:[${assetId}]`);
-    let resource = oldResources.find(i => i.id == resourceId);
+    let resource = oldResources.get(resourceId);
     if (resource == undefined) {
-      resource = newLocalResource(resourceId);
-      oldResources.push(resource);
+      resource = Resource.newById(resourceId);
+      oldResources.set(resource.id, resource);
     }
-    const asset = resource.assets.find(i => i.id == assetId);
+    const asset = resource.assets.get(assetId);
     if (asset != undefined) {
       if (asset.status == AssetStatus.NONE) {
         asset.status = AssetStatus.DOWNLOADED;
       }
     } else {
-      resource.assets.push(newDownloadedAsset(assetId));
+      const newAsset = new Asset({ id: assetId, status: AssetStatus.DOWNLOADED });
+      resource.assets.set(newAsset.id, newAsset);
     }
   }
 
@@ -253,21 +224,22 @@ export const useMainDataStore = defineStore(KEY_MAIN_DATA, () => {
     const oldResources = getGameById(gameId)?.resources;
     let resource = getOptionResourceById(gameId, impResource.id);
     if (resource == null) {
-      resource = newLocalResource(impResource.id);
+      resource = Resource.newById(impResource.id);
       resource.name = impResource.name;
       resource.description = impResource.description;
       resource.author = impResource.author;
       resource.category = impResource.category;
-      oldResources.push(resource);
+      oldResources.set(resource.id, resource);
     }
     for (const impAsset of impResource.assets.values()) {
-      const asset = resource.assets.find(i => i.id == impAsset.id);
+      const asset = resource.assets.get(impAsset.id);
       if (asset != undefined) {
         if (asset.status === AssetStatus.NONE) {
           asset.status = AssetStatus.DOWNLOADED;
         }
       } else {
-        resource.assets.push({ id: impAsset.id, status: AssetStatus.DOWNLOADED });
+        const newAsset = new Asset({ id: impAsset.id, status: AssetStatus.DOWNLOADED });
+        resource.assets.set(newAsset.id, newAsset);
       }
     }
   }
@@ -292,9 +264,7 @@ export const useMainDataStore = defineStore(KEY_MAIN_DATA, () => {
     getAssetById,
     getAssetByNodeId,
     deleteAssetById,
-    updateOnlineGames,
-    updateOnlineResources,
-    updateOnlineAssets,
+    updateApiGames,
     updateInstalledAsset,
     updateDonwloadedAsset,
     addDownloadAsset,
@@ -304,7 +274,7 @@ export const useMainDataStore = defineStore(KEY_MAIN_DATA, () => {
 }, { persistence: true });
 
 interface State {
-  games: Game[]
+  games: Map<string, Game>
 }
 
 function init(): State {
@@ -316,15 +286,16 @@ function init(): State {
   } else {
     myLogger.debug('New MainDataStore.');
     return {
-      games: [{
-        id: 'csti',
-        name: 'Card Survival: Tropical Island',
-        dataRepo: 'HeYaoDaDa/GrcData-csti',
-        steamAppName: 'Card Survival Tropical Island',
-        relativeRootInstallPath: './BepInEx/plugins',
-        autoMkRelativeRootInstallPath: false,
-        resources: []
-      }]
+      games: new Map([
+        ['csti', new Game({
+          id: 'csti',
+          name: 'Card Survival: Tropical Island',
+          dataRepo: 'HeYaoDaDa/GrcData-csti',
+          steamAppName: 'Card Survival Tropical Island',
+          relativeRootInstallPath: './BepInEx/plugins',
+          autoMkRelativeRootInstallPath: false
+        })]
+      ])
     };
   }
 }

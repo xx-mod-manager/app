@@ -54,8 +54,8 @@ const authDataStore = useAuthDataStore();
 const leftDrawerOpen = ref(!quasar.platform.is.mobile);
 const initEnd = ref(false);
 
-userConfigStore.addGames(mainDataStore.games);
-tempDataStore.initLocalGames(mainDataStore.games);
+userConfigStore.addGames(Array.from(mainDataStore.games.values()));
+tempDataStore.initLocalGames(Array.from(mainDataStore.games.values()));
 
 if (!navigator.onLine) {
   tempDataStore.online = false;
@@ -68,9 +68,9 @@ async function refresh() {
   try {
     if (tempDataStore.online && authDataStore.isLogin) {
       const onlineGames = await requestGames();
-      mainDataStore.updateOnlineGames(onlineGames);
-      tempDataStore.updateTempGames(onlineGames);
-      await userConfigStore.addGames(onlineGames);
+      mainDataStore.updateApiGames(onlineGames);
+      tempDataStore.updateApiGames(onlineGames);
+      await userConfigStore.addApiGames(onlineGames);
     } else {
       myLogger.info(
         `Skip refresh games, online:[${tempDataStore.online}], isLogin:[${authDataStore.isLogin}]`

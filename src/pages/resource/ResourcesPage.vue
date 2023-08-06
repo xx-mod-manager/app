@@ -42,7 +42,7 @@ const resources = computed(
 const searchText = ref('');
 
 const fuse = new Fuse(
-  resources.value.filter((it) => it.existOnline),
+  Array.from(resources.value.values()).filter((it) => it.isOnline()),
   {
     keys: ['name', 'description'],
   }
@@ -51,7 +51,7 @@ const fuse = new Fuse(
 const result = computed(() =>
   searchText.value.length > 0
     ? fuse.search(searchText.value).map((it) => it.item)
-    : resources.value.filter((it) => it.existOnline)
+    : Array.from(resources.value.values()).filter((it) => it.isOnline())
 );
 
 async function refresh(done?: () => void) {
@@ -62,13 +62,11 @@ async function refresh(done?: () => void) {
   }
   myLogger.debug('Start refresh resources.');
   if (!refreshing.value) refreshing.value = true;
-  const onlineResources = await requestGameResources(
-    mainDataStore.getGameById(userConfigStore.currentGameId).dataRepo
-  );
-  mainDataStore.updateOnlineResources(
-    userConfigStore.currentGameId,
-    onlineResources
-  );
+  const currentGame = mainDataStore.getGameById(userConfigStore.currentGameId);
+  const dataRepo = currentGame.dataRepo;
+  const onlineResources =
+    dataRepo != undefined ? await requestGameResources(dataRepo) : [];
+  currentGame.updateApiResources(onlineResources);
   tempDataStore.updateResources(userConfigStore.currentGameId);
   if (refreshing.value) refreshing.value = false;
   if (done) done();
