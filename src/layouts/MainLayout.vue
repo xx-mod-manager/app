@@ -54,8 +54,9 @@ const authDataStore = useAuthDataStore();
 const leftDrawerOpen = ref(!quasar.platform.is.mobile);
 const initEnd = ref(false);
 
-userConfigStore.addGames(Array.from(mainDataStore.games.values()));
-tempDataStore.initLocalGames(Array.from(mainDataStore.games.values()));
+const oldGames = Array.from(mainDataStore.games.values());
+userConfigStore.addGames(oldGames);
+tempDataStore.initLocalGames(oldGames);
 
 if (!navigator.onLine) {
   tempDataStore.online = false;

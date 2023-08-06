@@ -13,7 +13,7 @@ export class Game {
   icon?: string;
   readonly resources: Map<string, Resource> = new Map;
 
-  constructor({ id, name, dataRepo, steamAppName, relativeRootInstallPath, autoMkRelativeRootInstallPath, icon }: {
+  constructor({ id, name, dataRepo, steamAppName, relativeRootInstallPath, autoMkRelativeRootInstallPath, icon, resources = new Map }: {
     id: string;
     name: string;
     dataRepo?: string;
@@ -21,6 +21,7 @@ export class Game {
     relativeRootInstallPath?: string;
     autoMkRelativeRootInstallPath?: boolean;
     icon?: string;
+    resources?: Map<string, Resource>
   }) {
     this.id = id;
     this.name = name;
@@ -29,6 +30,9 @@ export class Game {
     this.relativeRootInstallPath = relativeRootInstallPath;
     this.autoMkRelativeRootInstallPath = autoMkRelativeRootInstallPath;
     this.icon = icon;
+    for (const [resourceId, resource] of resources) {
+      this.resources.set(resourceId, resource);
+    }
   }
 
   clearApiGameData() {

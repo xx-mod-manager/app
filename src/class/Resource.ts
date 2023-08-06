@@ -21,8 +21,22 @@ export class Resource {
   discussionNodeId?: string;
   readonly assets: Map<string, Asset> = new Map;
 
-  constructor({ id, name, description, cover, author, category, repo, created, updated, downloadCount, releaseNodeId, discussionNodeId }
-    : { id: string, name: string, description: string, cover?: string, author: string, category: string, repo?: string, created: number, updated?: number, downloadCount?: number, releaseNodeId?: string, discussionNodeId?: string }) {
+  constructor({ id, name, description, cover, author, category, repo, created, updated, downloadCount, releaseNodeId, discussionNodeId, assets = new Map }
+    : {
+      id: string,
+      name: string,
+      description: string,
+      cover?: string,
+      author: string,
+      category: string,
+      repo?: string,
+      created: number,
+      updated?: number,
+      downloadCount?: number,
+      releaseNodeId?: string,
+      discussionNodeId?: string,
+      assets?: Map<string, Asset>,
+    }) {
     this.id = id;
     this.name = name;
     this.description = description;
@@ -35,6 +49,9 @@ export class Resource {
     this.downloadCount = downloadCount;
     this.releaseNodeId = releaseNodeId;
     this.discussionNodeId = discussionNodeId;
+    for (const [assetId, asset] of assets) {
+      this.assets.set(assetId, asset);
+    }
   }
 
   isOnline(): boolean {

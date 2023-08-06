@@ -1,4 +1,3 @@
-import { notNull } from 'src/utils/CommentUtils';
 
 export class GameConfig {
   readonly id: string;
@@ -10,10 +9,8 @@ export class GameConfig {
   }
 
   async updateInstallPath({ steamAppName, relativeRootInstallPath }: { steamAppName?: string, relativeRootInstallPath?: string }) {
-    const electronApi = notNull(window.electronApi, 'ElectronApi');
-
-    if (this.installPath == undefined && steamAppName != undefined && relativeRootInstallPath != undefined) {
-      this.installPath = await electronApi.getIntallPathBySteamAppWithRelativePath(steamAppName, relativeRootInstallPath);
+    if (this.installPath == undefined && steamAppName != undefined && relativeRootInstallPath != undefined && window.electronApi != null) {
+      this.installPath = await window.electronApi.getIntallPathBySteamAppWithRelativePath(steamAppName, relativeRootInstallPath);
     }
   }
 
