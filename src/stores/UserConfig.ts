@@ -1,25 +1,26 @@
 import { defineStore } from 'pinia';
 import { myLogger } from 'src/boot/logger';
-import { Game, GameConfig } from 'src/class/Types';
-import { findArrayItemById } from 'src/utils/ArrayUtils';
+import { GameConfig } from 'src/class/GameConfig';
+import { Game } from 'src/class/Types';
 import { notNull } from 'src/utils/CommentUtils';
-import { newOnlineGameConfig, updateOnlineGameConfig } from 'src/utils/GameConfig';
 import { reviver } from 'src/utils/JsonUtil';
-import { computed, ref } from 'vue';
+import { computed, reactive, toRefs } from 'vue';
 
 const KEY_USER_CONFIG = 'userConfig';
 
 export const useUserConfigStore = defineStore(KEY_USER_CONFIG, () => {
-  const initState = init();
-  const currentGameId = ref(initState.currentGameId);
-  const games = ref(initState.games);
+  const { currentGameId, gameConfigs } = toRefs(reactive(init()));
 
   const currentGameInstallPath = computed(() => {
-    return notNull(findArrayItemById(games.value, currentGameId.value), 'Current game').installPath;
+    return notNull(gameConfigs.value.get(currentGameId.value), 'Current game').installPath;
+  });
+
+  const currentGame = computed(() => {
+    return getGameById(currentGameId.value);
   });
 
   function getOptionGameById(gameId: string): GameConfig | undefined {
-    return findArrayItemById(games.value, gameId);
+    return gameConfigs.value.get(gameId);
   }
 
   function getGameById(gameId: string): GameConfig {
@@ -27,6 +28,7 @@ export const useUserConfigStore = defineStore(KEY_USER_CONFIG, () => {
   }
 
   function updateCurrentGame(newGameId: string) {
+    if (!gameConfigs.value.has(newGameId)) throw Error(`GameConfig[${newGameId}] is not exist.`);
     if (currentGameId.value === newGameId) {
       myLogger.debug(`Update current game, but games all are  [${newGameId}].`);
     } else {
@@ -36,46 +38,33 @@ export const useUserConfigStore = defineStore(KEY_USER_CONFIG, () => {
 
   function updateCurrentGameInstallPath(newInstallPath: string) {
     myLogger.debug(`Update current game install path [${currentGameInstallPath.value}]=>[${newInstallPath}]`);
-    const currentGame = getGameById(currentGameId.value);
-    currentGame.installPath = newInstallPath;
+    currentGame.value.installPath = newInstallPath;
   }
 
-  async function updaetLocalGames(localGames: Game[]) {
-    await Promise.all(localGames.map(async localGame => {
-      const oldGame = getOptionGameById(localGame.id);
-      if (oldGame == undefined) {
-        myLogger.debug(`Add local game config ${localGame.id}`);
-        games.value.push(await newOnlineGameConfig(localGame));
+  async function addGames(games: Game[]) {
+    await Promise.all(games.map(async game => {
+      const oldGameConfig = getOptionGameById(game.id);
+      if (oldGameConfig == undefined) {
+        myLogger.debug(`Add GameConfig ${game.id}`);
+        const newGameConfig = await GameConfig.newByGame(game);
+        gameConfigs.value.set(newGameConfig.id, newGameConfig);
       } else {
-        myLogger.debug(`Update local game config ${localGame.id}`);
-        await updateOnlineGameConfig(oldGame, localGame);
-      }
-    }));
-  }
-
-  async function updateOnlineGames(onlineGames: Game[]) {
-    await Promise.all(onlineGames.map(async onlineGame => {
-      const oldGame = getOptionGameById(onlineGame.id);
-      if (oldGame == undefined) {
-        myLogger.debug(`Add online game config ${onlineGame.id}`);
-        games.value.push(await newOnlineGameConfig(onlineGame));
-      } else {
-        myLogger.debug(`Update online game config ${onlineGame.id}`);
-        await updateOnlineGameConfig(oldGame, onlineGame);
+        myLogger.debug(`Update GameConfig ${game.id}`);
+        await oldGameConfig.updateInstallPath(game);
       }
     }));
   }
 
   return {
-    currentGameId, games,
-    currentGameInstallPath,
-    getOptionGameById, getGameById, updateCurrentGame, updateCurrentGameInstallPath, updaetLocalGames, updateOnlineGames
+    currentGameId, games: gameConfigs,
+    currentGameInstallPath, currentGame,
+    getOptionGameById, getGameById, updateCurrentGame, updateCurrentGameInstallPath, addGames
   };
 }, { persistence: true });
 
 interface State {
   currentGameId: string
-  games: GameConfig[]
+  gameConfigs: Map<string, GameConfig>
 }
 
 function init(): State {
@@ -88,10 +77,7 @@ function init(): State {
     myLogger.debug('New UserConfigStore.');
     return {
       currentGameId: 'csti',
-      games: [{
-        id: 'csti',
-        lockRootWithInstallPath: true
-      }]
+      gameConfigs: new Map([['csti', new GameConfig({ id: 'csti' })]])
     };
   }
 }

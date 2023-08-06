@@ -206,12 +206,6 @@ export interface Game {
   resources: Resource[]
 }
 
-export interface GameConfig {
-  id: string
-  installPath?: string
-  lockRootWithInstallPath: boolean
-}
-
 export interface OnlineResourceDetail {
   release: Release
   discussion: Discussion

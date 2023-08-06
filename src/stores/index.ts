@@ -1,6 +1,7 @@
 import { createPinia } from 'pinia';
 import { store } from 'quasar/wrappers';
 import { myLogger } from 'src/boot/logger';
+import { replacer } from 'src/utils/JsonUtil';
 import { Router } from 'vue-router';
 
 /*
@@ -30,7 +31,7 @@ export default store((/* { ssrContext } */) => {
     if (options.persistence === true) {
       store.$subscribe((_, state) => {
         myLogger.debug(`Save store: [${store.$id}] to LocalStorage.`);
-        localStorage.setItem(store.$id, JSON.stringify(state));
+        localStorage.setItem(store.$id, JSON.stringify(state, replacer));
       });
     }
   });
