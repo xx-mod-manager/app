@@ -37,7 +37,7 @@ export function reviver(_: string, value: unknown) {
       } else {
         const constructor = jsonClassMap.get(value.dataType);
         if (constructor != null) {
-          return constructor(value);
+          return constructor(value.value);
         }
       }
     }
