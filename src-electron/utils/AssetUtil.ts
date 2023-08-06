@@ -6,7 +6,6 @@ import { myLogger } from 'src/boot/logger';
 import { notNull } from 'src/utils/CommentUtils';
 import { parseResourceAndVersion } from 'src/utils/StringUtils';
 import { checkResourcesDir, getGameResourcesPath } from './FsUtil';
-import { unzipAsset } from './ZipUtil';
 
 export async function downloadAndUnzipAsset(url: string, gameId: string, resourceId: string, assetId: string) {
   const win = notNull(BrowserWindow.getFocusedWindow(), 'Foused window');
@@ -20,7 +19,7 @@ export async function downloadAndUnzipAsset(url: string, gameId: string, resourc
     win.webContents.send('onDownloadProgress', assetFullId, progress);
   }
   function onCompleted(file: File) {
-    unzipAsset(file.path, getGameResourcesPath(gameId), resourceId, assetId);
+    // unzipAsset(file.path, getGameResourcesPath(gameId), resourceId, assetId);
     win.webContents.send('onDownloadCompleted', assetFullId, file);
   }
 }
@@ -113,7 +112,12 @@ export async function selectDirectory(title: string): Promise<Electron.OpenDialo
 export async function addAssetByDir(gameId: string, dirPath: string): Promise<{ resourceId: string; assetId: string; }> {
   const name = basename(dirPath);
   const assetInfo = parseResourceAndVersion(name);
-  await fsPromises.cp(dirPath, pathJoin(getGameResourcesPath(gameId), assetInfo.resourceId + '-' + assetInfo.assetId), { recursive: true, force: true });
+  const targetPath = pathJoin(getGameResourcesPath(gameId), assetInfo.resourceId + '-' + assetInfo.assetId);
+  if (existsSync(targetPath)) {
+    myLogger.info(`Add new asset [${assetInfo.resourceId}][${assetInfo.assetId}], but target exist, rm.`);
+    await fsPromises.rm(targetPath, { recursive: true });
+  }
+  await fsPromises.cp(dirPath, targetPath, { recursive: true, force: true });
   return assetInfo;
 }
 
@@ -130,7 +134,7 @@ export async function selectDirectoryAddAsset(gameId: string, title: string): Pr
 export async function addAssetByZipFile(gameId: string, zipPath: string): Promise<{ resourceId: string; assetId: string; }> {
   const name = basename(zipPath);
   const assetInfo = parseResourceAndVersion(name);
-  unzipAsset(zipPath, getGameResourcesPath(gameId), assetInfo.resourceId, assetInfo.assetId);
+  // unzipAsset(zipPath, getGameResourcesPath(gameId), assetInfo.resourceId, assetInfo.assetId);
   return assetInfo;
 }
 
@@ -172,3 +176,5 @@ export async function addAssetsByPaths(gameId: string, paths: string[]): Promise
   result.forEach(i => { if (i !== undefined) notNullResult.push(i); });
   return notNullResult;
 }
+
+// export async function importAssets(gameId:string, importResources:Import)

@@ -48,6 +48,14 @@
             label="刷新"
             @click="() => refresh()"
           />
+
+          <q-fab-action
+            label-position="left"
+            color="primary"
+            :icon="matRefresh"
+            label="import"
+            :to="{ name: ROUTE_RESOURCE_IMPORT }"
+          />
         </q-fab>
       </q-page-sticky>
     </q-page>
@@ -64,6 +72,7 @@ import {
 } from '@quasar/extras/material-icons-outlined';
 import { myLogger } from 'src/boot/logger';
 import ResourceLocalItem from 'src/components/ResourceLocalItem.vue';
+import { ROUTE_RESOURCE_IMPORT } from 'src/router/routes';
 import { useMainDataStore } from 'src/stores/MainData';
 import { useTempDataStore } from 'src/stores/TempData';
 import { useUserConfigStore } from 'src/stores/UserConfig';
@@ -92,7 +101,7 @@ async function addLocalAssetByDirectory() {
     if (result !== undefined) {
       mainDataStore.addDownloadAsset(
         userConfigStore.currentGameId,
-        result.resource,
+        result.resourceId,
         result.assetId
       );
     }
@@ -111,7 +120,7 @@ async function addLocalAssetByZip() {
     if (result !== undefined) {
       mainDataStore.addDownloadAsset(
         userConfigStore.currentGameId,
-        result.resource,
+        result.resourceId,
         result.assetId
       );
     }
@@ -135,7 +144,7 @@ async function dropEvent(event: DragEvent) {
   for (const asset of assets) {
     mainDataStore.addDownloadAsset(
       userConfigStore.currentGameId,
-      asset.resource,
+      asset.resourceId,
       asset.assetId
     );
   }

@@ -216,3 +216,5 @@ export interface OnlineResourceDetail {
   release: Release
   discussion: Discussion
 }
+
+export interface FileState { isFile: boolean; isDirectory: boolean; isSymbolicLink: boolean; size: number | bigint; }

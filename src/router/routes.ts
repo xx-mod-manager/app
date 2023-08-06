@@ -11,6 +11,7 @@ export const ROUTE_HOME = 'home';
 export const ROUTE_RESOURCES = 'resources';
 export const ROUTE_RESOURCE = 'resource';
 export const ROUTE_RESOURCE_MANAGE = 'resourceManage';
+export const ROUTE_RESOURCE_IMPORT = 'resourceImport';
 export const ROUTE_LOGIN = 'login';
 export const ROUTE_404 = '404';
 
@@ -31,7 +32,8 @@ const routes: RouteRecordRaw[] = [
         path: 'resource/:id', name: ROUTE_RESOURCE, component: () => import('pages/resource/ResourcePage.vue'),
         beforeEnter: existResourceGuard
       },
-      { path: 'resource-manage', name: ROUTE_RESOURCE_MANAGE, component: () => import('pages/resource/ResourceManagePage.vue'), meta: { requireLogin: false } }
+      { path: 'resource-manage', name: ROUTE_RESOURCE_MANAGE, component: () => import('pages/resource/ResourceManagePage.vue'), meta: { requireLogin: false } },
+      { path: 'resource-import', name: ROUTE_RESOURCE_IMPORT, component: () => import('pages/resource/ResourceImportPage.vue'), meta: { requireLogin: false } }
     ],
   },
   {

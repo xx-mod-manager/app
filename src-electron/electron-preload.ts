@@ -1,6 +1,7 @@
 import { IpcRendererEvent, contextBridge, ipcRenderer } from 'electron';
 import { File, Progress } from 'electron-dl';
 import { LogEvent } from 'vue-logger-plugin';
+import { APP_GET_PATH, DIALOG_SHOW_OPEN_DIALOG, FS_CP, FS_EXIST, FS_RENAME, FS_RM, FS_STATE, FS_UNZIP_ASSET, PATH_EXTNAME, PATH_GET_BASENAME, PATH_JOIN, SHELL_SHOW_ITEM_IN_FOLDER } from './electron-constant';
 
 contextBridge.exposeInMainWorld('electronApi', {
   onElectronLog: (callback: (logEvent: LogEvent) => void) => ipcRenderer.on('onElectronLog', (_, logEvent) => callback(logEvent)),
@@ -32,4 +33,30 @@ contextBridge.exposeInMainWorld('electronApi', {
 
 
   getIntallPathBySteamAppWithRelativePath: (steamAppName: string, relativePath: string) => ipcRenderer.invoke('getIntallPathBySteamAppWithRelativePath', steamAppName, relativePath),
+  openDialogSelectDirectory: (title: string) => ipcRenderer.invoke('openDialogSelectDirectory', title),
+  openDialogSelectZipFile: (title: string) => ipcRenderer.invoke('openDialogSelectZipFile', title),
+  getPathInfoByPath: (path: string) => ipcRenderer.invoke('getPathInfoByPath', path),
+
+  dialog: {
+    showOpenDialog: (options: unknown) => ipcRenderer.invoke(DIALOG_SHOW_OPEN_DIALOG, options),
+  },
+  app: {
+    getPath: (name: unknown) => ipcRenderer.invoke(APP_GET_PATH, name),
+  },
+  shell: {
+    showItemInFolder: (fullPath: unknown) => ipcRenderer.invoke(SHELL_SHOW_ITEM_IN_FOLDER, fullPath),
+  },
+  path: {
+    getBasename: (fullpath: unknown, suffix: unknown) => ipcRenderer.invoke(PATH_GET_BASENAME, fullpath, suffix),
+    join: (...paths: unknown[]) => ipcRenderer.invoke(PATH_JOIN, ...paths),
+    extname: (fullPath: unknown) => ipcRenderer.invoke(PATH_EXTNAME, fullPath),
+  },
+  fs: {
+    exist: (path: unknown) => ipcRenderer.invoke(FS_EXIST, path),
+    cp: (source: unknown, destination: unknown, opts: unknown) => ipcRenderer.invoke(FS_CP, source, destination, opts),
+    rename: (oldPath: unknown, newPath: unknown) => ipcRenderer.invoke(FS_RENAME, oldPath, newPath),
+    rm: (path: unknown, options: unknown) => ipcRenderer.invoke(FS_RM, path, options),
+    unzipAsset: (zipPath: unknown, targetPath: unknown) => ipcRenderer.invoke(FS_UNZIP_ASSET, zipPath, targetPath),
+    state: (path: unknown, opts: unknown) => ipcRenderer.invoke(FS_STATE, path, opts),
+  },
 });

@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia';
 import { myLogger } from 'src/boot/logger';
 import { Asset, AssetStatus, Game, Resource } from 'src/class/Types';
+import { ImpResource } from 'src/class/imp';
 import { deleteArrayItem, deleteArrayItemByFieldId, deleteArrayItemById, deleteArrayItemsByFileId, findArrayItemByFieldId, findArrayItemById } from 'src/utils/ArrayUtils';
 import { existLocalAsset, existOnlineAsset, newDownloadedAsset, newInstalledAsset, updateOnlineAsset } from 'src/utils/AssetUtils';
 import { notNull } from 'src/utils/CommentUtils';
@@ -248,6 +249,29 @@ export const useMainDataStore = defineStore(KEY_MAIN_DATA, () => {
     }
   }
 
+  function addImpResource(gameId: string, impResource: ImpResource) {
+    const oldResources = getGameById(gameId)?.resources;
+    let resource = getOptionResourceById(gameId, impResource.id);
+    if (resource == null) {
+      resource = newLocalResource(impResource.id);
+      resource.name = impResource.name;
+      resource.description = impResource.description;
+      resource.author = impResource.author;
+      resource.category = impResource.category;
+      oldResources.push(resource);
+    }
+    for (const impAsset of impResource.assets.values()) {
+      const asset = resource.assets.find(i => i.id == impAsset.id);
+      if (asset != undefined) {
+        if (asset.status === AssetStatus.NONE) {
+          asset.status = AssetStatus.DOWNLOADED;
+        }
+      } else {
+        resource.assets.push({ id: impAsset.id, status: AssetStatus.DOWNLOADED });
+      }
+    }
+  }
+
   function updateAssetStatus(gameId: string, resourceId: string, assetId: string, newStatus: AssetStatus) {
     const oldAsset = getAssetById(gameId, resourceId, assetId);
     if (oldAsset.status === newStatus) {
@@ -274,7 +298,8 @@ export const useMainDataStore = defineStore(KEY_MAIN_DATA, () => {
     updateInstalledAsset,
     updateDonwloadedAsset,
     addDownloadAsset,
-    updateAssetStatus
+    updateAssetStatus,
+    addImpResource
   };
 }, { persistence: true });
 
