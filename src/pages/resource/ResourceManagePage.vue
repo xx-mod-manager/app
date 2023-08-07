@@ -70,17 +70,28 @@ import {
   outlinedFolderCopy,
   outlinedKeyboardArrowUp,
 } from '@quasar/extras/material-icons-outlined';
+import { useQuasar } from 'quasar';
 import { myLogger } from 'src/boot/logger';
+import { ImportAssetQuery } from 'src/class/Types';
 import ResourceLocalItem from 'src/components/ResourceLocalItem.vue';
 import { ROUTE_RESOURCE_IMPORT } from 'src/router/routes';
 import { useMainDataStore } from 'src/stores/MainData';
 import { useTempDataStore } from 'src/stores/TempData';
 import { useUserConfigStore } from 'src/stores/UserConfig';
+import { notNull } from 'src/utils/CommentUtils';
+import {
+  openDialogSelectDirectory,
+  openDialogSelectZipFile,
+} from 'src/utils/DialogUtils';
+import { parseResourceAndVersion } from 'src/utils/StringUtils';
 import { computed, onMounted, ref } from 'vue';
+import { useRouter } from 'vue-router';
 
 const userConfigStore = useUserConfigStore();
 const mainDataStore = useMainDataStore();
 const tempDataStore = useTempDataStore();
+const { notify } = useQuasar();
+const { push } = useRouter();
 const refreshing = ref(false);
 const fabVisibility = ref(false);
 
@@ -91,62 +102,98 @@ const resources = computed(() =>
 );
 
 async function addLocalAssetByDirectory() {
-  myLogger.debug('Selec directory to add local mod.');
-  if (window.electronApi !== undefined) {
-    const result = await window.electronApi.selectDirectoryAddAsset(
-      userConfigStore.currentGameId,
-      '选择Mod文件夹'
-    );
-    if (result !== undefined) {
-      mainDataStore.addDownloadAsset(
-        userConfigStore.currentGameId,
-        result.resourceId,
-        result.assetId
-      );
-    }
+  myLogger.debug('Selec directory to add asset.');
+  const dir = await openDialogSelectDirectory('选择Mod文件夹');
+  if (dir != undefined) {
+    const info = parseResourceAndVersion(dir.name);
+    push({
+      name: ROUTE_RESOURCE_IMPORT,
+      query: {
+        assets: JSON.stringify({
+          dirs: [{ ...info, path: dir.path }],
+          zips: [],
+        } as ImportAssetQuery),
+      },
+    });
   } else {
-    throw Error('Not in Electron');
+    notify({
+      type: 'warning',
+      message: '未获取到文件夹!',
+    });
   }
 }
 
 async function addLocalAssetByZip() {
-  myLogger.debug('Selec directory to add local mod.');
-  if (window.electronApi !== undefined) {
-    const result = await window.electronApi.selectZipFileAddAsset(
-      userConfigStore.currentGameId,
-      '选择Mod压缩包'
-    );
-    if (result !== undefined) {
-      mainDataStore.addDownloadAsset(
-        userConfigStore.currentGameId,
-        result.resourceId,
-        result.assetId
-      );
-    }
+  myLogger.debug('Selec Zip to add asset.');
+  const file = await openDialogSelectZipFile('选择Mod压缩包');
+  if (file != undefined) {
+    const info = parseResourceAndVersion(file.name);
+    push({
+      name: ROUTE_RESOURCE_IMPORT,
+      query: {
+        assets: JSON.stringify({
+          dirs: [],
+          zips: [{ ...info, path: file.path }],
+        } as ImportAssetQuery),
+      },
+    });
   } else {
-    throw Error('Not in Electron');
+    notify({
+      type: 'warning',
+      message: '未获取到Zip!',
+    });
   }
 }
 
 async function dropEvent(event: DragEvent) {
-  if (window.electronApi === undefined) throw Error('Not in Electron.');
   if (event.dataTransfer === null) return;
-  const paths: string[] = [];
+  myLogger.debug('file size is:', event.dataTransfer.files.length);
+
+  const { fs, path } = notNull(window.electronApi, 'ElectronApi');
+
+  const itemPaths: string[] = [];
   for (let index = 0; index < event.dataTransfer.files.length; index++) {
-    paths.push(event.dataTransfer.files[index].path);
+    itemPaths.push(event.dataTransfer.files[index].path);
   }
-  myLogger.debug(`Trigger dropEvent ${paths.join('\n\t')}`);
-  const assets = await window.electronApi.addAssetsByPaths(
-    userConfigStore.currentGameId,
-    paths
+
+  const pathInfos = await Promise.all(
+    itemPaths.map(async (itemPath) => {
+      //TODO: change to async
+      const state = await fs.state(itemPath);
+      const name = await path.getBasename(itemPath);
+      const ext = await path.extname(itemPath);
+      return { ...state, path: itemPath, name, ext };
+    })
   );
-  for (const asset of assets) {
-    mainDataStore.addDownloadAsset(
-      userConfigStore.currentGameId,
-      asset.resourceId,
-      asset.assetId
-    );
-  }
+
+  const dirs: unknown[] = [];
+  const zips: unknown[] = [];
+  pathInfos.forEach((pathInfo) => {
+    if ((pathInfo.isFile && '.zip' === pathInfo.ext) || pathInfo.isDirectory) {
+      const info = parseResourceAndVersion(pathInfo.name);
+      if (pathInfo.isDirectory) {
+        dirs.push({ ...info, path: pathInfo.path });
+      } else {
+        zips.push({ ...info, path: pathInfo.path });
+      }
+    } else {
+      myLogger.info(`Path ${pathInfo.path} is not zip and is not dir.`);
+      notify({
+        type: 'warning',
+        message: `[${pathInfo.path}] 不是文件夹, 也不是Zip文件。`,
+      });
+    }
+  });
+
+  push({
+    name: ROUTE_RESOURCE_IMPORT,
+    query: {
+      assets: JSON.stringify({
+        dirs,
+        zips,
+      } as ImportAssetQuery),
+    },
+  });
 }
 
 async function refresh(done?: () => void) {
@@ -169,8 +216,7 @@ async function refresh(done?: () => void) {
       userConfigStore.currentGameId
     );
     myLogger.debug('Start update installed asset.');
-    mainDataStore.updateInstalledAsset(
-      userConfigStore.currentGameId,
+    mainDataStore.currentGame.updateInstalledAsset(
       await window.electronApi.getInstealledAssets(
         userConfigStore.currentGameInstallPath
       )
@@ -180,8 +226,7 @@ async function refresh(done?: () => void) {
       'Install path is undefined, skip sync install download resources and update installed asset.'
     );
   }
-  mainDataStore.updateDonwloadedAsset(
-    userConfigStore.currentGameId,
+  mainDataStore.currentGame.updateDownloadedAsset(
     await window.electronApi.getDownloadedAssets(userConfigStore.currentGameId)
   );
   tempDataStore.updateResourceManage(userConfigStore.currentGameId);

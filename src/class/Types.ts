@@ -172,3 +172,17 @@ export interface OnlineResourceDetail {
 }
 
 export interface FileState { isFile: boolean; isDirectory: boolean; isSymbolicLink: boolean; size: number | bigint; }
+
+
+export interface ImportAssetQuery {
+  dirs: {
+    resourceId: string,
+    assetId: string,
+    path: string
+  }[],
+  zips: {
+    resourceId: string,
+    assetId: string,
+    path: string
+  }[],
+}

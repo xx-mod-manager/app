@@ -1,5 +1,6 @@
 import { parseResourceAndVersion } from 'src/utils/StringUtils';
 import { ApiReleaseAsset } from './GraphqlClass';
+import { ImpAsset } from './imp';
 
 export enum AssetStatus {
   NONE = 'none', DOWNLOADED = 'downloaded', INTALLED = 'intalled'
@@ -26,6 +27,10 @@ export class Asset {
       downloadUrl: apiReleaseAsset.downloadUrl,
       nodeId: apiReleaseAsset.id
     });
+  }
+
+  static newByImpAsset(impAsset: ImpAsset): Asset {
+    return new Asset({ ...impAsset, status: AssetStatus.DOWNLOADED });
   }
 
   clearApiReleaseAssetData() {

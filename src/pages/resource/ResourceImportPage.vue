@@ -251,6 +251,7 @@ import {
 } from '@quasar/extras/material-icons-outlined';
 import { useQuasar } from 'quasar';
 import { myLogger } from 'src/boot/logger';
+import { ImportAssetQuery } from 'src/class/Types';
 import { ImpAsset, ImpResource } from 'src/class/imp';
 import { ROUTE_HOME } from 'src/router';
 import { useMainDataStore } from 'src/stores/MainData';
@@ -266,15 +267,24 @@ import {
 } from 'src/utils/ResourceFsUtils';
 import { parseResourceAndVersion } from 'src/utils/StringUtils';
 import { ref } from 'vue';
-import { useRouter } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 
 const userConfigStore = useUserConfigStore();
 const mainDataStore = useMainDataStore();
 const { notify, loading } = useQuasar();
-const { push: routerPush } = useRouter();
+const { push } = useRouter();
+const { query } = useRoute();
 const impResources = ref(new Map<string, ImpResource>());
 const fabVisibility = ref(false);
 const rmRaw = ref(false);
+
+const impAssetQuery = JSON.parse(query.assets as string) as ImportAssetQuery;
+impAssetQuery.dirs.forEach((dir) =>
+  addImportAsset(dir.resourceId, dir.assetId, dir.assetId, 'dir')
+);
+impAssetQuery.zips.forEach((zip) =>
+  addImportAsset(zip.resourceId, zip.assetId, zip.assetId, 'zip')
+);
 
 function clearAll() {
   impResources.value.clear();
@@ -388,11 +398,11 @@ async function done() {
       })
   );
   for (const impResource of impResources.value.values()) {
-    mainDataStore.addImpResource(userConfigStore.currentGameId, impResource);
+    mainDataStore.currentGame.importResource(impResource);
   }
 
   loading.hide();
-  routerPush({ name: ROUTE_HOME });
+  push({ name: ROUTE_HOME });
 }
 
 function openPath(path: string) {

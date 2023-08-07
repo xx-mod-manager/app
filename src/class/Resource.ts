@@ -1,9 +1,10 @@
 import { myLogger } from 'src/boot/logger';
 import { deleteArrayItemByFieldId, replaceArray } from 'src/utils/ArrayUtils';
 import { parseResourceAndVersion } from 'src/utils/StringUtils';
-import { Asset } from './Asset';
+import { Asset, AssetStatus } from './Asset';
 import { ApiReleaseAsset } from './GraphqlClass';
 import { ApiResource } from './Types';
+import { ImpAsset, ImpResource } from './imp';
 
 export class Resource {
   readonly id: string;
@@ -76,6 +77,16 @@ export class Resource {
     });
   }
 
+  static newByImpResource(impResource: ImpResource): Resource {
+    return new Resource({
+      ...impResource,
+      created: Date.now(),
+      assets: new Map(Array.from(impResource.assets.values())
+        .map(Asset.newByImpAsset)
+        .map(i => [i.id, i]))
+    });
+  }
+
   clearApiResourcetData() {
     this.repo = undefined;
     this.updated = undefined;
@@ -122,6 +133,52 @@ export class Resource {
     for (const deletedAsset of deletedAssets) {
       myLogger.debug(`Resource[${this.id}] delete asset [${deletedAsset.id}]`);
       this.assets.delete(deletedAsset.id);
+    }
+  }
+
+  updateImpAssets(impAssets: Map<string, ImpAsset>) {
+    for (const impAsset of impAssets.values()) {
+      const existAsset = this.assets.get(impAsset.id);
+      if (existAsset != undefined) {
+        if (existAsset.status === AssetStatus.NONE) {
+          existAsset.status = AssetStatus.DOWNLOADED;
+        }
+      } else {
+        const newAsset = Asset.newByImpAsset(impAsset);
+        this.assets.set(newAsset.id, newAsset);
+      }
+    }
+  }
+
+  updateInstalledAsset(insAssetIds: string[]) {
+    for (const insAssetId of insAssetIds) {
+      const existAsset = this.assets.get(insAssetId);
+      if (existAsset != undefined) {
+        if (existAsset.status == AssetStatus.NONE || existAsset.status == AssetStatus.DOWNLOADED) {
+          existAsset.status = AssetStatus.INTALLED;
+          myLogger.debug(`Update install status asset [${this.id}][${insAssetId}]`);
+        }
+      } else {
+        const newAsset = new Asset({ id: insAssetId, status: AssetStatus.INTALLED });
+        this.assets.set(newAsset.id, newAsset);
+        myLogger.debug(`Add new install asset [${this.id}][${insAssetId}]`);
+      }
+    }
+  }
+
+  updateDownloadedAsset(downAssetIds: string[]) {
+    for (const downAssetId of downAssetIds) {
+      const existAsset = this.assets.get(downAssetId);
+      if (existAsset != undefined) {
+        if (existAsset.status == AssetStatus.NONE) {
+          existAsset.status = AssetStatus.DOWNLOADED;
+          myLogger.debug(`Update downloaded status asset [${this.id}][${downAssetId}]`);
+        }
+      } else {
+        const newAsset = new Asset({ id: downAssetId, status: AssetStatus.DOWNLOADED });
+        this.assets.set(newAsset.id, newAsset);
+        myLogger.debug(`Add new download asset [${this.id}][${downAssetId}]`);
+      }
     }
   }
 }

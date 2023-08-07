@@ -1,7 +1,9 @@
 import { myLogger } from 'src/boot/logger';
 import { deleteArrayItemByFieldId } from 'src/utils/ArrayUtils';
+import { AssetStatus } from './Asset';
 import { Resource } from './Resource';
 import { ApiGame, ApiResource } from './Types';
+import { ImpResource } from './imp';
 
 export class Game {
   readonly id: string;
@@ -50,6 +52,58 @@ export class Game {
     this.relativeRootInstallPath = apiGame.relativeRootInstallPath;
     this.autoMkRelativeRootInstallPath = apiGame.autoMkRelativeRootInstallPath;
     this.icon = apiGame.icon;
+  }
+
+  updateInstalledAsset(insAssets: Map<string, string[]>) {
+    myLogger.debug(`Update installed assets(${insAssets.size}):`);
+    insAssets.forEach((assetIds, resourceId) => assetIds.forEach((assetId) => myLogger.debug(`\t[${resourceId}][${assetId}]`)));
+
+    for (const [insResourceId, insAssetIds] of insAssets) {
+      let resource = this.resources.get(insResourceId);
+      if (resource == undefined) {
+        resource = Resource.newById(insResourceId);
+        this.resources.set(resource.id, resource);
+      }
+      resource.updateInstalledAsset(insAssetIds);
+    };
+
+    for (const resource of this.resources.values()) {
+      const insAssetIds = insAssets.get(resource.id) ?? [];
+      Array.from(resource.assets.values())
+        .filter(i => i.status === AssetStatus.INTALLED && (!insAssetIds.includes(i.id)))
+        .forEach(i => i.status = AssetStatus.DOWNLOADED);
+    }
+  }
+
+  updateDownloadedAsset(downAssets: Map<string, string[]>) {
+    myLogger.debug(`Update downloaded assets(${downAssets.size}):`);
+    downAssets.forEach((assetIds, resourceId) => assetIds.forEach((assetId) => myLogger.debug(`\t[${resourceId}][${assetId}]`)));
+
+    for (const [downResourceId, downAssetIds] of downAssets) {
+      let resource = this.resources.get(downResourceId);
+      if (resource == undefined) {
+        resource = Resource.newById(downResourceId);
+        this.resources.set(resource.id, resource);
+      }
+      resource.updateDownloadedAsset(downAssetIds);
+    };
+
+    for (const resource of this.resources.values()) {
+      const downAssetIds = downAssets.get(resource.id) ?? [];
+      Array.from(resource.assets.values())
+        .filter(i => i.status === AssetStatus.DOWNLOADED && (!downAssetIds.includes(i.id)))
+        .forEach(i => i.status = AssetStatus.NONE);
+    }
+  }
+
+  importResource(impResource: ImpResource) {
+    let resource = this.resources.get(impResource.id);
+    if (resource == null) {
+      resource = Resource.newByImpResource(impResource);
+      this.resources.set(resource.id, resource);
+    } else {
+      resource.updateImpAssets(impResource.assets);
+    }
   }
 
   isOnline(): boolean {
