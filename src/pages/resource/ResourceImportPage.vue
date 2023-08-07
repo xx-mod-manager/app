@@ -278,13 +278,15 @@ const impResources = ref(new Map<string, ImpResource>());
 const fabVisibility = ref(false);
 const rmRaw = ref(false);
 
-const impAssetQuery = JSON.parse(query.assets as string) as ImportAssetQuery;
-impAssetQuery.dirs.forEach((dir) =>
-  addImportAsset(dir.resourceId, dir.assetId, dir.assetId, 'dir')
-);
-impAssetQuery.zips.forEach((zip) =>
-  addImportAsset(zip.resourceId, zip.assetId, zip.assetId, 'zip')
-);
+if (query.assets != undefined) {
+  const impAssetQuery = JSON.parse(query.assets as string) as ImportAssetQuery;
+  impAssetQuery.dirs.forEach((dir) =>
+    addImportAsset(dir.resourceId, dir.assetId, dir.path, 'dir')
+  );
+  impAssetQuery.zips.forEach((zip) =>
+    addImportAsset(zip.resourceId, zip.assetId, zip.path, 'zip')
+  );
+}
 
 function clearAll() {
   impResources.value.clear();
@@ -425,7 +427,7 @@ function updateAssetIdValidate(
     );
     notifyAssetIdConflict(impResource.name, newImpAssetId);
   }
-  return conflict;
+  return !conflict;
 }
 
 function updateAssetId(

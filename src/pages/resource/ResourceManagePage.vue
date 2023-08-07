@@ -20,7 +20,6 @@
           v-model="fabVisibility"
           vertical-actions-align="right"
           color="primary"
-          glossy
           :icon="outlinedKeyboardArrowUp"
           :active-icon="outlinedClose"
           direction="up"
@@ -47,14 +46,6 @@
             :icon="matRefresh"
             label="刷新"
             @click="() => refresh()"
-          />
-
-          <q-fab-action
-            label-position="left"
-            color="primary"
-            :icon="matRefresh"
-            label="import"
-            :to="{ name: ROUTE_RESOURCE_IMPORT }"
           />
         </q-fab>
       </q-page-sticky>
@@ -184,7 +175,7 @@ async function dropEvent(event: DragEvent) {
       });
     }
   });
-
+  myLogger.warn(dirs, zips);
   push({
     name: ROUTE_RESOURCE_IMPORT,
     query: {
