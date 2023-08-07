@@ -181,4 +181,22 @@ export class Resource {
       }
     }
   }
+
+  hasAsset(id: string): boolean {
+    return this.assets.has(id);
+  }
+
+  addAsset(asset: Asset) {
+    this.assets.set(asset.id, asset);
+  }
+
+  deleteAsset(assetId: string) {
+    this.assets.delete(assetId);
+  }
+
+  addAssets(assets: IterableIterator<Asset>) {
+    for (const asset of assets) {
+      this.addAsset(asset);
+    }
+  }
 }

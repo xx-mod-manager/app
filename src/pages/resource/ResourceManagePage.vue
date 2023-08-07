@@ -7,13 +7,173 @@
       @dragleave.stop.prevent
       @dragover.stop.prevent
     >
-      <ResourceLocalItem
-        v-for="resource in resources"
-        :key="resource.id"
-        :resource="resource"
-      />
+      <q-table
+        title="资源管理"
+        :rows="Array.from(resources.values()).filter((i) => i.isLocal())"
+        :columns="columns"
+        row-key="id"
+        hide-pagination
+        :rows-per-page-options="[0]"
+        :table-colspan="6"
+        :loading="refreshing"
+        wrap-cells
+      >
+        <template #body="props: { row: Resource }">
+          <q-tr :props="props" no-hover>
+            <q-td key="id" :props="props">
+              <div>
+                {{ props.row.id }}
+              </div>
 
-      <q-inner-loading :showing="refreshing" />
+              <q-badge v-if="props.row.isOnline()" label="在线" />
+
+              <q-popup-edit
+                v-slot="scope"
+                v-model="props.row.id"
+                buttons
+                :validate="(v:string) => updateResourceIdValidate(v, props.row)"
+                @save="(v:string) => updateResourceId(v, props.row)"
+              >
+                <q-input
+                  v-model="scope.value"
+                  dense
+                  autofocus
+                  @keyup.enter="scope.set"
+                />
+              </q-popup-edit>
+            </q-td>
+
+            <q-td key="name" :props="props">
+              <div>
+                {{ props.row.name }}
+              </div>
+
+              <q-popup-edit
+                v-slot="scope"
+                v-model="props.row.name"
+                buttons
+                :disable="props.row.isOnline()"
+              >
+                <q-input
+                  v-model="scope.value"
+                  dense
+                  autofocus
+                  @keyup.enter="scope.set"
+                />
+              </q-popup-edit>
+            </q-td>
+
+            <q-td key="description" :props="props">
+              <div class="ellipsis-3-lines">
+                {{ props.row.description }}
+              </div>
+
+              <q-popup-edit
+                v-slot="scope"
+                v-model="props.row.description"
+                buttons
+                :disable="props.row.isOnline()"
+              >
+                <q-input
+                  v-model="scope.value"
+                  type="textarea"
+                  dense
+                  autofocus
+                  @keyup.enter="scope.set"
+                />
+              </q-popup-edit>
+            </q-td>
+
+            <q-td key="author" :props="props">
+              <div>
+                {{ props.row.author }}
+              </div>
+
+              <q-popup-edit
+                v-slot="scope"
+                v-model="props.row.author"
+                buttons
+                :disable="props.row.isOnline()"
+              >
+                <q-input
+                  v-model="scope.value"
+                  dense
+                  autofocus
+                  @keyup.enter="scope.set"
+                />
+              </q-popup-edit>
+            </q-td>
+
+            <q-td key="category" :props="props">
+              <div>
+                {{ props.row.category }}
+              </div>
+
+              <q-popup-edit
+                v-slot="scope"
+                v-model="props.row.category"
+                buttons
+                :disable="props.row.isOnline()"
+              >
+                <q-input
+                  v-model="scope.value"
+                  dense
+                  autofocus
+                  @keyup.enter="scope.set"
+                />
+              </q-popup-edit>
+            </q-td>
+
+            <q-td key="action" :props="props">
+              <div>
+                <q-btn label="删除" @click="resources.delete(props.row.id)" />
+              </div>
+            </q-td>
+          </q-tr>
+
+          <q-tr
+            v-for="asset in props.row.assets.values()"
+            :key="asset.id"
+            :props="props"
+            no-hover
+          >
+            <q-td colspan="5" class="text-center text-weight-thin">
+              <div>
+                {{ asset.id }}
+              </div>
+
+              <q-badge v-if="asset.isOnline()" label="在线" />
+
+              <q-popup-edit
+                v-slot="scope"
+                v-model="asset.id"
+                buttons
+                :validate="(v:string) => updateAssetIdValidate(props.row, v)"
+                @save="(v:string)=>updateAssetId(props.row,v,asset)"
+              >
+                <q-input
+                  v-model="scope.value"
+                  dense
+                  autofocus
+                  @keyup.enter="scope.set"
+                />
+              </q-popup-edit>
+            </q-td>
+
+            <q-td class="text-center">
+              <q-btn
+                flat
+                label="删除"
+                @click="props.row.deleteAsset(asset.id)"
+              />
+            </q-td>
+          </q-tr>
+        </template>
+
+        <template #no-data>
+          <div class="text-left">请通过导入按钮或拖动zip,文件夹来导入Mod。</div>
+        </template>
+      </q-table>
 
       <q-page-sticky position="bottom-right" :offset="[18, 18]">
         <q-fab
@@ -63,8 +223,9 @@ import {
 } from '@quasar/extras/material-icons-outlined';
 import { useQuasar } from 'quasar';
 import { myLogger } from 'src/boot/logger';
+import { Asset } from 'src/class/Asset';
+import { Resource } from 'src/class/Resource';
 import { ImportAssetQuery } from 'src/class/Types';
-import ResourceLocalItem from 'src/components/ResourceLocalItem.vue';
 import { ROUTE_RESOURCE_IMPORT } from 'src/router/routes';
 import { useMainDataStore } from 'src/stores/MainData';
 import { useTempDataStore } from 'src/stores/TempData';
@@ -85,12 +246,7 @@ const { notify } = useQuasar();
 const { push } = useRouter();
 const refreshing = ref(false);
 const fabVisibility = ref(false);
-
-const resources = computed(() =>
-  Array.from(
-    mainDataStore.getGameById(userConfigStore.currentGameId).resources.values()
-  ).filter((it) => it.isLocal())
-);
+const resources = computed(() => mainDataStore.currentGame.resources);
 
 async function addLocalAssetByDirectory() {
   myLogger.debug('Selec directory to add asset.');
@@ -175,7 +331,6 @@ async function dropEvent(event: DragEvent) {
       });
     }
   });
-  myLogger.warn(dirs, zips);
   push({
     name: ROUTE_RESOURCE_IMPORT,
     query: {
@@ -185,6 +340,61 @@ async function dropEvent(event: DragEvent) {
       } as ImportAssetQuery),
     },
   });
+}
+
+function updateAssetIdValidate(resource: Resource, newAssetId: string) {
+  const conflict = resource.hasAsset(newAssetId);
+  if (conflict) {
+    myLogger.info(`AssetId conflict, [${resource.id}] exist [${newAssetId}]`);
+    notifyAssetIdConflict(resource.name, newAssetId);
+  }
+  return !conflict;
+}
+
+function updateAssetId(
+  resource: Resource,
+  newAssetId: string,
+  oldAsset: Asset
+) {
+  resource.deleteAsset(oldAsset.id);
+  const newImpAsset = new Asset({ ...oldAsset, id: newAssetId });
+  resource.addAsset(newImpAsset);
+}
+
+function updateResourceIdValidate(
+  newResourceId: string,
+  oldResource: Resource
+) {
+  const existResource = resources.value.get(newResourceId);
+  if (existResource != undefined) {
+    for (const oldAsset of oldResource.assets.values()) {
+      if (existResource.hasAsset(oldAsset.id)) {
+        myLogger.info(
+          `AssetId conflict, [${existResource.id}] exist [${oldAsset.id}]`
+        );
+        notifyAssetIdConflict(existResource.name, oldAsset.id);
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
+function updateResourceId(newResourceId: string, oldResource: Resource) {
+  resources.value.delete(oldResource.id);
+
+  const existResource = resources.value.get(newResourceId);
+
+  if (existResource != undefined) {
+    existResource.addAssets(oldResource.assets.values());
+  } else {
+    const newImpResource = new Resource({
+      ...oldResource,
+      id: newResourceId,
+    });
+    newImpResource.addAssets(oldResource.assets.values());
+    resources.value.set(newImpResource.id, newImpResource);
+  }
 }
 
 async function refresh(done?: () => void) {
@@ -230,4 +440,62 @@ onMounted(() => {
     refresh();
   }
 });
+
+function notifyAssetIdConflict(resourceName: string, assetId: string) {
+  notify({
+    type: 'warning',
+    message: `版本冲突，[${resourceName}]已有版本[${assetId}]`,
+  });
+}
+
+const columns = [
+  {
+    name: 'id',
+    label: 'ID',
+    field: 'id',
+    align: 'left' as const,
+    headerStyle: 'width: 20%',
+  },
+  {
+    name: 'name',
+    label: '名字',
+    field: 'name',
+    align: 'left' as const,
+    headerStyle: 'width: 20%',
+  },
+  {
+    name: 'description',
+    label: '描述',
+    field: 'description',
+    align: 'left' as const,
+    headerStyle: 'width: 25%',
+  },
+  {
+    name: 'author',
+    label: '作者',
+    field: 'author',
+    align: 'left' as const,
+    headerStyle: 'width: 10%',
+  },
+  {
+    name: 'category',
+    label: '分类',
+    field: 'category',
+    align: 'left' as const,
+    headerStyle: 'width: 10%',
+  },
+  {
+    name: 'action',
+    label: '操作',
+    field: 'id',
+    align: 'center' as const,
+    headerStyle: 'width: 15%',
+  },
+];
 </script>
+
+<style>
+table {
+  table-layout: fixed;
+}
+</style>

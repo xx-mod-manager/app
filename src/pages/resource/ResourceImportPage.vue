@@ -446,12 +446,12 @@ function updateResourceIdValidate(
 ) {
   const existImportResource = impResources.value.get(newImportResourceId);
   if (existImportResource != undefined) {
-    for (const oldImportasset of oldImportResource.assets.values()) {
-      if (existImportResource.hasAsset(oldImportasset.id)) {
+    for (const oldImpAsset of oldImportResource.assets.values()) {
+      if (existImportResource.hasAsset(oldImpAsset.id)) {
         myLogger.info(
-          `AssetId conflict, [${existImportResource.id}] exist [${oldImportasset.id}]`
+          `AssetId conflict, [${existImportResource.id}] exist [${oldImpAsset.id}]`
         );
-        notifyAssetIdConflict(existImportResource.name, oldImportasset.id);
+        notifyAssetIdConflict(existImportResource.name, oldImpAsset.id);
         return false;
       }
     }
@@ -474,7 +474,6 @@ function updateResourceId(
   if (existImportResource != undefined) {
     existImportResource.addAssets(oldImpResource.assets.values());
   } else {
-    // const newImpResource = ImpResource.newById(newImportResourceId);
     const newImpResource = new ImpResource({
       ...oldImpResource,
       id: newImpResourceId,
@@ -539,7 +538,6 @@ function notifyAssetIdConflict(resourceName: string, assetId: string) {
   notify({
     type: 'warning',
     message: `版本冲突，[${resourceName}]已有版本[${assetId}]`,
-    icon: matPriorityHigh,
   });
 }
 
