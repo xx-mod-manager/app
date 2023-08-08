@@ -126,7 +126,13 @@
 
             <q-td key="action" :props="props">
               <div>
-                <q-btn label="删除" @click="resources.delete(props.row.id)" />
+                <q-btn
+                  v-if="isInstalled(props.row)"
+                  label="卸载"
+                  @click="uninstallResource(props.row)"
+                />
+
+                <q-btn v-else label="删除" @click="deleteResource(props.row)" />
               </div>
             </q-td>
           </q-tr>
@@ -161,11 +167,30 @@
             </q-td>
 
             <q-td class="text-center">
-              <q-btn
-                flat
-                label="删除"
-                @click="props.row.deleteAsset(asset.id)"
-              />
+              <q-btn-dropdown
+                split
+                :label="asset.status === AssetStatus.INTALLED ? '卸载' : '安装'"
+                @click="
+                  asset.status === AssetStatus.INTALLED
+                    ? uninstallAsset(props.row, asset)
+                    : installAsset(props.row, asset)
+                "
+              >
+                <q-list>
+                  <q-item
+                    v-close-popup
+                    clickable
+                    @click="deleteAsset(props.row, asset)"
+                    ><q-item-section>删除</q-item-section></q-item
+                  >
+                  <q-item
+                    v-close-popup
+                    clickable
+                    @click="openPath(props.row.id, asset.id)"
+                    ><q-item-section>打开所在路径</q-item-section></q-item
+                  >
+                </q-list>
+              </q-btn-dropdown>
             </q-td>
           </q-tr>
         </template>
@@ -223,7 +248,7 @@ import {
 } from '@quasar/extras/material-icons-outlined';
 import { useQuasar } from 'quasar';
 import { myLogger } from 'src/boot/logger';
-import { Asset } from 'src/class/Asset';
+import { Asset, AssetStatus } from 'src/class/Asset';
 import { Resource } from 'src/class/Resource';
 import { ImportAssetQuery } from 'src/class/Types';
 import { ROUTE_RESOURCE_IMPORT } from 'src/router/routes';
@@ -235,6 +260,12 @@ import {
   openDialogSelectDirectory,
   openDialogSelectZipFile,
 } from 'src/utils/DialogUtils';
+import {
+  deleteAsset as fsDeleteAsset,
+  installAsset as fsInstallAsset,
+  uninstallAsset as fsUninstallAsset,
+  getResourcesPath,
+} from 'src/utils/ResourceFsUtils';
 import { parseResourceAndVersion } from 'src/utils/StringUtils';
 import { computed, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
@@ -342,6 +373,83 @@ async function dropEvent(event: DragEvent) {
   });
 }
 
+async function selectGameInstallPath() {
+  myLogger.warn('Game install path is null, open selecter.');
+  const dir = await openDialogSelectDirectory('请选择mod安装路径');
+
+  if (dir != null) {
+    userConfigStore.updateCurrentGameInstallPath(dir.path);
+  } else {
+    notify({
+      type: 'warning',
+      message: '未获取到文件夹!',
+    });
+  }
+}
+
+async function uninstallAsset(resource: Resource, asset: Asset) {
+  if (userConfigStore.currentGameInstallPath == undefined) {
+    selectGameInstallPath();
+    return;
+  }
+  await fsUninstallAsset(
+    userConfigStore.currentGameInstallPath,
+    resource.id,
+    asset.id
+  );
+  asset.status = AssetStatus.DOWNLOADED;
+}
+
+async function installAsset(resource: Resource, asset: Asset) {
+  if (userConfigStore.currentGameInstallPath == undefined) {
+    selectGameInstallPath();
+    return;
+  }
+  await fsInstallAsset(
+    userConfigStore.currentGameInstallPath,
+    userConfigStore.currentGameId,
+    resource.id,
+    asset.id
+  );
+  asset.status = AssetStatus.INTALLED;
+}
+
+async function deleteAsset(resource: Resource, asset: Asset) {
+  if (asset.status === AssetStatus.INTALLED) uninstallAsset(resource, asset);
+  await fsDeleteAsset(userConfigStore.currentGameId, resource.id, asset.id);
+  resource.deleteAsset(asset.id);
+}
+
+async function openPath(resourceId: string, assetId: string) {
+  const { path, shell } = notNull(window.electronApi, 'ElectronApi');
+
+  const assetPath = await path.join(
+    await getResourcesPath(userConfigStore.currentGameId),
+    resourceId + '-' + assetId
+  );
+  await shell.showItemInFolder(assetPath);
+}
+
+function uninstallResource(resource: Resource) {
+  if (userConfigStore.currentGameInstallPath == undefined) {
+    selectGameInstallPath();
+    return;
+  }
+  for (const asset of resource.assets.values())
+    if (asset.status === AssetStatus.INTALLED) uninstallAsset(resource, asset);
+}
+
+function deleteResource(resource: Resource) {
+  for (const asset of resource.assets.values()) {
+    if (
+      asset.status === AssetStatus.INTALLED ||
+      asset.status === AssetStatus.DOWNLOADED
+    ) {
+      deleteAsset(resource, asset);
+    }
+  }
+}
+
 function updateAssetIdValidate(resource: Resource, newAssetId: string) {
   const conflict = resource.hasAsset(newAssetId);
   if (conflict) {
@@ -394,6 +502,13 @@ function updateResourceId(newResourceId: string, oldResource: Resource) {
     });
     newImpResource.addAssets(oldResource.assets.values());
     resources.value.set(newImpResource.id, newImpResource);
+  }
+}
+
+function isInstalled(resource: Resource) {
+  for (const asset of resource.assets.values()) {
+    if (asset.status === AssetStatus.INTALLED) return true;
+    else return false;
   }
 }
 

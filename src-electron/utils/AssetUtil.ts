@@ -28,18 +28,21 @@ export async function formatInstallAndDownloadDir(installPath: string, gameId: s
   const resourcesPath = getGameResourcesPath(gameId);
   await checkResourcesDir(resourcesPath);
   const installedAssets = await fsPromises.readdir(installPath);
-  await Promise.all(installedAssets.map(async (assetName) => {
-    const installedAssetPath = pathJoin(installPath, assetName);
-    const installedAssetStat = await fsPromises.stat(installedAssetPath);
-    if (installedAssetStat.isDirectory() && !installedAssetStat.isSymbolicLink()) {
-      const { resourceId: resourceId, assetId } = parseResourceAndVersion(assetName);
-      const newResourceName = resourceId + '-' + assetId;
-      myLogger.debug(`Sync asset [${assetName}] to download path, and rename as [${newResourceName}]`);
-      const downloadedAssetPath = pathJoin(resourcesPath, newResourceName);
-      await fsPromises.rename(installedAssetPath, downloadedAssetPath);
-      await installAsset(installPath, gameId, resourceId, assetId);
-    }
-  }));
+  const downloadedAssets = await fsPromises.readdir(resourcesPath);
+  await Promise.all(installedAssets
+    .filter(it => !downloadedAssets.includes(it))
+    .map(async (assetName) => {
+      const installedAssetPath = pathJoin(installPath, assetName);
+      const installedAssetStat = await fsPromises.stat(installedAssetPath);
+      if (installedAssetStat.isDirectory() && !installedAssetStat.isSymbolicLink()) {
+        const { resourceId: resourceId, assetId } = parseResourceAndVersion(assetName);
+        const newResourceName = resourceId + '-' + assetId;
+        myLogger.debug(`Sync asset [${assetName}] to download path, and rename as [${newResourceName}]`);
+        const downloadedAssetPath = pathJoin(resourcesPath, newResourceName);
+        await fsPromises.rename(installedAssetPath, downloadedAssetPath);
+        await installAsset(installPath, gameId, resourceId, assetId);
+      }
+    }));
 }
 
 export async function getDownloadedAssets(gameId: string): Promise<Map<string, string[]>> {

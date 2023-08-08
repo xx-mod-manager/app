@@ -14,4 +14,5 @@ export const FS_RENAME = 'fs.rename';
 export const FS_RM = 'fs.rm';
 export const FS_UNZIP_ASSET = 'fs.unzipAsset';
 export const FS_STATE = 'fs.state';
+export const FS_SYMLINK = 'fs.symlink';
 

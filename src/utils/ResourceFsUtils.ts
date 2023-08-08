@@ -10,7 +10,25 @@ export async function getResourcesPath(gameId: string): Promise<string> {
   return await path.join(await app.getPath('userData'), PATH_RESOURCE, gameId);
 }
 
-async function deleteAsset(gameId: string, resourceId: string, assetId: string, _assetPath?: string) {
+export async function uninstallAsset(gameInstallPath: string, resourceId: string, assetId: string) {
+  const { fs, path } = notNull(window.electronApi, 'ElectronApi');
+
+  const assetInstallPath = await path.join(gameInstallPath, resourceId + '-' + assetId);
+  if (await fs.exist(assetInstallPath)) {
+    myLogger.info(`Asset [${resourceId}]/[${assetId}] installed, rm.`);
+    await fs.rm(assetInstallPath, { recursive: true, force: true });
+  }
+}
+
+export async function installAsset(gameInstallPath: string, gameId: string, resourceId: string, assetId: string) {
+  const { fs, path } = notNull(window.electronApi, 'ElectronApi');
+
+  const assetPath = await path.join(await getResourcesPath(gameId), resourceId + '-' + assetId);
+  const assetInstallPath = await path.join(gameInstallPath, resourceId + '-' + assetId);
+  await fs.symlink(assetPath, assetInstallPath, 'dir');
+}
+
+export async function deleteAsset(gameId: string, resourceId: string, assetId: string, _assetPath?: string) {
   const { fs, path } = notNull(window.electronApi, 'ElectronApi');
 
   const assetPath = _assetPath ?? await path.join(await getResourcesPath(gameId), resourceId + '-' + assetId);

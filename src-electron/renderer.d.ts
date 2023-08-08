@@ -59,6 +59,7 @@ interface IElectronAPI {
     rm: PromiseReturnType<typeof promises.rm>,
     unzipAsset: PromiseReturnType<typeof unzipAsset>,
     state: PromiseReturnType<typeof getState>,
+    symlink: PromiseReturnType<typeof promises.symlink>,
   },
 }
 
