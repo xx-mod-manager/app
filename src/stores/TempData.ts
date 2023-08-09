@@ -1,4 +1,5 @@
 import { defineStore } from 'pinia';
+import { myLogger } from 'src/boot/logger';
 import { Game } from 'src/class/Game';
 import { ApiComment } from 'src/class/GraphqlClass';
 import { ApiGame, Comment, Discussion, OnlineResourceDetail, Release } from 'src/class/Types';
@@ -85,6 +86,8 @@ export const useTempDataStore = defineStore(KEY_TEMP_DATA, () => {
   }
 
   function initLocalGames(localGames: Game[]) {
+    myLogger.debug(`Init local games[${localGames.map(i => i.id).join()}]`);
+
     localGames.forEach((onlineGame) => {
       games.value.push({ id: onlineGame.id, releases: [], discussions: [] });
     });

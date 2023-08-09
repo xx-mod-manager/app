@@ -1,3 +1,6 @@
+import { myLogger } from 'src/boot/logger';
+import { useUserConfigStore } from 'src/stores/UserConfig';
+import { getRelativeInstallPath } from 'src/utils/ResourceFsUtils';
 import { Game } from './Game';
 import { ApiGame } from './Types';
 
@@ -11,8 +14,17 @@ export class GameConfig {
   }
 
   async updateInstallPath({ steamAppName, relativeRootInstallPath }: { steamAppName?: string, relativeRootInstallPath?: string }) {
-    if (this.installPath == undefined && steamAppName != undefined && relativeRootInstallPath != undefined && window.electronApi != null) {
-      this.installPath = await window.electronApi.getIntallPathBySteamAppWithRelativePath(steamAppName, relativeRootInstallPath);
+    const { steamAppsPath } = useUserConfigStore();
+    if (
+      this.installPath == null
+      && steamAppsPath != null
+      && steamAppName != null
+      && relativeRootInstallPath != null
+      && window.electronApi != null
+    ) {
+      this.installPath = await getRelativeInstallPath(steamAppsPath, steamAppName, relativeRootInstallPath);
+    } else {
+      myLogger.debug(`Skip update default install path, installPath[${this.installPath == null}],steamAppsPath[${steamAppsPath != null}],sreamAppName:[${steamAppName != null}],relativeRootInstallPath:[${relativeRootInstallPath != null}]`);
     }
   }
 

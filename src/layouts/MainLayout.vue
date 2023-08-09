@@ -43,6 +43,7 @@ import { useAuthDataStore } from 'src/stores/AuthData';
 import { useMainDataStore } from 'src/stores/MainData';
 import { useTempDataStore } from 'src/stores/TempData';
 import { useUserConfigStore } from 'src/stores/UserConfig';
+import { getDefaultSteamAppsPath } from 'src/utils/ResourceFsUtils';
 import { onMounted, ref } from 'vue';
 import { version } from '../../package.json';
 
@@ -54,18 +55,13 @@ const authDataStore = useAuthDataStore();
 const leftDrawerOpen = ref(!quasar.platform.is.mobile);
 const initEnd = ref(false);
 
-const oldGames = Array.from(mainDataStore.games.values());
-userConfigStore.updateGames(oldGames);
-tempDataStore.initLocalGames(oldGames);
-
 if (!navigator.onLine) {
-  tempDataStore.online = false;
   myLogger.info('To offline status.');
+  tempDataStore.online = false;
 }
 
 async function refresh() {
   myLogger.debug('Start refresh games.');
-  if (!quasar.loading.isActive) quasar.loading.show();
   try {
     if (tempDataStore.online && authDataStore.isLogin) {
       const onlineGames = await requestGames();
@@ -74,7 +70,7 @@ async function refresh() {
       await userConfigStore.updateApiGames(onlineGames);
     } else {
       myLogger.info(
-        `Skip refresh games, online:[${tempDataStore.online}], isLogin:[${authDataStore.isLogin}]`
+        `Skip refresh online games, online:[${tempDataStore.online}], isLogin:[${authDataStore.isLogin}]`
       );
     }
   } catch (error) {
@@ -86,8 +82,15 @@ async function refresh() {
   }
 }
 
-onMounted(() => {
-  if (tempDataStore.needRefreshGames()) refresh();
+onMounted(async () => {
+  if (userConfigStore.steamAppsPath == null)
+    userConfigStore.steamAppsPath = await getDefaultSteamAppsPath();
+
+  const oldGames = Array.from(mainDataStore.games.values());
+  await userConfigStore.updateGames(oldGames);
+  tempDataStore.initLocalGames(oldGames);
+
+  if (tempDataStore.needRefreshGames()) await refresh();
   else initEnd.value = true;
 });
 </script>

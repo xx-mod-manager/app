@@ -1,8 +1,51 @@
+import { Platform } from 'quasar';
 import { myLogger } from 'src/boot/logger';
 import { notNull } from './CommentUtils';
 
 const PATH_RESOURCE = 'Resources';
 
+export async function getDefaultSteamAppsPath(): Promise<string | undefined> {
+  const { app, path, fs } = notNull(window.electronApi, 'ElectronApi');
+
+  let steamPath: string | undefined = undefined;
+  const homePath = await app.getPath('home');
+  if (Platform.is.win) {
+    const win32 = 'C:\\Program Files (x86)\\Steam';
+    const win64 = 'C:\\Program Files\\Steam';
+    if (await fs.exist(win32)) steamPath = win32;
+    else if (await fs.exist(win64)) steamPath = win64;
+  } else if (Platform.is.linux) {
+    const linux = await path.join(homePath, '.local/share/Steam');
+    if (await fs.exist(linux)) steamPath = linux;
+  } else if (Platform.is.mac) {
+    const mac = await path.join(homePath, 'Library/Application Support/Steam');
+    if (await fs.exist(mac)) steamPath = mac;
+  }
+  if (steamPath == undefined) {
+    return undefined;
+  }
+  const steamAppsPath = await path.join(steamPath, 'steamapps', 'common');
+  if (await fs.exist(steamAppsPath)) return steamAppsPath;
+  return undefined;
+}
+
+async function getSteamAppRootPath(steamAppsPath: string, steamAppName: string): Promise<string | undefined> {
+  const { path, fs } = notNull(window.electronApi, 'ElectronApi');
+
+  const appPath = await path.join(steamAppsPath, steamAppName);
+  if (await fs.exist(appPath)) return appPath;
+  return undefined;
+}
+
+export async function getRelativeInstallPath(steamAppsPath: string, steamAppName: string, relativePath: string): Promise<string | undefined> {
+  const { path, fs } = notNull(window.electronApi, 'ElectronApi');
+
+  const appPath = await getSteamAppRootPath(steamAppsPath, steamAppName);
+  if (appPath == null) return undefined;
+  const installPath = await path.join(appPath, relativePath);
+  if (await fs.exist(installPath)) return installPath;
+  else return undefined;
+}
 
 export async function getResourcesPath(gameId: string): Promise<string> {
   const { app, path } = notNull(window.electronApi, 'ElectronApi');

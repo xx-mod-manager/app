@@ -12,6 +12,7 @@ const KEY_USER_CONFIG = 'userConfig';
 export const useUserConfigStore = defineStore(KEY_USER_CONFIG, () => {
   const initState = init();
   const currentGameId = ref(initState.currentGameId);
+  const steamAppsPath = ref(initState.steamAppsPath);
   const gameConfigs = ref(initState.gameConfigs);
 
   const currentGameInstallPath = computed(() => notNull(gameConfigs.value.get(currentGameId.value), 'Current game').installPath);
@@ -64,7 +65,7 @@ export const useUserConfigStore = defineStore(KEY_USER_CONFIG, () => {
   }
 
   return {
-    currentGameId, gameConfigs,
+    currentGameId, steamAppsPath, gameConfigs,
     currentGameInstallPath, currentGame,
     updateCurrentGame, updateCurrentGameInstallPath, updateGames, updateApiGames
   };
@@ -72,6 +73,7 @@ export const useUserConfigStore = defineStore(KEY_USER_CONFIG, () => {
 
 interface State {
   currentGameId: string
+  steamAppsPath?: string
   gameConfigs: Map<string, GameConfig>
 }
 
@@ -85,6 +87,7 @@ function init(): State {
     myLogger.debug('New UserConfigStore');
     return {
       currentGameId: 'csti',
+      steamAppsPath: undefined,
       gameConfigs: new Map([['csti', new GameConfig({ id: 'csti' })]])
     };
   }
