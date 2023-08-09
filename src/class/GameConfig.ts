@@ -1,3 +1,5 @@
+import { Game } from './Game';
+import { ApiGame } from './Types';
 
 export class GameConfig {
   readonly id: string;
@@ -14,9 +16,23 @@ export class GameConfig {
     }
   }
 
-  static async newByGame(game: { id: string, steamAppName?: string, relativeRootInstallPath?: string }): Promise<GameConfig> {
+  static async newByGame(game: Game): Promise<GameConfig> {
     const gameConfig = new GameConfig({ id: game.id });
-    gameConfig.updateInstallPath(game);
+    await gameConfig.updateInstallPath(game);
     return gameConfig;
+  }
+
+  static async newByApiGame(apiGame: ApiGame): Promise<GameConfig> {
+    const gameConfig = new GameConfig({ id: apiGame.id });
+    await gameConfig.updateInstallPath(apiGame);
+    return gameConfig;
+  }
+
+  async updateByGame(game: Game): Promise<void> {
+    await this.updateInstallPath(game);
+  }
+
+  async updateByApiGame(apiGame: ApiGame): Promise<void> {
+    await this.updateInstallPath(apiGame);
   }
 }
