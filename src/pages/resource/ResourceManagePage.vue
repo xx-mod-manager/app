@@ -418,6 +418,8 @@ async function deleteAsset(resource: Resource, asset: Asset) {
   if (asset.status === AssetStatus.INTALLED) uninstallAsset(resource, asset);
   await fsDeleteAsset(userConfigStore.currentGameId, resource.id, asset.id);
   resource.deleteAsset(asset.id);
+  if (!resource.isOnline() && resource.assets.size === 0)
+    resources.value.delete(resource.id);
 }
 
 async function openPath(resourceId: string, assetId: string) {
@@ -448,6 +450,7 @@ function deleteResource(resource: Resource) {
       deleteAsset(resource, asset);
     }
   }
+  if (!resource.isOnline()) resources.value.delete(resource.id);
 }
 
 function updateAssetIdValidate(resource: Resource, newAssetId: string) {
