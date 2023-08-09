@@ -45,7 +45,7 @@ export class Game {
     this.icon = undefined;
   }
 
-  updateApiGame(apiGame: ApiGame) {
+  updateByApiGame(apiGame: ApiGame) {
     this.name = apiGame.name;
     this.dataRepo = apiGame.dataRepo;
     this.steamAppName = apiGame.steamAppName;

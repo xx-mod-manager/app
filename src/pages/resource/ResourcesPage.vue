@@ -62,11 +62,10 @@ async function refresh(done?: () => void) {
   }
   myLogger.debug('Start refresh resources.');
   if (!refreshing.value) refreshing.value = true;
-  const currentGame = mainDataStore.getGameById(userConfigStore.currentGameId);
-  const dataRepo = currentGame.dataRepo;
+  const dataRepo = mainDataStore.currentGame.dataRepo;
   const onlineResources =
     dataRepo != undefined ? await requestGameResources(dataRepo) : [];
-  currentGame.updateApiResources(onlineResources);
+  mainDataStore.currentGame.updateApiResources(onlineResources);
   tempDataStore.updateResources(userConfigStore.currentGameId);
   if (refreshing.value) refreshing.value = false;
   if (done) done();

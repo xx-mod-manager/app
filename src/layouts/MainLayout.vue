@@ -69,7 +69,7 @@ async function refresh() {
   try {
     if (tempDataStore.online && authDataStore.isLogin) {
       const onlineGames = await requestGames();
-      mainDataStore.updateApiGames(onlineGames);
+      mainDataStore.updateByApiGames(onlineGames);
       tempDataStore.updateApiGames(onlineGames);
       await userConfigStore.addApiGames(onlineGames);
     } else {

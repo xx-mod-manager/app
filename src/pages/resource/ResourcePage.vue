@@ -42,6 +42,7 @@ import { existResourceGuard } from 'src/router/routes';
 import { useMainDataStore } from 'src/stores/MainData';
 import { useTempDataStore } from 'src/stores/TempData';
 import { useUserConfigStore } from 'src/stores/UserConfig';
+import { notNull } from 'src/utils/CommentUtils';
 import { computed, onMounted, ref } from 'vue';
 import { onBeforeRouteUpdate, useRoute } from 'vue-router';
 
@@ -52,7 +53,10 @@ const route = useRoute();
 const refreshing = ref(false);
 const resourceid = route.params.id as string;
 const currentGameId = computed(() => userConfigStore.currentGameId);
-const resource = mainDataStore.getResourceById(currentGameId.value, resourceid);
+const resource = notNull(
+  mainDataStore.currentGame.resources.get(resourceid),
+  `Resource[${resourceid}]`
+);
 const detail = computed(() => {
   return resource.releaseNodeId != null && resource.discussionNodeId != null
     ? tempDataStore.getOptionResourceDetail(

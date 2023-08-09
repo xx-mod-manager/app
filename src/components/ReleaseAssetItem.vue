@@ -93,12 +93,10 @@ function download(url: string) {
         `Complete download:[${file.filename}] path:[${file.path}] url:[${file.url}].`
       );
       removeProgress();
-      mainDataStore.updateAssetStatus(
-        userConfigStore.currentGameId,
-        resourceId.value,
-        assetId,
-        AssetStatus.DOWNLOADED
-      );
+      const asset = mainDataStore.currentGame.resources
+        .get(resourceId.value)
+        ?.assets.get(assetId);
+      if (asset != null) asset.status = AssetStatus.DOWNLOADED;
       downloading.value = false;
     });
   } else {
