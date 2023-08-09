@@ -12,8 +12,6 @@
         :rows="Array.from(resources.values()).filter((i) => i.isLocal())"
         :columns="columns"
         row-key="id"
-        hide-pagination
-        :rows-per-page-options="[0]"
         :table-colspan="6"
         :loading="refreshing"
         wrap-cells
@@ -186,7 +184,7 @@
                   <q-item
                     v-close-popup
                     clickable
-                    @click="openPath(props.row.id, asset.id)"
+                    @click="openAssetPath(props.row.id, asset.id)"
                     ><q-item-section>打开所在路径</q-item-section></q-item
                   >
                 </q-list>
@@ -234,6 +232,13 @@
           />
         </q-fab>
       </q-page-sticky>
+
+      <div
+        v-if="userConfigStore.currentGame.installPath != null"
+        @click="openPath(userConfigStore.currentGame.installPath)"
+      >
+        安装路径：{{ userConfigStore.currentGame.installPath }}
+      </div>
     </q-page>
   </q-pull-to-refresh>
 </template>
@@ -422,7 +427,7 @@ async function deleteAsset(resource: Resource, asset: Asset) {
     resources.value.delete(resource.id);
 }
 
-async function openPath(resourceId: string, assetId: string) {
+async function openAssetPath(resourceId: string, assetId: string) {
   const { path, shell } = notNull(window.electronApi, 'ElectronApi');
 
   const assetPath = await path.join(
@@ -430,6 +435,12 @@ async function openPath(resourceId: string, assetId: string) {
     resourceId + '-' + assetId
   );
   await shell.showItemInFolder(assetPath);
+}
+
+async function openPath(fullPath: string) {
+  const { shell } = notNull(window.electronApi, 'ElectronApi');
+
+  await shell.showItemInFolder(fullPath);
 }
 
 function uninstallResource(resource: Resource) {
@@ -572,14 +583,16 @@ const columns = [
     label: 'ID',
     field: 'id',
     align: 'left' as const,
-    headerStyle: 'width: 20%',
+    headerStyle: 'width: 15%',
+    sortable: true,
   },
   {
     name: 'name',
     label: '名字',
     field: 'name',
     align: 'left' as const,
-    headerStyle: 'width: 20%',
+    headerStyle: 'width: 15%',
+    sortable: true,
   },
   {
     name: 'description',
@@ -587,20 +600,23 @@ const columns = [
     field: 'description',
     align: 'left' as const,
     headerStyle: 'width: 25%',
+    sortable: true,
   },
   {
     name: 'author',
     label: '作者',
     field: 'author',
     align: 'left' as const,
-    headerStyle: 'width: 10%',
+    headerStyle: 'width: 15%',
+    sortable: true,
   },
   {
     name: 'category',
     label: '分类',
     field: 'category',
     align: 'left' as const,
-    headerStyle: 'width: 10%',
+    headerStyle: 'width: 15%',
+    sortable: true,
   },
   {
     name: 'action',
