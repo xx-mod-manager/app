@@ -4,8 +4,8 @@ import { refreshTokenInfo } from 'src/api/GithubAuthApi';
 import { myLogger } from 'src/boot/logger';
 import { useAuthDataStore } from 'src/stores/AuthData';
 import { useMainDataStore } from 'src/stores/MainData';
-import { useUserConfigStore } from 'src/stores/UserConfig';
-import { RouteLocationNormalized, RouteRecordRaw, Router } from 'vue-router';
+import { notNull } from 'src/utils/CommentUtils';
+import { RouteLocationNormalized, Router } from 'vue-router';
 
 export const ROUTE_HOME = 'home';
 export const ROUTE_RESOURCES = 'resources';
@@ -15,15 +15,11 @@ export const ROUTE_RESOURCE_IMPORT = 'resourceImport';
 export const ROUTE_LOGIN = 'login';
 export const ROUTE_404 = '404';
 
-const routes: RouteRecordRaw[] = [
+export default [
   {
     path: '/',
     name: ROUTE_HOME,
-    redirect: () => {
-      if (window.electronApi === undefined)
-        return { name: ROUTE_RESOURCES };
-      else return { name: ROUTE_RESOURCE_MANAGE };
-    },
+    redirect: () => { return { name: window.electronApi == null ? ROUTE_RESOURCES : ROUTE_RESOURCE_MANAGE }; },
     component: () => import('layouts/MainLayout.vue'),
     meta: { requireLogin: true },
     children: [
@@ -55,18 +51,17 @@ export function registerGlobalGuards(router: Router) {
     if (to.meta.requireLogin) {
       if (!authDataStore.activeToken) {
         if (authDataStore.activeRefreshToken) {
-          myLogger.debug('Refresh token.');
+          myLogger.info('Refresh token');
           Loading.show({ message: '刷新Github Token中...', delay: 400 });
           try {
-            if (authDataStore.authInfo) {
-              const newToken = await refreshTokenInfo({
-                access_token: authDataStore.authInfo.accessToken,
-                refresh_token: authDataStore.authInfo.refreshToken,
-                expires_in: 0,
-                refresh_token_expires_in: 0,
-              });
-              await authDataStore.update(newToken);
-            }
+            const authInfo = notNull(authDataStore.authInfo, 'AuthInfo');
+            const newToken = await refreshTokenInfo({
+              access_token: authInfo.accessToken,
+              refresh_token: authInfo.refreshToken,
+              expires_in: 0,
+              refresh_token_expires_in: 0,
+            });
+            await authDataStore.update(newToken);
           } catch (e) {
             myLogger.error('Refresh token fail.', e);
             Notify.create({
@@ -80,13 +75,13 @@ export function registerGlobalGuards(router: Router) {
             Loading.hide();
           }
         } else {
-          myLogger.info(`Route ${to.name?.toString()} require login.`);
+          myLogger.info(`Route ${to.name?.toString() ?? to.path} require login`);
           return { name: ROUTE_LOGIN };
         }
       }
     } else if (to.meta.requireNotLogin) {
       if (authDataStore.isLogin) {
-        myLogger.info(`Route ${to.name?.toString()} require not login.`);
+        myLogger.info(`Route ${to.name?.toString() ?? to.path} require not login`);
         return { name: ROUTE_HOME };
       }
     }
@@ -95,14 +90,11 @@ export function registerGlobalGuards(router: Router) {
 
 export function existResourceGuard(to: RouteLocationNormalized) {
   const resourceid = to.params.id as string;
-  const { getOptionResourceById } = useMainDataStore();
-  const userConfigStore = useUserConfigStore();
-  const resource = getOptionResourceById(userConfigStore.currentGameId, resourceid);
-  if (resource === undefined) {
-    myLogger.error(`Resource: [${resourceid}] not exits.`);
+  const mainDataStore = useMainDataStore();
+  const resource = mainDataStore.currentGame.resources.get(resourceid);
+  if (resource == null) {
+    myLogger.error(`Resource[${resourceid}] not exits`);
     return { name: ROUTE_404 };
   }
   return true;
 }
-
-export default routes;
