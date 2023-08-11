@@ -1,9 +1,10 @@
 <template>
   <q-page style="padding: 0.5rem">
     <q-list bordered separator dense>
-      <q-item v-ripple clickable>
+      <q-item v-ripple clickable @click="gameSelect?.showPopup()">
         <q-item-section>
-          <q-select
+          <QSelect
+            ref="gameSelect"
             v-model="userConfigStore.currentGameId"
             borderless
             stack-label
@@ -14,7 +15,7 @@
             map-options
             emit-value
           >
-          </q-select>
+          </QSelect>
         </q-item-section>
       </q-item>
 
@@ -23,6 +24,7 @@
           <q-field
             v-model="userConfigStore.steamAppsPath"
             borderless
+            class="cursor-pointer"
             stack-label
             label="Steam app安装路径"
           >
@@ -44,6 +46,7 @@
         <q-item-section>
           <q-field
             v-model="userConfigStore.currentGame.installPath"
+            class="cursor-pointer"
             borderless
             stack-label
             label="mod安装路径"
@@ -61,15 +64,16 @@
 </template>
 
 <script setup lang="ts">
-import { useQuasar } from 'quasar';
+import { QSelect, useQuasar } from 'quasar';
 import { myLogger } from 'src/boot/logger';
 import { useMainDataStore } from 'src/stores/MainData';
 import { useUserConfigStore } from 'src/stores/UserConfig';
 import { openDialogSelectDirectory } from 'src/utils/DialogUtils';
+import { ref } from 'vue';
 
 const userConfigStore = useUserConfigStore();
 const mainDataStore = useMainDataStore();
-const { notify, platform } = useQuasar();
+const { platform } = useQuasar();
 
 async function selectSteamAppsPath() {
   const dir = await openDialogSelectDirectory('请选择mod安装路径');
@@ -81,10 +85,7 @@ async function selectSteamAppsPath() {
     userConfigStore.steamAppsPath = dir.path;
     userConfigStore.updateGames(Array.from(mainDataStore.games.values()));
   } else {
-    notify({
-      type: 'warning',
-      message: '未获取到文件夹!',
-    });
+    myLogger.debug('Files is empty');
   }
 }
 
@@ -94,10 +95,9 @@ async function selectGameInstallPath() {
   if (dir != null) {
     userConfigStore.updateCurrentGameInstallPath(dir.path);
   } else {
-    notify({
-      type: 'warning',
-      message: '未获取到文件夹!',
-    });
+    myLogger.debug('Files is empty');
   }
 }
+
+const gameSelect = ref(null as QSelect | null);
 </script>
