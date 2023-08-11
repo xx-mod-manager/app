@@ -1,6 +1,7 @@
 import { Platform } from 'quasar';
 import { myLogger } from 'src/boot/logger';
 import { notNull } from './CommentUtils';
+import { parseResourceAndVersion } from './StringUtils';
 
 const PATH_RESOURCE = 'Resources';
 
@@ -108,4 +109,92 @@ export async function importLocalAssetByZipPath(gameId: string, resourceId: stri
     myLogger.debug(`Delete import raw file [${zipPath}]`);
     fs.rm(zipPath, { force: true });
   }
+}
+
+export async function initResourcesDir(gameId: string) {
+  const { fs } = notNull(window.electronApi, 'ElectronApi');
+
+  const resourcesPath = await getResourcesPath(gameId);
+  if (await fs.exist(resourcesPath)) {
+    const assetsStat = await fs.state(resourcesPath);
+    if (!assetsStat.isDirectory) {
+      await fs.rm(resourcesPath, { force: true });
+      await fs.mkdir(resourcesPath);
+      myLogger.warn(`Resources dir [${resourcesPath}] is not directory, Recreate.`);
+    }
+  } else {
+    await fs.mkdir(resourcesPath, { recursive: true });
+    myLogger.debug(`Create resources dir [${resourcesPath}].`);
+  }
+}
+
+export async function syncInstallAndDownloadAssets(installPath: string, gameId: string) {
+  const { fs, path } = notNull(window.electronApi, 'ElectronApi');
+
+  const resourcesPath = await getResourcesPath(gameId);
+  const installedAssets = await fs.readdir(installPath);
+  const downloadedAssets = await fs.readdir(resourcesPath);
+  await Promise.all(installedAssets
+    .filter(it => !downloadedAssets.includes(it))
+    .map(async (assetName) => {
+      const installedAssetPath = await path.join(installPath, assetName);
+      const installedAssetStat = await fs.lstate(installedAssetPath);
+      if (installedAssetStat.isDirectory && !installedAssetStat.isSymbolicLink) {
+        const { resourceId: resourceId, assetId } = parseResourceAndVersion(assetName);
+        const newResourceName = resourceId + '-' + assetId;
+        myLogger.debug(`Sync asset [${assetName}] to download path, and rename as [${newResourceName}]`);
+        const downloadedAssetPath = await path.join(resourcesPath, newResourceName);
+        await fs.rename(installedAssetPath, downloadedAssetPath);
+        await installAsset(installPath, gameId, resourceId, assetId);
+      }
+    }));
+}
+
+export async function getInstealledAssets(installPath: string): Promise<Map<string, string[]>> {
+  const { fs, path } = notNull(window.electronApi, 'ElectronApi');
+
+  const result = new Map<string, string[]>();
+  const assetFiles = await fs.readdir(installPath);
+  const promises = assetFiles.map(async (assetFile) => {
+    const assetFilePath = await path.join(installPath, assetFile);
+    const assetFileStat = await fs.state(assetFilePath);
+    if (assetFileStat.isDirectory) {
+      const { resourceId: resource, assetId } = parseResourceAndVersion(assetFile);
+      let versions = result.get(resource);
+      if (versions == undefined) {
+        versions = [];
+        result.set(resource, versions);
+      }
+      versions.push(assetId);
+    } else {
+      myLogger.info(`Skip is not dir's asset file: [${assetFile}]`);
+    }
+  });
+  await Promise.all(promises);
+  return result;
+}
+
+export async function getDownloadedAssets(gameId: string): Promise<Map<string, string[]>> {
+  const { fs, path } = notNull(window.electronApi, 'ElectronApi');
+
+  const resourcesPath = await getResourcesPath(gameId);
+  const result = new Map<string, string[]>();
+  const assetFiles = await fs.readdir(resourcesPath);
+  const promises = assetFiles.map(async (assetFile) => {
+    const assetFilePath = await path.join(resourcesPath, assetFile);
+    const assetFileStat = await fs.state(assetFilePath);
+    if (assetFileStat.isDirectory) {
+      const { resourceId: resource, assetId } = parseResourceAndVersion(assetFile);
+      let versions = result.get(resource);
+      if (versions == undefined) {
+        versions = [];
+        result.set(resource, versions);
+      }
+      versions.push(assetId);
+    } else {
+      myLogger.info(`Skip is not dir's asset file: [${assetFile}]`);
+    }
+  });
+  await Promise.all(promises);
+  return result;
 }

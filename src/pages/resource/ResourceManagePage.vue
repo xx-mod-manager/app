@@ -269,7 +269,11 @@ import {
   deleteAsset as fsDeleteAsset,
   installAsset as fsInstallAsset,
   uninstallAsset as fsUninstallAsset,
+  getDownloadedAssets,
+  getInstealledAssets,
   getResourcesPath,
+  initResourcesDir,
+  syncInstallAndDownloadAssets,
 } from 'src/utils/ResourceFsUtils';
 import { parseResourceAndVersion } from 'src/utils/StringUtils';
 import { computed, onMounted, ref } from 'vue';
@@ -440,7 +444,7 @@ async function openAssetPath(resourceId: string, assetId: string) {
 async function openPath(fullPath: string) {
   const { shell } = notNull(window.electronApi, 'ElectronApi');
 
-  await shell.showItemInFolder(fullPath);
+  await shell.openPath(fullPath);
 }
 
 function uninstallResource(resource: Resource) {
@@ -541,15 +545,13 @@ async function refresh(done?: () => void) {
   refreshing.value = true;
   if (userConfigStore.currentGameInstallPath !== undefined) {
     myLogger.debug('Start sync install download resources.');
-    await window.electronApi.formatInstallAndDownloadDir(
+    await syncInstallAndDownloadAssets(
       userConfigStore.currentGameInstallPath,
       userConfigStore.currentGameId
     );
     myLogger.debug('Start update installed asset.');
     mainDataStore.currentGame.updateInstalledAsset(
-      await window.electronApi.getInstealledAssets(
-        userConfigStore.currentGameInstallPath
-      )
+      await getInstealledAssets(userConfigStore.currentGameInstallPath)
     );
   } else {
     myLogger.info(
@@ -557,16 +559,17 @@ async function refresh(done?: () => void) {
     );
   }
   mainDataStore.currentGame.updateDownloadedAsset(
-    await window.electronApi.getDownloadedAssets(userConfigStore.currentGameId)
+    await getDownloadedAssets(userConfigStore.currentGameId)
   );
   tempDataStore.updateResourceManage(userConfigStore.currentGameId);
   refreshing.value = false;
   if (done) done();
 }
 
-onMounted(() => {
+onMounted(async () => {
+  await initResourcesDir(userConfigStore.currentGameId);
   if (tempDataStore.needRefreshResourceManage(userConfigStore.currentGameId)) {
-    refresh();
+    await refresh();
   }
 });
 
