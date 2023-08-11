@@ -36,18 +36,35 @@
 
         <q-item-section> 资源管理 </q-item-section>
       </q-item>
+
+      <q-item
+        v-if="quasar.platform.is.electron"
+        :to="{ name: ROUTE_USER_CONFIG }"
+        exact
+      >
+        <q-item-section avatar>
+          <q-icon :name="matSettings" />
+        </q-item-section>
+
+        <q-item-section> 设置 </q-item-section>
+      </q-item>
     </q-list>
   </div>
 </template>
 
 <script setup lang="ts">
-import { matDownload, matWidgets } from '@quasar/extras/material-icons';
+import {
+  matDownload,
+  matSettings,
+  matWidgets,
+} from '@quasar/extras/material-icons';
 import { useQuasar } from 'quasar';
 import {
   ROUTE_LOGIN,
   ROUTE_RESOURCES,
   ROUTE_RESOURCE_MANAGE,
 } from 'src/router';
+import { ROUTE_USER_CONFIG } from 'src/router/routes';
 import { useAuthDataStore } from 'src/stores/AuthData';
 import { useRouter } from 'vue-router';
 

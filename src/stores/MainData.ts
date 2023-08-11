@@ -89,7 +89,7 @@ function init(): State {
       games: new Map([
         ['csti', new Game({
           id: 'csti',
-          name: '卡牌生存：热带荒岛',
+          name: '卡牌生存：热带岛屿',
           dataRepo: 'HeYaoDaDa/GrcData-csti',
           steamAppName: 'Card Survival Tropical Island',
           relativeRootInstallPath: './BepInEx/plugins',
