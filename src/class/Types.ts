@@ -171,7 +171,9 @@ export interface OnlineResourceDetail {
   discussion: Discussion
 }
 
-export interface FileState { isFile: boolean; isDirectory: boolean; isSymbolicLink: boolean; size: number | bigint; }
+export interface FileState { isFile: boolean; isDirectory: boolean; size: number | bigint; }
+
+export interface FileLstate { isFile: boolean; isDirectory: boolean; isSymbolicLink: boolean; size: number | bigint; }
 
 
 export interface ImportAssetQuery {
