@@ -335,7 +335,6 @@ async function dropEvent(event: DragEvent) {
 
   const pathInfos = await Promise.all(
     itemPaths.map(async (itemPath) => {
-      //TODO: change to async
       const state = await fs.state(itemPath);
       const name = await path.getBasename(itemPath);
       const ext = await path.extname(itemPath);

@@ -83,8 +83,10 @@ async function refresh() {
 }
 
 onMounted(async () => {
-  if (userConfigStore.steamAppsPath == null)
+  if (userConfigStore.steamAppsPath == null) {
+    myLogger.debug('SteamAppsPath is null, try get default steam apps path');
     userConfigStore.steamAppsPath = await getDefaultSteamAppsPath();
+  }
 
   const oldGames = Array.from(mainDataStore.games.values());
   await userConfigStore.updateGames(oldGames);

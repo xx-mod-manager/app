@@ -23,10 +23,14 @@ export async function getDefaultSteamAppsPath(): Promise<string | undefined> {
     if (await fs.exist(mac)) steamPath = mac;
   }
   if (steamPath == undefined) {
+    myLogger.debug('Default steam path is not exist.');
     return undefined;
   }
   const steamAppsPath = await path.join(steamPath, 'steamapps', 'common');
-  if (await fs.exist(steamAppsPath)) return steamAppsPath;
+  if (await fs.exist(steamAppsPath)) {
+    myLogger.debug(`Get default steam apps path:[${steamAppsPath}]`);
+    return steamAppsPath;
+  }
   return undefined;
 }
 
@@ -120,11 +124,11 @@ export async function initResourcesDir(gameId: string) {
     if (!assetsStat.isDirectory) {
       await fs.rm(resourcesPath, { force: true });
       await fs.mkdir(resourcesPath);
-      myLogger.warn(`Resources dir [${resourcesPath}] is not directory, Recreate.`);
+      myLogger.warn(`Resources dir [${resourcesPath}] is not directory, Recreate`);
     }
   } else {
     await fs.mkdir(resourcesPath, { recursive: true });
-    myLogger.debug(`Create resources dir [${resourcesPath}].`);
+    myLogger.debug(`Create resources dir [${resourcesPath}]`);
   }
 }
 
@@ -167,7 +171,7 @@ export async function getInstealledAssets(installPath: string): Promise<Map<stri
       }
       versions.push(assetId);
     } else {
-      myLogger.info(`Skip is not dir's asset file: [${assetFile}]`);
+      myLogger.debug(`Skip is not dir's asset file: [${assetFile}]`);
     }
   });
   await Promise.all(promises);
@@ -192,7 +196,7 @@ export async function getDownloadedAssets(gameId: string): Promise<Map<string, s
       }
       versions.push(assetId);
     } else {
-      myLogger.info(`Skip is not dir's asset file: [${assetFile}]`);
+      myLogger.debug(`Skip is not dir's asset file: [${assetFile}]`);
     }
   });
   await Promise.all(promises);
