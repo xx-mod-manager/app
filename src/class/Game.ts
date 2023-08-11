@@ -92,7 +92,11 @@ export class Game {
       const downAssetIds = downAssets.get(resource.id) ?? [];
       Array.from(resource.assets.values())
         .filter(i => i.status === AssetStatus.DOWNLOADED && (!downAssetIds.includes(i.id)))
-        .forEach(i => i.status = AssetStatus.NONE);
+        .forEach(i => {
+          myLogger.debug(`Delete downloaded Asset[${resource.id}][${i.id}]`);
+          if (i.isOnline()) i.status = AssetStatus.NONE;
+          else resource.assets.delete(i.id);
+        });
     }
   }
 

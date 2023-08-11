@@ -265,7 +265,10 @@ import {
   importLocalAssetByDirPath,
   importLocalAssetByZipPath,
 } from 'src/utils/ResourceFsUtils';
-import { parseResourceAndVersion } from 'src/utils/StringUtils';
+import {
+  parseResourceAndVersion,
+  validateVersion,
+} from 'src/utils/StringUtils';
 import { ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
@@ -425,6 +428,13 @@ function updateAssetIdValidate(
       `AssetId conflict, [${impResource.id}] exist [${newImpAssetId}]`
     );
     notifyAssetIdConflict(impResource.name, newImpAssetId);
+  } else if (!validateVersion(newImpAssetId)) {
+    myLogger.info(`AssetId[${newImpAssetId}] validate fail`);
+    notify({
+      type: 'warning',
+      message: '不可用的版本号，请使用纯数值加"."的中缀。',
+    });
+    return false;
   }
   return !conflict;
 }

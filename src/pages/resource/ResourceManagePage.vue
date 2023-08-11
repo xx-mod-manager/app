@@ -273,9 +273,13 @@ import {
   getInstealledAssets,
   getResourcesPath,
   initResourcesDir,
+  renameAsset,
   syncInstallAndDownloadAssets,
 } from 'src/utils/ResourceFsUtils';
-import { parseResourceAndVersion } from 'src/utils/StringUtils';
+import {
+  parseResourceAndVersion,
+  validateVersion,
+} from 'src/utils/StringUtils';
 import { computed, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 
@@ -472,11 +476,18 @@ function updateAssetIdValidate(resource: Resource, newAssetId: string) {
   if (conflict) {
     myLogger.info(`AssetId conflict, [${resource.id}] exist [${newAssetId}]`);
     notifyAssetIdConflict(resource.name, newAssetId);
+  } else if (!validateVersion(newAssetId)) {
+    myLogger.info(`AssetId[${newAssetId}] validate fail`);
+    notify({
+      type: 'warning',
+      message: '不可用的版本号，请使用纯数值加"."的中缀。',
+    });
+    return false;
   }
   return !conflict;
 }
 
-function updateAssetId(
+async function updateAssetId(
   resource: Resource,
   newAssetId: string,
   oldAsset: Asset
@@ -484,6 +495,14 @@ function updateAssetId(
   resource.deleteAsset(oldAsset.id);
   const newImpAsset = new Asset({ ...oldAsset, id: newAssetId });
   resource.addAsset(newImpAsset);
+  await renameAsset(
+    userConfigStore.currentGameInstallPath,
+    userConfigStore.currentGameId,
+    resource.id,
+    oldAsset.id,
+    resource.id,
+    newAssetId
+  );
 }
 
 function updateResourceIdValidate(
@@ -505,7 +524,7 @@ function updateResourceIdValidate(
   return true;
 }
 
-function updateResourceId(newResourceId: string, oldResource: Resource) {
+async function updateResourceId(newResourceId: string, oldResource: Resource) {
   resources.value.delete(oldResource.id);
 
   const existResource = resources.value.get(newResourceId);
@@ -520,6 +539,18 @@ function updateResourceId(newResourceId: string, oldResource: Resource) {
     newImpResource.addAssets(oldResource.assets.values());
     resources.value.set(newImpResource.id, newImpResource);
   }
+  await Promise.all(
+    Array.from(oldResource.assets.values()).map((oldAsset) =>
+      renameAsset(
+        userConfigStore.currentGameInstallPath,
+        userConfigStore.currentGameId,
+        oldResource.id,
+        oldAsset.id,
+        newResourceId,
+        oldAsset.id
+      )
+    )
+  );
 }
 
 function isInstalled(resource: Resource) {

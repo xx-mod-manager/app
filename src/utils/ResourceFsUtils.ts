@@ -86,6 +86,40 @@ export async function deleteAsset(gameId: string, resourceId: string, assetId: s
   }
 }
 
+export async function renameAsset(gameInstallPath: string | undefined, gameId: string, resourceId: string, assetId: string, newResourceId: string, newAssetId: string) {
+  const { fs, path } = notNull(window.electronApi, 'ElectronApi');
+
+  const oldAssetName = resourceId + '-' + assetId;
+  const newAssetName = newResourceId + '-' + newAssetId;
+  if (oldAssetName === newAssetName) {
+    myLogger.debug('Skip update, same name');
+    return;
+  }
+
+  let updateInstall = false;
+  if (gameInstallPath != null) {
+    updateInstall = await fs.exist(await path.join(gameInstallPath, oldAssetName));
+  }
+
+  const oldAssetPath = await path.join(await getResourcesPath(gameId), oldAssetName);
+  const newAssetPath = await path.join(await getResourcesPath(gameId), newAssetName);
+  if (!await fs.exist(oldAssetPath) || await fs.exist(newAssetPath)) {
+    myLogger.debug('Skip update, not exist old Asset or exist new Asset');
+    return;
+  }
+  fs.rename(oldAssetPath, newAssetPath);
+
+  if (gameInstallPath != null) {
+    const oldAssetInstallPath = await path.join(gameInstallPath, oldAssetName);
+    const newAssetInstallPath = await path.join(gameInstallPath, newAssetName);
+    if (updateInstall) {
+      myLogger.debug(`Update oldAssetInstallPath[${oldAssetInstallPath}]`);
+      fs.rm(oldAssetInstallPath, { recursive: true, force: true });
+      await fs.symlink(newAssetPath, newAssetInstallPath, 'dir');
+    }
+  }
+}
+
 export async function importLocalAssetByDirPath(gameId: string, resourceId: string, assetId: string, dirPath: string, rmRaw?: boolean) {
   myLogger.debug(`Import local asset[${resourceId}][${assetId}] from [${dirPath}]`);
   const { fs, path } = notNull(window.electronApi, 'ElectronApi');

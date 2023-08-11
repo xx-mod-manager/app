@@ -19,3 +19,8 @@ export function parseResourceAndVersion(name: string): { resourceId: string, ass
   }
   return { assetId: assetId ?? '0.0.0', resourceId };
 }
+
+export function validateVersion(name: string): boolean {
+  const versionRe = /^[0-9][0-9,\.]*\.[0-9,\.]*[0-9]$/;
+  return versionRe.test(name);
+}
