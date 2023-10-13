@@ -215,7 +215,7 @@ function addNewGame() {
     });
     return;
   }
-  const newGame = new Game({ id: newGameId.value, name: newGameName.value });
+  const newGame = Game.byLocalGame(newGameId.value, newGameName.value);
   mainDataStore.games.set(newGame.id, newGame);
   userConfigStore.updateGames([newGame]);
   useTempDataStore().initLocalGames([newGame]);

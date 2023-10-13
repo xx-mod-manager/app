@@ -1,23 +1,5 @@
 <template>
   <q-layout view="hHr LpR fFf">
-    <q-header>
-      <q-toolbar>
-        <q-btn
-          v-if="quasar.platform.is.mobile"
-          flat
-          dense
-          round
-          :icon="matTune"
-          aria-label="Settings"
-          @click="leftDrawerOpen = !leftDrawerOpen"
-        />
-
-        <q-toolbar-title> XX Mod Manager </q-toolbar-title>
-
-        <div>v{{ version }}</div>
-      </q-toolbar>
-    </q-header>
-
     <q-drawer
       v-model="leftDrawerOpen"
       persistent
@@ -34,7 +16,6 @@
 </template>
 
 <script setup lang="ts">
-import { matTune } from '@quasar/extras/material-icons';
 import { useQuasar } from 'quasar';
 import { requestGames } from 'src/api/MetaDataApi';
 import { myLogger } from 'src/boot/logger';
@@ -45,7 +26,6 @@ import { useTempDataStore } from 'src/stores/TempData';
 import { useUserConfigStore } from 'src/stores/UserConfig';
 import { getDefaultSteamAppsPath } from 'src/utils/ResourceFsUtils';
 import { onMounted, ref } from 'vue';
-import { version } from '../../package.json';
 
 const quasar = useQuasar();
 const userConfigStore = useUserConfigStore();

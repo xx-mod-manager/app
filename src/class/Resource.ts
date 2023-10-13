@@ -1,58 +1,150 @@
 import { myLogger } from 'src/boot/logger';
-import { deleteArrayItemByFieldId, replaceArray } from 'src/utils/ArrayUtils';
+import { deleteArrayItemByFieldId } from 'src/utils/ArrayUtils';
+import { notNull } from 'src/utils/CommentUtils';
 import { parseResourceAndVersion } from 'src/utils/StringUtils';
 import { Asset, AssetStatus } from './Asset';
 import { ApiReleaseAsset } from './GraphqlClass';
 import { ApiResource } from './Types';
 import { ImpAsset, ImpResource } from './imp';
 
+type OnlineData = Readonly<Omit<ApiResource, 'id'>>;
+type LocalData = {
+  name?: string
+  description?: string
+  author?: string
+  category?: string
+  created?: number
+};
+
 export class Resource {
   readonly id: string;
-  name: string;
-  description: string;
-  cover?: string;
-  author: string;
-  category: string;
-  readonly tags: string[] = [];
-  repo?: string;
-  created: number;
-  updated?: number;
-  downloadCount?: number;
-  releaseNodeId?: string;
-  discussionNodeId?: string;
+  onlineData?: OnlineData;
+  localData: LocalData = {};
   readonly assets: Map<string, Asset> = new Map;
 
-  constructor({ id, name, description, cover, author, category, repo, created, updated, downloadCount, releaseNodeId, discussionNodeId, assets = new Map }
+  constructor({ id, onlineData, localData, assets = new Map }
     : {
       id: string,
-      name: string,
-      description: string,
-      cover?: string,
-      author: string,
-      category: string,
-      repo?: string,
-      created: number,
-      updated?: number,
-      downloadCount?: number,
-      releaseNodeId?: string,
-      discussionNodeId?: string,
+      onlineData?: OnlineData
+      localData?: LocalData
       assets?: Map<string, Asset>,
     }) {
     this.id = id;
-    this.name = name;
-    this.description = description;
-    this.cover = cover;
-    this.author = author;
-    this.category = category;
-    this.repo = repo;
-    this.created = created;
-    this.updated = updated;
-    this.downloadCount = downloadCount;
-    this.releaseNodeId = releaseNodeId;
-    this.discussionNodeId = discussionNodeId;
+    this.onlineData = onlineData;
+    if (localData != null) {
+      this.localData = localData;
+    }
     for (const [assetId, asset] of assets) {
       this.assets.set(assetId, asset);
     }
+  }
+
+  static byApiResource(apiResource: ApiResource): Resource {
+    const resource = new Resource({ id: apiResource.id });
+    resource.onlineData = apiResource;
+    return resource;
+  }
+
+  static byImpResource(impResource: ImpResource): Resource {
+    return new Resource({
+      id: impResource.id,
+      localData: { ...impResource, created: Date.now() },
+      assets: new Map(Array.from(impResource.assets.values())
+        .map(Asset.newByImpAsset)
+        .map(i => [i.id, i]))
+    });
+  }
+
+  get name(): string {
+    if (this.localData.name != null) {
+      return this.localData.name;
+    } else {
+      return notNull(this.onlineData).name;
+    }
+  }
+
+  set name(name: string) {
+    this.localData.name = name;
+  }
+
+  get description(): string {
+    if (this.localData.description != null) {
+      return this.localData.description;
+    } else {
+      return notNull(this.onlineData).description;
+    }
+  }
+
+  set description(description: string) {
+    this.localData.description = description;
+  }
+
+  get cover(): string | undefined {
+    return this.onlineData?.cover;
+  }
+
+  get author(): string {
+    if (this.localData.author != null) {
+      return this.localData.author;
+    } else {
+      return notNull(this.onlineData).author;
+    }
+  }
+
+  set author(author: string) {
+    this.localData.author = author;
+  }
+
+  get category(): string {
+    if (this.localData.category != null) {
+      return this.localData.category;
+    } else {
+      return notNull(this.onlineData).category;
+    }
+  }
+
+  set category(category: string) {
+    this.localData.category = category;
+  }
+
+  get tags(): string[] {
+    if (this.onlineData == null) {
+      return [];
+    } else {
+      return this.onlineData?.tags;
+    }
+  }
+
+  get repo(): string | undefined {
+    return this.onlineData?.repo;
+  }
+
+  get created(): number {
+    if (this.localData.created != null) {
+      return this.localData.created;
+    } else {
+      return notNull(this.onlineData).created;
+    }
+  }
+
+  set created(created: number) {
+    this.localData.created = created;
+  }
+
+  get updated(): number | undefined {
+    return this.onlineData?.updated;
+  }
+
+  get downloadCount(): number | undefined {
+    return this.onlineData?.downloadCount;
+  }
+
+  get releaseNodeId(): string | undefined {
+    return this.onlineData?.releaseNodeId;
+  }
+
+  get discussionNodeId(): string | undefined {
+    return this.onlineData?.discussionNodeId;
   }
 
   isOnline(): boolean {
@@ -64,50 +156,6 @@ export class Resource {
       if (asset.isLocal()) return true;
     }
     return false;
-  }
-
-  static newById(id: string): Resource {
-    return new Resource({
-      id,
-      name: id,
-      description: id,
-      author: 'None',
-      category: 'Other',
-      created: Date.now(),
-    });
-  }
-
-  static newByImpResource(impResource: ImpResource): Resource {
-    return new Resource({
-      ...impResource,
-      created: Date.now(),
-      assets: new Map(Array.from(impResource.assets.values())
-        .map(Asset.newByImpAsset)
-        .map(i => [i.id, i]))
-    });
-  }
-
-  clearApiResourcetData() {
-    this.repo = undefined;
-    this.updated = undefined;
-    this.downloadCount = undefined;
-    this.releaseNodeId = undefined;
-    this.discussionNodeId = undefined;
-  }
-
-  updateApiResource(onlineResource: ApiResource) {
-    this.name = onlineResource.name;
-    this.description = onlineResource.description;
-    this.cover = onlineResource.cover;
-    this.author = onlineResource.author;
-    this.category = onlineResource.category;
-    replaceArray(this.tags, onlineResource.tags);
-    this.repo = onlineResource.repo;
-    this.created = onlineResource.created;
-    this.updated = onlineResource.updated;
-    this.downloadCount = onlineResource.downloadCount;
-    this.releaseNodeId = onlineResource.releaseNodeId;
-    this.discussionNodeId = onlineResource.discussionNodeId;
   }
 
   updateApiReleaseAssets(apiReleaseAssets: ApiReleaseAsset[]) {

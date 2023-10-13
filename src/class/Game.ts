@@ -1,57 +1,78 @@
 import { myLogger } from 'src/boot/logger';
 import { deleteArrayItemByFieldId } from 'src/utils/ArrayUtils';
+import { notNull } from 'src/utils/CommentUtils';
 import { AssetStatus } from './Asset';
 import { Resource } from './Resource';
 import { ApiGame, ApiResource } from './Types';
 import { ImpResource } from './imp';
 
+type OnlineData = Readonly<Omit<ApiGame, 'id'>>;
+type LocalData = { name?: string };
+
 export class Game {
   readonly id: string;
-  name: string;
-  dataRepo?: string;
-  steamAppName?: string;
-  relativeRootInstallPath?: string;
-  autoMkRelativeRootInstallPath?: boolean;
-  icon?: string;
+  onlineData?: OnlineData;
+  localData: LocalData = {};
   readonly resources: Map<string, Resource> = new Map;
 
-  constructor({ id, name, dataRepo, steamAppName, relativeRootInstallPath, autoMkRelativeRootInstallPath, icon, resources = new Map }: {
-    id: string;
-    name: string;
-    dataRepo?: string;
-    steamAppName?: string;
-    relativeRootInstallPath?: string;
-    autoMkRelativeRootInstallPath?: boolean;
-    icon?: string;
+  constructor({ id, onlineData, localData, resources = new Map }: {
+    id: string
+    onlineData?: OnlineData
+    localData?: LocalData
     resources?: Map<string, Resource>
   }) {
     this.id = id;
-    this.name = name;
-    this.dataRepo = dataRepo;
-    this.steamAppName = steamAppName;
-    this.relativeRootInstallPath = relativeRootInstallPath;
-    this.autoMkRelativeRootInstallPath = autoMkRelativeRootInstallPath;
-    this.icon = icon;
+    this.onlineData = onlineData;
+    if (localData != null) {
+      this.localData = localData;
+    }
     for (const [resourceId, resource] of resources) {
       this.resources.set(resourceId, resource);
     }
   }
 
-  clearApiGameData() {
-    this.dataRepo = undefined;
-    this.steamAppName = undefined;
-    this.relativeRootInstallPath = undefined;
-    this.autoMkRelativeRootInstallPath = undefined;
-    this.icon = undefined;
+  static byApiGame(apiGame: ApiGame): Game {
+    const game = new Game({ id: apiGame.id });
+    game.onlineData = apiGame;
+    return game;
   }
 
-  updateByApiGame(apiGame: ApiGame) {
-    this.name = apiGame.name;
-    this.dataRepo = apiGame.dataRepo;
-    this.steamAppName = apiGame.steamAppName;
-    this.relativeRootInstallPath = apiGame.relativeRootInstallPath;
-    this.autoMkRelativeRootInstallPath = apiGame.autoMkRelativeRootInstallPath;
-    this.icon = apiGame.icon;
+  static byLocalGame(id: string, name: string): Game {
+    const game = new Game({ id });
+    game.name = name;
+    return game;
+  }
+
+  get name(): string {
+    if (this.localData.name != null) {
+      return this.localData.name;
+    } else {
+      return notNull(this.onlineData).name;
+    }
+  }
+
+  set name(name: string) {
+    this.localData.name = name;
+  }
+
+  get dataRepo(): string | undefined {
+    return this.onlineData?.dataRepo;
+  }
+
+  get steamAppName(): string | undefined {
+    return this.onlineData?.steamAppName;
+  }
+
+  get relativeRootInstallPath(): string | undefined {
+    return this.onlineData?.relativeRootInstallPath;
+  }
+
+  get autoMkRelativeRootInstallPath(): boolean | undefined {
+    return this.onlineData?.autoMkRelativeRootInstallPath;
+  }
+
+  get icon(): string | undefined {
+    return this.onlineData?.icon;
   }
 
   updateInstalledAsset(insAssets: Map<string, string[]>) {
@@ -61,7 +82,7 @@ export class Game {
     for (const [insResourceId, insAssetIds] of insAssets) {
       let resource = this.resources.get(insResourceId);
       if (resource == undefined) {
-        resource = Resource.newById(insResourceId);
+        resource = new Resource({ id: insResourceId });
         this.resources.set(resource.id, resource);
       }
       resource.updateInstalledAsset(insAssetIds);
@@ -82,7 +103,7 @@ export class Game {
     for (const [downResourceId, downAssetIds] of downAssets) {
       let resource = this.resources.get(downResourceId);
       if (resource == undefined) {
-        resource = Resource.newById(downResourceId);
+        resource = new Resource({ id: downResourceId });
         this.resources.set(resource.id, resource);
       }
       resource.updateDownloadedAsset(downAssetIds);
@@ -103,7 +124,7 @@ export class Game {
   importResource(impResource: ImpResource) {
     let resource = this.resources.get(impResource.id);
     if (resource == null) {
-      resource = Resource.newByImpResource(impResource);
+      resource = Resource.byImpResource(impResource);
       this.resources.set(resource.id, resource);
     } else {
       resource.updateImpAssets(impResource.assets);
@@ -111,7 +132,7 @@ export class Game {
   }
 
   isOnline(): boolean {
-    return this.dataRepo != undefined;
+    return this.onlineData != null;
   }
 
   isLocal(): boolean {
@@ -124,13 +145,13 @@ export class Game {
   updateApiResources(apiResources: ApiResource[]) {
     const deletedResources: Resource[] = Array.from(this.resources.values()).filter(i => !i.isLocal());
 
-    this.resources.forEach((i) => i.clearApiResourcetData());
+    this.resources.forEach((i) => i.onlineData = undefined);
 
     for (const apiResource of apiResources) {
       const oldResource = this.resources.get(apiResource.id);
       if (oldResource) {
         myLogger.debug(`Update resource [${oldResource.id}]`);
-        oldResource.updateApiResource(apiResource);
+        oldResource.onlineData = apiResource;
         deleteArrayItemByFieldId(deletedResources, oldResource);
       } else {
         myLogger.debug(`Add resource [${apiResource.id}]`);

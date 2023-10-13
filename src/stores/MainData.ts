@@ -47,17 +47,17 @@ export const useMainDataStore = defineStore(KEY_MAIN_DATA, () => {
       }
     }
 
-    games.value.forEach((it) => it.clearApiGameData());
+    games.value.forEach((it) => it.onlineData = undefined);
 
     for (const apiGame of apiGames) {
       const existGame = games.value.get(apiGame.id);
       if (existGame == null) {
         myLogger.debug(`Add Game[${apiGame.id}]`);
-        const newGame = new Game(apiGame);
+        const newGame = Game.byApiGame(apiGame);
         games.value.set(newGame.id, newGame);
       } else {
         myLogger.debug(`Update Game[${existGame.id}]`);
-        existGame.updateByApiGame(apiGame);
+        existGame.onlineData = apiGame;
       }
     }
   }
@@ -89,11 +89,13 @@ function init(): State {
       games: new Map([
         ['csti', new Game({
           id: 'csti',
-          name: '卡牌生存：热带岛屿',
-          dataRepo: 'HeYaoDaDa/GrcData-csti',
-          steamAppName: 'Card Survival Tropical Island',
-          relativeRootInstallPath: './BepInEx/plugins',
-          autoMkRelativeRootInstallPath: false
+          onlineData: {
+            name: '卡牌生存：热带岛屿',
+            dataRepo: 'HeYaoDaDa/GrcData-csti',
+            steamAppName: 'Card Survival Tropical Island',
+            relativeRootInstallPath: './BepInEx/plugins',
+            autoMkRelativeRootInstallPath: false
+          }
         })]
       ])
     };
