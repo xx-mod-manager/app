@@ -39,16 +39,7 @@ export const useMainDataStore = defineStore(KEY_MAIN_DATA, () => {
 
   function updateByApiGames(apiGames: ApiGame[]) {
     myLogger.debug(`Update by ApiGames[${apiGames.map(i => i.id).join()}]`);
-
-    for (const game of games.value.values()) {
-      if ((!game.isLocal()) && ((apiGames.find(it => it.id === game.id)) == null)) {
-        myLogger.debug(`Delete Game[${game.id}]`);
-        games.value.delete(game.id);
-      }
-    }
-
     games.value.forEach((it) => it.onlineData = undefined);
-
     for (const apiGame of apiGames) {
       const existGame = games.value.get(apiGame.id);
       if (existGame == null) {

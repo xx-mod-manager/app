@@ -123,6 +123,7 @@ import { matAdd } from '@quasar/extras/material-icons';
 import { QSelect, useQuasar } from 'quasar';
 import { myLogger } from 'src/boot/logger';
 import { Game } from 'src/class/Game';
+import { GameConfig } from 'src/class/GameConfig';
 import { useMainDataStore } from 'src/stores/MainData';
 import { useTempDataStore } from 'src/stores/TempData';
 import { useUserConfigStore } from 'src/stores/UserConfig';
@@ -219,8 +220,11 @@ function addNewGame() {
   mainDataStore.games.set(newGame.id, newGame);
   userConfigStore.updateGames([newGame]);
   useTempDataStore().initLocalGames([newGame]);
-  userConfigStore.gameConfigs.get(newGame.id)!.installPath =
-    newGameInstallPath.value;
+  const newGameConfig = new GameConfig({
+    id: newGame.id,
+    installPath: newGameInstallPath.value,
+  });
+  userConfigStore.gameConfigs.set(newGameConfig.id, newGameConfig);
   addNewGameDialog.value = false;
 }
 
