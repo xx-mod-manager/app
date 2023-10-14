@@ -1,24 +1,6 @@
 <template>
   <q-page style="padding: 0.5rem">
     <q-list bordered separator dense>
-      <q-item v-ripple clickable @click="gameSelect?.showPopup()">
-        <q-item-section>
-          <QSelect
-            ref="gameSelect"
-            v-model="userConfigStore.currentGameId"
-            borderless
-            stack-label
-            label="游戏"
-            :options="Array.from(mainDataStore.games.values())"
-            option-label="name"
-            option-value="id"
-            map-options
-            emit-value
-          >
-          </QSelect>
-        </q-item-section>
-      </q-item>
-
       <q-item v-ripple clickable @click="selectSteamAppsPath">
         <q-item-section>
           <q-field
@@ -34,6 +16,24 @@
               </div>
             </template>
           </q-field>
+        </q-item-section>
+      </q-item>
+
+      <q-item v-ripple clickable @click="gameSelect?.showPopup()">
+        <q-item-section>
+          <QSelect
+            ref="gameSelect"
+            v-model="userConfigStore.currentGameId"
+            borderless
+            stack-label
+            label="游戏"
+            :options="Array.from(mainDataStore.games.values())"
+            option-label="name"
+            option-value="id"
+            map-options
+            emit-value
+          >
+          </QSelect>
         </q-item-section>
       </q-item>
 
@@ -218,7 +218,6 @@ function addNewGame() {
   }
   const newGame = Game.byLocalGame(newGameId.value, newGameName.value);
   mainDataStore.games.set(newGame.id, newGame);
-  userConfigStore.updateGames([newGame]);
   useTempDataStore().initLocalGames([newGame]);
   const newGameConfig = new GameConfig({
     id: newGame.id,
