@@ -103,7 +103,7 @@ export class Game {
     for (const [downResourceId, downAssetIds] of downAssets) {
       let resource = this.resources.get(downResourceId);
       if (resource == undefined) {
-        resource = new Resource({ id: downResourceId });
+        resource = Resource.byId(downResourceId);
         this.resources.set(resource.id, resource);
       }
       resource.updateDownloadedAsset(downAssetIds);

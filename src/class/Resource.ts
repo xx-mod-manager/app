@@ -39,6 +39,19 @@ export class Resource {
     }
   }
 
+  static byId(resourceId: string): Resource {
+    const resource = new Resource({
+      id: resourceId, localData: {
+        name: resourceId,
+        description: resourceId,
+        author: 'None',
+        category: 'mod',
+        created: Date.now()
+      }
+    });
+    return resource;
+  }
+
   static byApiResource(apiResource: ApiResource): Resource {
     const resource = new Resource({ id: apiResource.id });
     resource.onlineData = apiResource;
